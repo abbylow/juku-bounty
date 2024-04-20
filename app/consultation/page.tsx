@@ -1,8 +1,7 @@
-export default function Home() {
-  // TODO: create landing page here
+export default function Consultation() {
   return (
     <main className="container min-h-screen flex flex-col items-center">
-      Landing page
+      Consultation
     </main>
   )
 }

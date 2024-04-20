@@ -1,8 +1,7 @@
-export default function Home() {
-  // TODO: create landing page here
+export default function Bounty() {
   return (
     <main className="container min-h-screen flex flex-col items-center">
-      Landing page
+      Bounty
     </main>
   )
 }
