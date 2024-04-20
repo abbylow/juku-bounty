@@ -1,5 +1,6 @@
 import { darkTheme, lightTheme } from '@thirdweb-dev/react'
 
+// TODO: change to green theme
 export const darkThirdwebTheme = darkTheme({
   colors: {
     accentButtonText: "#1E293B",
