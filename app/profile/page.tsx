@@ -1,7 +1,7 @@
 export default function Profile() {
   return (
     <section className="">
-      Profile
+      Profile View Page
     </section>
   )
 }
