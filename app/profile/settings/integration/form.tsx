@@ -22,13 +22,15 @@ import { toast } from "@/components/ui/use-toast"
 // TODO: learn more about the form and zod library eg: meaning of mode: onchange 
 // TODO: TBD - which platform to integrate and what data to be imported?
 const integrationFormSchema = z.object({
-
+  linkedin: z.string(),
+  twitter: z.string(),
 })
 
 type IntegrationFormValues = z.infer<typeof integrationFormSchema>
 
 const defaultValues: Partial<IntegrationFormValues> = {
-
+  linkedin: '',
+  twitter: ''
 }
 
 export function ProfileIntegrationForm() {
