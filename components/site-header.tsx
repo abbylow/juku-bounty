@@ -2,10 +2,19 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Award, Bell, BellDot, ShieldCheck } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
-import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL } from '@/const/links'
+import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PROFILE_URL } from '@/const/links'
 import { cn } from '@/lib/utils'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 // TODO: mobile responsiveness
 // TODO: logged in view - profile, notification, verified badge, platform point
@@ -23,6 +32,7 @@ export function Header() {
           <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
             <Icons.logo className="w-20 bg-white" />
           </a>
+
           <Link
             href={APP_HOMEPAGE_URL}
             className={cn(
@@ -59,11 +69,41 @@ export function Header() {
           <a href={FAQ_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
             FAQ
           </a>
+
         </div>
-        <div className="flex items-center justify-end gap-8">
+        <div className="flex items-center justify-end gap-4">
+          {/* TODO: start here - hide these buttons if user is not logged in */}
+          {/* TODO: TBD - where to link this route to? */}
+          <Link href={PROFILE_URL}>
+            <Award className="h-6 w-6" />
+          </Link>
+
+          {/* TODO: TBD - where to link this route to? */}
+          <Link href={PROFILE_URL}>
+            <ShieldCheck className="h-6 w-6" />
+          </Link>
+
+          <Sheet>
+            <SheetTrigger>
+              {/* TODO: determine if there is notification, show BellDot, else show Bell */}
+              {/* <Bell className="h-6 w-6" /> */}
+              <BellDot className="h-6 w-6" />
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Notifications</SheetTitle>
+                <SheetDescription>
+                  {/* TODO: add notification list here */}
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+          {/* TODO: TBD - logged in profile: reuse Thirdweb Connect UI or follow the wireframe */}
+          {/* TODO: end here - hide these buttons if user is not logged in */}
+
           <ConnectBtn />
         </div>
       </div>
-    </header>
+    </header >
   )
 }
