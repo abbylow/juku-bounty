@@ -1,4 +1,4 @@
-import { AvatarIcon } from "@radix-ui/react-icons"
+import { AvatarIcon } from '@radix-ui/react-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // TODO: get user profile and pfp from DID

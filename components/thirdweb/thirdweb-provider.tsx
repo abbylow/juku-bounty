@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import * as React from 'react'
 import {
   ThirdwebProvider as NextThirdwebProvider,
   metamaskWallet,
@@ -8,7 +8,7 @@ import {
   walletConnect,
   embeddedWallet,
   en,
-} from "@thirdweb-dev/react"
+} from '@thirdweb-dev/react'
 
 export function ThirdwebProvider({ children, ...props }: any) {
   return (

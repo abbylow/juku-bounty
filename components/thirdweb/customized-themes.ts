@@ -1,5 +1,6 @@
 import { darkTheme, lightTheme } from '@thirdweb-dev/react'
 
+// TODO: change to green theme
 export const darkThirdwebTheme = darkTheme({
   colors: {
     accentButtonText: "#1E293B",
@@ -7,7 +8,7 @@ export const darkThirdwebTheme = darkTheme({
     accentText: "#F8FAFC",
     separatorLine: "#1E293B",
     modalBg: "#020817",
-    dropdownBg: "#020817",
+    // dropdownBg: "#020817",
     danger: "#e54d2e",
     borderColor: "#1E293B",
     primaryText: "#F8FAFC",
@@ -32,7 +33,7 @@ export const lightThirdwebTheme = lightTheme({
     accentButtonBg: "#0F172A",
     accentButtonText: "#F1F5F9",
     modalBg: "#FFFFFF",
-    dropdownBg: "#FFFFFF",
+    // dropdownBg: "#FFFFFF",
     borderColor: "#E2E8F0",
     separatorLine: "#E2E8F0",
     secondaryButtonBg: "#F1F5F9",
