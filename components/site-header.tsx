@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 // TODO: mobile responsiveness
 // TODO: logged in view - profile, notification, verified badge, platform point
 // TODO: TBD create quest -> hover and expand nav menu for bounty and consultation request creation
-export async function Header() {
+export function Header() {
   const pathname = usePathname()
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
