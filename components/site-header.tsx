@@ -17,7 +17,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
-// TODO: mobile responsiveness
 export function Header() {
   const pathname = usePathname()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
