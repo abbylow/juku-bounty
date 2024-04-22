@@ -22,6 +22,7 @@ import { toast } from "@/components/ui/use-toast"
 // TODO: update validation rules
 // TODO: update onSubmit handling
 // TODO: learn more about the form and zod library
+// TODO: TBD - add job experience, certificates, education
 const profileFormSchema = z.object({
   displayName: z
     .string()
