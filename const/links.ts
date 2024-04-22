@@ -10,3 +10,4 @@ export const TERMS_OF_SERVICE_URL = "https://www.gitbook.com/"; //TODO: TBD
 export const HOW_IT_WORKS_URL = "https://www.gitbook.com/"; //TODO: TBD
 export const INTRODUCTION_URL = "https://www.gitbook.com/"; //TODO: TBD
 export const CONTACT_US_URL = "https://www.gitbook.com/"; //TODO: TBD
+export const PROFILE_URL = "/profile"; 
