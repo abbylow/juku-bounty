@@ -3,12 +3,10 @@ import { CONTACT_US_URL, FAQ_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PA
 import { Icons } from './icons'
 import { Linkedin, Twitter } from 'lucide-react'
 
-// TODO: mobile responsiveness
 export function Footer() {
   return (
     <footer className="py-6 bg-secondary">
-      {/* <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row"> */}
-      <div className="container flex md:flex-row flex-col max-w-screen-2xl items-center justify-between gap-32">
+      <div className="container max-w-screen-2xl flex md:flex-row md:items-center md:justify-between flex-col gap-16">
         <div className="flex md:items-center gap-8">
           <div className="flex flex-col gap-4">
             <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
@@ -28,7 +26,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="grid grid-flow-col auto-cols-fr md:gap-24 gap-8">
+        <div className="grid md:grid-cols-3 grid-cols-2 md:gap-24 gap-8">
           <div className="flex flex-col gap-2">
             <h5 className="text-lg font-semibold">
               Learn
