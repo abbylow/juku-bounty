@@ -1,7 +1,7 @@
 export default function Explore() {
   return (
-    <main className="container min-h-screen flex flex-col items-center">
+    <section className="">
       Explore
-    </main>
+    </section>
   )
 }

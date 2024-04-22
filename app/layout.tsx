@@ -41,7 +41,9 @@ export default function RootLayout({
           <ThirdwebProvider>
             <div className="relative min-h-screen flex flex-col bg-background">
               <Header />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 container">
+                {children}
+              </main>
               <Footer />
               <Toaster />
             </div>
