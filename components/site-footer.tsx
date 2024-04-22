@@ -1,7 +1,7 @@
+import { Linkedin, Twitter } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { CONTACT_US_URL, FAQ_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
 import { Icons } from './icons'
-import { Linkedin, Twitter } from 'lucide-react'
 
 export function Footer() {
   return (
