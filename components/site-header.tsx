@@ -43,7 +43,6 @@ export function Header() {
 
               <Link
                 href={APP_HOMEPAGE_URL}
-                className="text-foreground/60"
                 onClick={() => setMobileNavOpen(false)}
               >
                 Explore
@@ -51,36 +50,34 @@ export function Header() {
 
               <Link
                 href={BOUNTY_CREATION_URL}
-                className="text-foreground/60"
                 onClick={() => setMobileNavOpen(false)}
               >
                 Open a Bounty
               </Link>
               <Link
                 href={CONSULTATION_CREATION_URL}
-                className="text-foreground/60"
                 onClick={() => setMobileNavOpen(false)}
               >
                 Request for Consultation
               </Link>
 
-              <a href={FAQ_URL} rel="noreferrer noopener" target="_blank" className="text-foreground/60">
+              <a href={FAQ_URL} rel="noreferrer noopener" target="_blank">
                 FAQ
               </a>
 
               {/* TODO: only display this about juku route when user's not logged */}
-              <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank" className="text-foreground/60">
+              <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
                 About Juku
               </a>
 
               {/* TODO: start here - hide these buttons if user is not logged in */}
               {/* TODO: TBD - where to link this route to? */}
-              <Link href={PROFILE_URL} className="text-foreground/60" onClick={() => setMobileNavOpen(false)}>
+              <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
                 <Award className="h-6 w-6" />
               </Link>
 
               {/* TODO: TBD - where to link this route to? */}
-              <Link href={PROFILE_URL} className="text-foreground/60" onClick={() => setMobileNavOpen(false)}>
+              <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
                 <ShieldCheck className="h-6 w-6" />
               </Link>
               {/* TODO: end here - hide these buttons if user is not logged in */}
@@ -149,17 +146,17 @@ export function Header() {
         <div className="flex items-center justify-end gap-4">
           {/* TODO: start here - hide these buttons if user is not logged in */}
           {/* TODO: TBD - where to link this route to? */}
-          <Link href={PROFILE_URL} className="transition-colors text-foreground/60 hover:text-foreground/80 md:block hidden">
+          <Link href={PROFILE_URL} className="md:block hidden">
             <Award className="h-6 w-6" />
           </Link>
 
           {/* TODO: TBD - where to link this route to? */}
-          <Link href={PROFILE_URL} className="transition-colors text-foreground/60 hover:text-foreground/80 md:block hidden">
+          <Link href={PROFILE_URL} className="md:block hidden">
             <ShieldCheck className="h-6 w-6" />
           </Link>
 
           <Sheet>
-            <SheetTrigger className="transition-colors text-foreground/60 hover:text-foreground/80">
+            <SheetTrigger>
               {/* TODO: determine if there is notification, show BellDot, else show Bell */}
               <Bell className="h-6 w-6" />
               {/* <Icons.bellDot className="h-6 w-6" /> */}
@@ -197,7 +194,7 @@ const ListItem = forwardRef<
           )}
           {...props}
         >
-          <div className="text-sm font-medium leading-none">{title}</div>
+          <div className="font-medium leading-none">{title}</div>
           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
