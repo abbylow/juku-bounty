@@ -30,19 +30,15 @@ export function Header() {
               <Menu className="h-6 w-6" />
             </SheetTrigger>
             <SheetContent side="left" className='flex flex-col'>
-              {/* TODO: switch logo back to next/link */}
-              {/* <Link href="/" className="flex items-center space-x-2" onClick={() => setMobileNavOpen(false)}>
+              <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2" onClick={() => setMobileNavOpen(false)}>
                 <Icons.logo className="w-20 bg-white px-2" />
-              </Link> */}
-              <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
-                <Icons.logo className="w-16 bg-white" />
-              </a>
+              </Link>
 
               <Link
                 href={APP_HOMEPAGE_URL}
                 className={cn(
                   "transition-colors hover:text-foreground/80",
-                  pathname?.startsWith(APP_HOMEPAGE_URL)
+                  pathname && pathname === APP_HOMEPAGE_URL
                     ? "text-foreground"
                     : "text-foreground/60"
                 )}
@@ -95,18 +91,18 @@ export function Header() {
           {/* end of mobile menu */}
 
           {/* TODO: switch logo back to next/link */}
-          {/* <Link href="/" className="flex items-center space-x-2">
+          <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2">
             <Icons.logo className="w-20 bg-white px-2" />
-          </Link> */}
-          <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
+          </Link>
+          {/* <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
             <Icons.logo className="md:w-20 w-16 bg-white" />
-          </a>
+          </a> */}
 
           <Link
             href={APP_HOMEPAGE_URL}
             className={cn(
               "transition-colors hover:text-foreground/80 md:block hidden",
-              pathname?.startsWith(APP_HOMEPAGE_URL)
+              pathname && pathname === APP_HOMEPAGE_URL
                 ? "text-foreground"
                 : "text-foreground/60"
             )}
