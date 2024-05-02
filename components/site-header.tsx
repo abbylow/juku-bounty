@@ -156,8 +156,8 @@ export function Header() {
           <Sheet>
             <SheetTrigger className="transition-colors text-foreground/60 hover:text-foreground/80">
               {/* TODO: determine if there is notification, show BellDot, else show Bell */}
-              {/* <Bell className="h-6 w-6" /> */}
-              <Icons.bellDot className="h-6 w-6" />
+              <Bell className="h-6 w-6" />
+              {/* <Icons.bellDot className="h-6 w-6" /> */}
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
