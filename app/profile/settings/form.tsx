@@ -23,6 +23,7 @@ import { toast } from "@/components/ui/use-toast"
 // TODO: update onSubmit handling
 // TODO: learn more about the form and zod library
 // TODO: TBD - add job experience, certificates, education
+// TODO: skill field
 const profileFormSchema = z.object({
   displayName: z
     .string()
@@ -48,6 +49,12 @@ const profileFormSchema = z.object({
     )
     .max(3, {
       message: "Skills must not contain more than 3 items.",
+    })
+    .refine(items => {
+      const uniqueValues = new Set(items.map(item => item.value));
+      return uniqueValues.size === items.length;
+    }, {
+      message: "Each skill must be unique",
     })
     .optional()
 })
@@ -135,9 +142,9 @@ export function ProfileForm() {
                   <FormLabel className={cn(index !== 0 && "sr-only")}>
                     Skills
                   </FormLabel>
-                  <FormDescription className={cn(index !== 0 && "sr-only")}>
+                  {/* <FormDescription className={cn(index !== 0 && "sr-only")}>
                     Add your skills here.
-                  </FormDescription>
+                  </FormDescription> */}
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
