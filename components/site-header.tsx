@@ -103,18 +103,12 @@ export function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Create Quest</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px]">
+                  <ul className="grid gap-3 p-6 w-[270px]">
                     <Link href={BOUNTY_CREATION_URL} passHref legacyBehavior>
-                      <ListItem title="Open a Bounty">
-                        {/* TODO: update the desc here */}
-                        Re-usable components built using Radix UI and Tailwind CSS.
-                      </ListItem>
+                      <ListItem title="Open a Bounty" />
                     </Link>
                     <Link href={CONSULTATION_CREATION_URL} passHref legacyBehavior>
-                      <ListItem href={CONSULTATION_CREATION_URL} title="Request for Consultation">
-                        {/* TODO: update the desc here */}
-                        How to install dependencies and structure your app.
-                      </ListItem>
+                      <ListItem href={CONSULTATION_CREATION_URL} title="Request for Consultation" />
                     </Link>
                   </ul>
                 </NavigationMenuContent>
@@ -129,7 +123,7 @@ export function Header() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                {/* TODO: only display this about juku route when user's not logged */}
+                {/* TODO: only display this about juku route when user's not logged - move this to profile icon after logged in*/}
                 <Link href={LANDING_PAGE_URL} passHref legacyBehavior>
                   <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
                     <a rel="noreferrer noopener" target="_blank">
