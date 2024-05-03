@@ -1,7 +1,7 @@
 export default function Bounty() {
   return (
     <section className="">
-      Bounty
+      Bounty view
     </section>
   )
 }
