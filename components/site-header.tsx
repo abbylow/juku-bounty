@@ -3,7 +3,7 @@
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
 import { Award, Bell, Menu, ShieldCheck } from 'lucide-react'
-import { Icons } from '@/components/icons'
+import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
 import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PROFILE_URL } from '@/const/links'
 import { cn } from '@/lib/utils'
@@ -38,7 +38,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left" className='flex flex-col'>
               <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2" onClick={() => setMobileNavOpen(false)}>
-                <Icons.logo className="w-20 bg-white px-2" />
+                <JukuIcon className="w-20 px-2" />
               </Link>
 
               <Link
@@ -88,7 +88,7 @@ export function Header() {
 
           {/* desktop menu */}
           <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2">
-            <Icons.logo className="w-20 bg-white px-2" />
+            <JukuIcon className="w-20 px-2" />
           </Link>
 
           <NavigationMenu className="md:block hidden">

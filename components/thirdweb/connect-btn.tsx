@@ -4,12 +4,12 @@ import {
   ConnectWallet,
   // Theme
 } from '@thirdweb-dev/react'
-import { useTheme } from 'next-themes'
+// import { useTheme } from 'next-themes'
 // import { useEffect, useState } from 'react'
 // import { darkThirdwebTheme, lightThirdwebTheme } from './customized-themes'
 
 export function ConnectBtn() {
-  const { theme, systemTheme } = useTheme()
+  // const { theme, systemTheme } = useTheme()
 
   // const [customizedTheme, setCustomizedTheme] = useState<"dark" | "light" | Theme | undefined>("light")
 
