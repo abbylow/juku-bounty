@@ -3,6 +3,7 @@
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
 import { Award, Bell, Menu, ShieldCheck } from 'lucide-react'
+import { useUser } from '@thirdweb-dev/react'
 import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
 import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PROFILE_URL } from '@/const/links'
@@ -27,6 +28,8 @@ import {
 
 export function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const { isLoggedIn } = useUser()
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-20 max-w-screen-2xl items-center justify-between gap-4">
@@ -70,17 +73,21 @@ export function Header() {
                 About Juku
               </a>
 
-              {/* TODO: start here - hide these buttons if user is not logged in */}
-              {/* TODO: TBD - where to link this route to? */}
-              <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
-                <Award className="h-6 w-6" />
-              </Link>
+              {
+                isLoggedIn && (
+                  <>
+                    {/* TODO: TBD - where to link this route to? */}
+                    <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
+                      <Award className="h-6 w-6" />
+                    </Link>
 
-              {/* TODO: TBD - where to link this route to? */}
-              <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
-                <ShieldCheck className="h-6 w-6" />
-              </Link>
-              {/* TODO: end here - hide these buttons if user is not logged in */}
+                    {/* TODO: TBD - where to link this route to? */}
+                    <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
+                      <ShieldCheck className="h-6 w-6" />
+                    </Link>
+                  </>
+                )
+              }
 
             </SheetContent>
           </Sheet>
@@ -138,34 +145,40 @@ export function Header() {
         </div>
 
         <div className="flex items-center justify-end gap-4">
-          {/* TODO: start here - hide these buttons if user is not logged in */}
-          {/* TODO: TBD - where to link this route to? */}
-          <Link href={PROFILE_URL} className="md:block hidden">
-            <Award className="h-6 w-6" />
-          </Link>
+          {
+            isLoggedIn && (
+              <>
+                {/* TODO: TBD - where to link this route to? */}
+                <Link href={PROFILE_URL} className="md:block hidden">
+                  <Award className="h-6 w-6" />
+                </Link>
 
-          {/* TODO: TBD - where to link this route to? */}
-          <Link href={PROFILE_URL} className="md:block hidden">
-            <ShieldCheck className="h-6 w-6" />
-          </Link>
+                {/* TODO: TBD - where to link this route to? */}
+                <Link href={PROFILE_URL} className="md:block hidden">
+                  <ShieldCheck className="h-6 w-6" />
+                </Link>
 
-          <Sheet>
-            <SheetTrigger>
-              {/* TODO: determine if there is notification, show BellDot, else show Bell */}
-              <Bell className="h-6 w-6" />
-              {/* <Icons.bellDot className="h-6 w-6" /> */}
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Notifications</SheetTitle>
-                <SheetDescription>
-                  {/* TODO: add notification list here */}
-                </SheetDescription>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
-          {/* TODO: TBD - logged in profile: reuse Thirdweb Connect UI or follow the wireframe */}
-          {/* TODO: end here - hide these buttons if user is not logged in */}
+                <Sheet>
+                  <SheetTrigger>
+                    {/* TODO: determine if there is notification, show BellDot, else show Bell */}
+                    <Bell className="h-6 w-6" />
+                    {/* <Icons.bellDot className="h-6 w-6" /> */}
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Notifications</SheetTitle>
+                      <SheetDescription>
+                        {/* TODO: add notification list here */}
+                      </SheetDescription>
+                    </SheetHeader>
+                  </SheetContent>
+                </Sheet>
+
+                {/* TODO: TBD - logged in profile: reuse Thirdweb Connect UI or follow the wireframe */}
+              </>
+            )
+          }
+
           <ConnectBtn />
         </div>
       </div>
