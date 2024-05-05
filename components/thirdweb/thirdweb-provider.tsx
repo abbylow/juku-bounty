@@ -9,6 +9,7 @@ import {
   embeddedWallet,
   en,
 } from '@thirdweb-dev/react'
+import { Cyber, CyberTestnet} from '@thirdweb-dev/chains'
 
 export function ThirdwebProvider({ children, ...props }: any) {
   return (
@@ -25,7 +26,7 @@ export function ThirdwebProvider({ children, ...props }: any) {
         }),
       ]}
       locale={en()}
-      // activeChain="mumbai"
+      activeChain={process.env.NODE_ENV === "production" ? Cyber : CyberTestnet}
       authConfig={{
         authUrl: "/api/auth",
         domain: process.env.NEXT_PUBLIC_THIRDWEB_AUTH_DOMAIN || "",
