@@ -34,3 +34,23 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+
+## Ceramic Data Modeling 
+### Define models 
+Create schema in grapgql, eg: composites/schema.graphql
+### Generate composite
+
+`composedb composite:create schema.graphql --output=composite.json --did-private-key=[ADMIN_KEY]`
+
+### Deploy composite
+`composedb composite:deploy composite.json --ceramic-url=http://localhost:7007 --did-private-key=[ADMIN_KEY]`
+#### Examples of deployed composites: 
+["kjzl6hvfrbw6cb1xctc6896v8id5qnmcdg0biqaez3yuytrsgpjaa0czc32bdgn","kjzl6hvfrbw6c7zk4c0rksxamnpnaimwnpgyme24cfd3q0gmba5km2tzkns4dfi"]
+
+### Compile composite 
+`composedb composite:compile composite.json runtime-composite.json`
+
+### Run graphql server
+`composedb graphql:server --ceramic-url=http://localhost:7007 --graphiql runtime-composite.json --did-private-key=[ADMIN_KEY] --port=5005`
+
