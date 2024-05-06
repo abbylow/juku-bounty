@@ -83,19 +83,11 @@ const bountyFormSchema = z.object({
 
 type BountyFormValues = z.infer<typeof bountyFormSchema>
 
-// const defaultValues: Partial<BountyFormValues> = {
-//   categories: [""],
-// }
-
 export function BountyForm() {
   const form = useForm<BountyFormValues>({
     resolver: zodResolver(bountyFormSchema),
+    mode: "onChange",
   })
-
-  // const { fields, append } = useFieldArray({
-  //   name: "categories" as Path<BountyFormValues>,
-  //   control: form.control,
-  // })
 
   function onSubmit(data: BountyFormValues) {
     toast({
@@ -214,6 +206,7 @@ export function BountyForm() {
           />
         </div>
 
+        {/* TODO: choose date and time */}
         <FormField
           control={form.control}
           name="expiry"
@@ -257,37 +250,6 @@ export function BountyForm() {
         />
 
         {/* TODO: TBD - category should be dropdown if only admin can set */}
-        {/* <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={"categories"}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    Categories
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          {fields.length < MAX_NUM_OF_TAGS &&
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={() => append("")}
-            >
-              Add Tag
-            </Button>
-          }
-        </div> */}
         <Button type="submit">Open Bounty</Button>
 
         <p className="text-sm text-muted-foreground">
