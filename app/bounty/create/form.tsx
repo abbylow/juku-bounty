@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/popover"
 import { toast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
+import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/const/links"
 
 // TODO: read this https://ui.shadcn.com/docs/components/form 
 // TODO: change select to this? https://ui.shadcn.com/docs/components/select#form
@@ -288,6 +289,15 @@ export function BountyForm() {
           }
         </div> */}
         <Button type="submit">Open Bounty</Button>
+
+        <p className="text-sm text-muted-foreground">
+          By confirming to open the bounty, you hereby acknowledge that you have read and accept our {" "}
+          <a href={TERMS_OF_SERVICE_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 underline hover:text-foreground/80">
+            Terms of Service
+          </a> and <a href={PRIVACY_POLICY_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 underline hover:text-foreground/80">
+            Privacy Policy
+          </a>.
+        </p>
       </form>
     </Form>
   )
