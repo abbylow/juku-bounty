@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CalendarIcon, ChevronDownIcon } from "@radix-ui/react-icons"
 import { format } from "date-fns"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { cn } from "@/lib/utils"
@@ -43,21 +43,21 @@ const MAX_NUM_OF_TAGS = 5;
 const bountyFormSchema = z.object({
   title: z
     .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
+    .min(5, {
+      message: "Name must be at least 5 characters.",
     })
     .max(80, {
       message: "Name must not be longer than 80 characters.",
     }),
-  content: z
+  description: z
     .string()
     .min(2, {
       message: "Name must be at least 2 characters.",
     })
-    .max(5000, {
-      message: "Name must not be longer than 5000 characters.",
+    .max(1000, {
+      message: "Name must not be longer than 1000 characters.",
     }),
-  currency: z.enum(ACCEPTABLE_CURRENCIES, {
+  rewardCurrency: z.enum(ACCEPTABLE_CURRENCIES, {
     invalid_type_error: "Select a currency",
     required_error: "Please select a currency.",
   }),
@@ -122,10 +122,10 @@ export function BountyForm() {
 
         <FormField
           control={form.control}
-          name="content"
+          name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content</FormLabel>
+              <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Provide context for your quest, state your quest completion goal and reward criteria clearly."
@@ -161,7 +161,7 @@ export function BountyForm() {
 
           <FormField
             control={form.control}
-            name="currency"
+            name="rewardCurrency"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Currency</FormLabel>
