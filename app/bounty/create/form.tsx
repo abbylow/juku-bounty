@@ -145,7 +145,27 @@ export function BountyForm() {
           )}
         />
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
+          <FormField
+            control={form.control}
+            name="numberOfRewarders"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Number of Rewarders</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    step={1}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="currency"
@@ -184,26 +204,6 @@ export function BountyForm() {
                 <FormControl>
                   <Input
                     type="number"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="numberOfRewarders"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Number of Rewarders</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={10}
-                    step={1}
                     {...field}
                   />
                 </FormControl>
@@ -255,6 +255,7 @@ export function BountyForm() {
           )}
         />
 
+        {/* TODO: TBD - category should be dropdown if only admin can set */}
         {/* <div>
           {fields.map((field, index) => (
             <FormField
