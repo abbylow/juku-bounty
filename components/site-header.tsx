@@ -30,7 +30,7 @@ import {
 export function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const { isLoggedIn } = useUser()
-
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-20 max-w-screen-2xl items-center justify-between gap-4">
@@ -90,6 +90,8 @@ export function Header() {
                     <Link href={PROFILE_SETTINGS_URL} onClick={() => setMobileNavOpen(false)}>
                       <Settings className="h-6 w-6" />
                     </Link>
+
+                    <ConnectBtn />
                   </>
                 )
               }
@@ -201,7 +203,9 @@ export function Header() {
             )
           }
 
-          <ConnectBtn />
+          <div className={isLoggedIn ? "md:block hidden" : ""}>
+            <ConnectBtn />
+          </div>
         </div>
       </div>
     </header >
