@@ -22,63 +22,48 @@ import { toast } from "@/components/ui/use-toast"
 // TODO: update validation rules
 // TODO: update onSubmit handling
 // TODO: learn more about the form and zod library
-// TODO: TBD - add job experience, certificates, education
-// TODO: skill field
+// TODO: add profile picture setup - upload to ipfs and store ipfs link
 const profileFormSchema = z.object({
   displayName: z
     .string()
-    .min(2, {
-      message: "Display name must be at least 2 characters.",
+    .min(3, {
+      message: "Display name must be at least 3 characters.",
     })
-    .max(30, {
-      message: "Display name must not be longer than 30 characters.",
+    .max(100, {
+      message: "Display name must not be longer than 100 characters.",
     }),
-  bio: z.string().max(160).min(4),
-  skills: z
-    .array(
-      z.object({
-        value: z
-          .string()
-          .min(2, {
-            message: "Skill name must be at least 2 characters.",
-          })
-          .max(30, {
-            message: "Skill name must not be longer than 30 characters.",
-          }),
-      })
-    )
-    .max(3, {
-      message: "Skills must not contain more than 3 items.",
+  username: z
+    .string()
+    .min(3, {
+      message: "Display name must be at least 3 characters.",
     })
-    .refine(items => {
-      const uniqueValues = new Set(items.map(item => item.value));
-      return uniqueValues.size === items.length;
-    }, {
-      message: "Each skill must be unique",
+    .max(100, {
+      message: "Display name must not be longer than 100 characters.",
+    }),
+  bio: z
+    .string()
+    .min(4, {
+      message: "About me must be at least 4 characters.",
     })
-    .optional()
+    .max(160, {
+      message: "About me must not be longer than 160 characters.",
+    }),
+  // pfp: z
+  //   .string()
+  //   .min(3, {
+  //     message: "Profile picture link must be at least 3 characters.",
+  //   })
+  //   .max(100, {
+  //     message: "Profile picture link must not be longer than 100 characters.",
+  //   }),
 })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-const defaultValues: Partial<ProfileFormValues> = {
-  displayName: "John Doe",
-  bio: "I am an interesting human",
-  skills: [
-    { value: "" },
-  ],
-}
-
 export function ProfileForm() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
     mode: "onChange",
-  })
-
-  const { fields, append } = useFieldArray({
-    name: "skills",
-    control: form.control,
   })
 
   function onSubmit(data: ProfileFormValues) {
@@ -97,6 +82,19 @@ export function ProfileForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input placeholder="john-doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="displayName"
           render={({ field }) => (
             <FormItem>
@@ -104,9 +102,6 @@ export function ProfileForm() {
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
               </FormControl>
-              <FormDescription>
-                This is your public display name. It can be your real name or a pseudonym.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -119,53 +114,16 @@ export function ProfileForm() {
               <FormLabel>About Me</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us a little bit about yourself"
+                  placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`skills.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    Skills
-                  </FormLabel>
-                  {/* <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    Add your skills here.
-                  </FormDescription> */}
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          {fields.length < 3 &&
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={() => append({ value: "" })}
-            >
-              Add Skill
-            </Button>
-          }
-        </div>
-        <Button type="submit">Update profile</Button>
+        <Button type="submit">Save changes</Button>
       </form>
     </Form>
   )
