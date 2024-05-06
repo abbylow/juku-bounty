@@ -1,5 +1,5 @@
-// import type { CeramicApi } from "@ceramicnetwork/common";
-// import type { ComposeClient } from "@composedb/client";
+import type { CeramicClient } from "@ceramicnetwork/http-client";
+import type { ComposeClient } from "@composedb/client";
 import { DIDSession } from "did-session";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
 
@@ -19,18 +19,18 @@ export const CERAMIC_SESSION_KEY = "ceramic-session";
  * @returns Promise<DID-Session> - The User's authenticated sesion.
  */
 export const authenticateCeramic = async (
-  ceramic: any,
-  // compose: ComposeClient,
+  ceramic: CeramicClient,
+  compose: ComposeClient,
   provider: any,
 ) => {
   // authenticateEthPKH(ceramic, compose);
   const processedProvider = processProvider(provider);
-  authenticateEthPKH(ceramic, processedProvider);
+  authenticateEthPKH(ceramic, compose, processedProvider);
 };
 
 const authenticateEthPKH = async (
-  ceramic: any,
-  // compose: ComposeClient,
+  ceramic: CeramicClient,
+  compose: ComposeClient,
   provider: any,
 ) => {
   const sessionStr = localStorage.getItem(CERAMIC_SESSION_KEY); // for production you will want a better place than localStorage for your sessions.
@@ -64,10 +64,9 @@ const authenticateEthPKH = async (
      * @NOTE: The specific resources (ComposeDB data models) are provided through
      * "compose.resources" below.
      */
-
-    // session = await DIDSession.authorize(authMethod, { resources: compose.resources });
     session = await DIDSession.authorize(authMethod, {
-      resources: [`ceramic://*`], // TODO: replace to compose.resources
+      // resources: [`ceramic://*`],
+      resources: compose.resources,
       expiresInSecs: threeMonths
     });
     console.log({ session }, session.serialize())
@@ -76,7 +75,7 @@ const authenticateEthPKH = async (
   }
 
   // Set our Ceramic DID to be our session DID.
-  // compose.setDID(session.did);
+  compose.setDID(session.did);
   ceramic.did = session.did;
   return;
 };

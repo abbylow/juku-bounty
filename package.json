@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ceramicnetwork/http-client": "^5.9.0",
+    "@composedb/client": "^0.7.1",
+    "@composedb/types": "^0.7.1",
     "@didtools/pkh-ethereum": "^0.5.0",
     "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-avatar": "^1.0.4",
