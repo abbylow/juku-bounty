@@ -2,12 +2,13 @@
 
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
-import { Award, Bell, Menu, ShieldCheck } from 'lucide-react'
+import { Bell, Menu, CircleUserRound, Sprout } from 'lucide-react'
 import { useUser } from '@thirdweb-dev/react'
 import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
-import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PROFILE_URL } from '@/const/links'
+import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_URL } from '@/const/links'
 import { cn } from '@/lib/utils'
+// import { Icons } from "@/components/icons"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -77,13 +78,13 @@ export function Header() {
                 isLoggedIn && (
                   <>
                     {/* TODO: TBD - where to link this route to? */}
-                    <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
-                      <Award className="h-6 w-6" />
+                    <Link href={PLATFROM_QUEST_URL} onClick={() => setMobileNavOpen(false)}>
+                      <Sprout className="h-6 w-6" />
                     </Link>
 
-                    {/* TODO: TBD - where to link this route to? */}
+                    {/* TODO: display a list of menu to profile and settings */}
                     <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
-                      <ShieldCheck className="h-6 w-6" />
+                      <CircleUserRound className="h-6 w-6" />
                     </Link>
                   </>
                 )
@@ -110,12 +111,16 @@ export function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Create Quest</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid gap-3 p-6 w-[270px]">
+                  <ul className="grid gap-3 p-5 md:w-[400px] lg:w-[500px]">
                     <Link href={BOUNTY_CREATION_URL} passHref legacyBehavior>
-                      <ListItem title="Open a Bounty" />
+                      <ListItem title="Open a Bounty">
+                        Raise a request in the public to get feedback from other contributors.
+                      </ListItem>
                     </Link>
                     <Link href={CONSULTATION_CREATION_URL} passHref legacyBehavior>
-                      <ListItem href={CONSULTATION_CREATION_URL} title="Request for Consultation" />
+                      <ListItem title="Request for Consultation">
+                        Describe your consultation for experts to sign up and book a private session.
+                      </ListItem>
                     </Link>
                   </ul>
                 </NavigationMenuContent>
@@ -149,13 +154,13 @@ export function Header() {
             isLoggedIn && (
               <>
                 {/* TODO: TBD - where to link this route to? */}
-                <Link href={PROFILE_URL} className="md:block hidden">
-                  <Award className="h-6 w-6" />
+                <Link href={PLATFROM_QUEST_URL} className="md:block hidden">
+                  <Sprout className="h-6 w-6" />
                 </Link>
 
-                {/* TODO: TBD - where to link this route to? */}
+                {/* TODO: display a list of menu to profile and settings */}
                 <Link href={PROFILE_URL} className="md:block hidden">
-                  <ShieldCheck className="h-6 w-6" />
+                  <CircleUserRound className="h-6 w-6" />
                 </Link>
 
                 <Sheet>
@@ -173,8 +178,6 @@ export function Header() {
                     </SheetHeader>
                   </SheetContent>
                 </Sheet>
-
-                {/* TODO: TBD - logged in profile: reuse Thirdweb Connect UI or follow the wireframe */}
               </>
             )
           }
