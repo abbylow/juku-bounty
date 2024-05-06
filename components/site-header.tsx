@@ -2,11 +2,11 @@
 
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
-import { Bell, Menu, CircleUserRound, Sprout } from 'lucide-react'
+import { Bell, Menu, CircleUserRound, Sprout, Settings } from 'lucide-react'
 import { useUser } from '@thirdweb-dev/react'
 import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
-import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_URL } from '@/const/links'
+import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_SETTINGS_URL, PROFILE_URL } from '@/const/links'
 import { cn } from '@/lib/utils'
 // import { Icons } from "@/components/icons"
 import {
@@ -86,6 +86,10 @@ export function Header() {
                     <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
                       <CircleUserRound className="h-6 w-6" />
                     </Link>
+
+                    <Link href={PROFILE_SETTINGS_URL} onClick={() => setMobileNavOpen(false)}>
+                      <Settings className="h-6 w-6" />
+                    </Link>
                   </>
                 )
               }
@@ -158,10 +162,25 @@ export function Header() {
                   <Sprout className="h-6 w-6" />
                 </Link>
 
-                {/* TODO: display a list of menu to profile and settings */}
-                <Link href={PROFILE_URL} className="md:block hidden">
-                  <CircleUserRound className="h-6 w-6" />
-                </Link>
+                <NavigationMenu className="md:block hidden">
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>
+                        <CircleUserRound className="h-6 w-6" />
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid gap-3 p-5 w-[200px]">
+                          <Link href={PROFILE_URL} passHref legacyBehavior>
+                            <ListItem title="My Profile" />
+                          </Link>
+                          <Link href={PROFILE_SETTINGS_URL} passHref legacyBehavior>
+                            <ListItem title="My Settings" />
+                          </Link>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
                 <Sheet>
                   <SheetTrigger>
