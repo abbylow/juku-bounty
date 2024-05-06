@@ -4,7 +4,6 @@ import {
   ConnectWallet,
   // Theme
 } from '@thirdweb-dev/react'
-import { CERAMIC_SESSION_KEY } from '@/components/ceramic/utils';
 // import { useTheme } from 'next-themes'
 // import { useEffect, useState } from 'react'
 // import { darkThirdwebTheme, lightThirdwebTheme } from './customized-themes'
@@ -26,9 +25,6 @@ export function ConnectBtn() {
       modalTitleIconUrl={""} //TODO: add link to our logo
       auth={{
         loginOptional: false,
-        onLogout() {
-          localStorage.removeItem(CERAMIC_SESSION_KEY);
-        },
       }}
       switchToActiveChain
     // termsOfServiceUrl="https://...." //TODO: add terms of service page and turn this on

@@ -3,11 +3,11 @@
 import { createContext, useContext, useEffect } from "react";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { useSigner, useUser } from "@thirdweb-dev/react";
-import { authenticateCeramic } from "@/components/ceramic/utils";
-// import { ComposeClient } from "@composedb/client";
+import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/utils";
+import { ComposeClient } from "@composedb/client";
 
 // import { definition } from "../src/__generated__/definition.js";
-// import { RuntimeCompositeDefinition } from "@composedb/types";
+import { RuntimeCompositeDefinition } from "@composedb/types";
 
 /**
  * Configure ceramic Client & create context.
@@ -32,6 +32,9 @@ export const CeramicProvider = ({ children }: any) => {
   useEffect(() => {
     if (!isLoading && isLoggedIn && signer) {
       authenticateCeramic(ceramic, signer);
+    }
+    if (!isLoading && !isLoggedIn) {
+      localStorage.removeItem(CERAMIC_SESSION_KEY);
     }
   }, [isLoading, isLoggedIn, signer])
 
