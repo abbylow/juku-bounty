@@ -1,7 +1,9 @@
+import BountyList from "@/components/bounties";
+
 export default function Home() {
   return (
     <section className="">
-      Explore home
+      <BountyList />
     </section>
   )
 }
