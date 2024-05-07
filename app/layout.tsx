@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter as FontSans } from 'next/font/google'
+import { CeramicProvider } from '@/components/ceramic/ceramic-provider'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 import { ThirdwebProvider } from '@/components/thirdweb/thirdweb-provider'
 import { Footer } from '@/components/site-footer'
@@ -39,14 +40,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThirdwebProvider>
-            <div className="relative min-h-screen flex flex-col bg-background">
-              <Header />
-              <main className="flex-1 container">
-                {children}
-              </main>
-              <Footer />
-              <Toaster />
-            </div>
+            <CeramicProvider>
+              <div className="relative min-h-screen flex flex-col bg-background">
+                <Header />
+                <main className="flex-1 container">
+                  {children}
+                </main>
+                <Footer />
+                <Toaster />
+              </div>
+            </CeramicProvider>
           </ThirdwebProvider>
         </ThemeProvider>
       </body>

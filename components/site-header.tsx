@@ -2,11 +2,13 @@
 
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
-import { Award, Bell, Menu, ShieldCheck } from 'lucide-react'
-import { Icons } from '@/components/icons'
+import { Bell, Menu, CircleUserRound, Sprout, Settings } from 'lucide-react'
+import { useUser } from '@thirdweb-dev/react'
+import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
-import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PROFILE_URL } from '@/const/links'
+import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_SETTINGS_URL, PROFILE_URL } from '@/const/links'
 import { cn } from '@/lib/utils'
+// import { Icons } from "@/components/icons"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -27,6 +29,8 @@ import {
 
 export function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const { isLoggedIn } = useUser()
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-20 max-w-screen-2xl items-center justify-between gap-4">
@@ -38,7 +42,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left" className='flex flex-col'>
               <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2" onClick={() => setMobileNavOpen(false)}>
-                <Icons.logo className="w-20 bg-white px-2" />
+                <JukuIcon className="w-20 px-2" />
               </Link>
 
               <Link
@@ -70,17 +74,27 @@ export function Header() {
                 About Juku
               </a>
 
-              {/* TODO: start here - hide these buttons if user is not logged in */}
-              {/* TODO: TBD - where to link this route to? */}
-              <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
-                <Award className="h-6 w-6" />
-              </Link>
+              {
+                isLoggedIn && (
+                  <>
+                    {/* TODO: TBD - where to link this route to? */}
+                    <Link href={PLATFROM_QUEST_URL} onClick={() => setMobileNavOpen(false)}>
+                      <Sprout className="h-6 w-6" />
+                    </Link>
 
-              {/* TODO: TBD - where to link this route to? */}
-              <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
-                <ShieldCheck className="h-6 w-6" />
-              </Link>
-              {/* TODO: end here - hide these buttons if user is not logged in */}
+                    {/* TODO: display a list of menu to profile and settings */}
+                    <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
+                      <CircleUserRound className="h-6 w-6" />
+                    </Link>
+
+                    <Link href={PROFILE_SETTINGS_URL} onClick={() => setMobileNavOpen(false)}>
+                      <Settings className="h-6 w-6" />
+                    </Link>
+
+                    <ConnectBtn />
+                  </>
+                )
+              }
 
             </SheetContent>
           </Sheet>
@@ -88,7 +102,7 @@ export function Header() {
 
           {/* desktop menu */}
           <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2">
-            <Icons.logo className="w-20 bg-white px-2" />
+            <JukuIcon className="w-20 px-2" />
           </Link>
 
           <NavigationMenu className="md:block hidden">
@@ -103,17 +117,15 @@ export function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Create Quest</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px]">
+                  <ul className="grid gap-3 p-5 md:w-[400px] lg:w-[500px]">
                     <Link href={BOUNTY_CREATION_URL} passHref legacyBehavior>
                       <ListItem title="Open a Bounty">
-                        {/* TODO: update the desc here */}
-                        Re-usable components built using Radix UI and Tailwind CSS.
+                        Raise a request in the public to get feedback from other contributors.
                       </ListItem>
                     </Link>
                     <Link href={CONSULTATION_CREATION_URL} passHref legacyBehavior>
-                      <ListItem href={CONSULTATION_CREATION_URL} title="Request for Consultation">
-                        {/* TODO: update the desc here */}
-                        How to install dependencies and structure your app.
+                      <ListItem title="Request for Consultation">
+                        Describe your consultation for experts to sign up and book a private session.
                       </ListItem>
                     </Link>
                   </ul>
@@ -129,7 +141,7 @@ export function Header() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                {/* TODO: only display this about juku route when user's not logged */}
+                {/* TODO: only display this about juku route when user's not logged - move this to profile icon after logged in*/}
                 <Link href={LANDING_PAGE_URL} passHref legacyBehavior>
                   <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
                     <a rel="noreferrer noopener" target="_blank">
@@ -144,35 +156,56 @@ export function Header() {
         </div>
 
         <div className="flex items-center justify-end gap-4">
-          {/* TODO: start here - hide these buttons if user is not logged in */}
-          {/* TODO: TBD - where to link this route to? */}
-          <Link href={PROFILE_URL} className="md:block hidden">
-            <Award className="h-6 w-6" />
-          </Link>
+          {
+            isLoggedIn && (
+              <>
+                {/* TODO: TBD - where to link this route to? */}
+                <Link href={PLATFROM_QUEST_URL} className="md:block hidden">
+                  <Sprout className="h-6 w-6" />
+                </Link>
 
-          {/* TODO: TBD - where to link this route to? */}
-          <Link href={PROFILE_URL} className="md:block hidden">
-            <ShieldCheck className="h-6 w-6" />
-          </Link>
+                <NavigationMenu className="md:block hidden">
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>
+                        <CircleUserRound className="h-6 w-6" />
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid gap-3 p-5 w-[200px]">
+                          <Link href={PROFILE_URL} passHref legacyBehavior>
+                            <ListItem title="My Profile" />
+                          </Link>
+                          <Link href={PROFILE_SETTINGS_URL} passHref legacyBehavior>
+                            <ListItem title="My Settings" />
+                          </Link>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-          <Sheet>
-            <SheetTrigger>
-              {/* TODO: determine if there is notification, show BellDot, else show Bell */}
-              <Bell className="h-6 w-6" />
-              {/* <Icons.bellDot className="h-6 w-6" /> */}
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Notifications</SheetTitle>
-                <SheetDescription>
-                  {/* TODO: add notification list here */}
-                </SheetDescription>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
-          {/* TODO: TBD - logged in profile: reuse Thirdweb Connect UI or follow the wireframe */}
-          {/* TODO: end here - hide these buttons if user is not logged in */}
-          <ConnectBtn />
+                <Sheet>
+                  <SheetTrigger>
+                    {/* TODO: determine if there is notification, show BellDot, else show Bell */}
+                    <Bell className="h-6 w-6" />
+                    {/* <Icons.bellDot className="h-6 w-6" /> */}
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Notifications</SheetTitle>
+                      <SheetDescription>
+                        {/* TODO: add notification list here */}
+                      </SheetDescription>
+                    </SheetHeader>
+                  </SheetContent>
+                </Sheet>
+              </>
+            )
+          }
+
+          <div className={isLoggedIn ? "md:block hidden" : ""}>
+            <ConnectBtn />
+          </div>
         </div>
       </div>
     </header >

@@ -14,3 +14,4 @@ export const PROFILE_URL = "/profile";
 export const PROFILE_SETTINGS_URL = "/profile/settings";
 export const PROFILE_SETTINGS_INTEGRATION_URL = "/profile/settings/integration";
 export const PROFILE_SETTINGS_PRIVACY_URL = "/profile/settings/privacy"; 
+export const PLATFROM_QUEST_URL = "/profile"; //TODO: TBD

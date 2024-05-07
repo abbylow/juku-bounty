@@ -1,165 +1,364 @@
+// "use client"
+
+// import { zodResolver } from "@hookform/resolvers/zod"
+// import { useFieldArray, useForm } from "react-hook-form"
+// import { z } from "zod"
+
+// import { cn } from "@/lib/utils"
+// import { Button } from "@/components/ui/button"
+// import {
+//   Form,
+//   FormControl,
+//   FormField,
+//   FormItem,
+//   FormLabel,
+//   FormMessage,
+// } from "@/components/ui/form"
+// import { Input } from "@/components/ui/input"
+// import { Textarea } from "@/components/ui/textarea"
+// import { toast } from "@/components/ui/use-toast"
+// import { useEffect, useState } from "react"
+// import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
+
+// // TODO: add profile picture setup - upload to ipfs and store ipfs link
+// // TODO: update validation rules
+// // TODO: update onSubmit handling
+// // TODO: learn more about the form and zod library
+// // TODO: check uncontrolled -> controlled issue (when text field on change)
+// const profileFormSchema = z.object({
+//   displayName: z
+//     .string()
+//     .min(3, {
+//       message: "Display name must be at least 3 characters.",
+//     })
+//     .max(100, {
+//       message: "Display name must not be longer than 100 characters.",
+//     }),
+//   username: z
+//     .string()
+//     .min(3, {
+//       message: "Display name must be at least 3 characters.",
+//     })
+//     .max(100, {
+//       message: "Display name must not be longer than 100 characters.",
+//     }),
+//   bio: z
+//     .string()
+//     .min(4, {
+//       message: "About me must be at least 4 characters.",
+//     })
+//     .max(160, {
+//       message: "About me must not be longer than 160 characters.",
+//     })
+//     .optional(),
+//   // pfp: z
+//   //   .string()
+//   //   .min(3, {
+//   //     message: "Profile picture link must be at least 3 characters.",
+//   //   })
+//   //   .max(100, {
+//   //     message: "Profile picture link must not be longer than 100 characters.",
+//   //   }),
+// })
+
+// type ProfileFormValues = z.infer<typeof profileFormSchema>
+
+// export function ProfileForm() {
+//   const { ceramic, composeClient } = useCeramicContext();
+
+//   const [profile, setProfile] = useState<ProfileFormValues | undefined | null>();
+//   const [loading, setLoading] = useState<boolean>(false);
+
+//   const getProfile = async () => {
+//     if (ceramic.did !== undefined) {
+//       setLoading(true);
+//       const viewerProfile = await composeClient.executeQuery(`
+//         query {
+//           viewer {
+//             basicProfile {
+//               id
+//               author {
+//                 id
+//               }
+//               displayName
+//               username
+//               bio
+//             }
+//           }
+//         }
+//       `);
+
+//       console.log({ viewerProfile });
+
+//       setProfile(viewerProfile?.data?.viewer?.basicProfile);
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     getProfile();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [ceramic.did, composeClient]);
+
+//   // TODO: use query data as default value
+//   const form = useForm<ProfileFormValues>({
+//     resolver: zodResolver(profileFormSchema),
+//     defaultValues: profile as Partial<ProfileFormValues>,
+//     mode: "onChange",
+//   })
+
+//   const updateProfile = async (data: ProfileFormValues) => {
+//     if (ceramic.did !== undefined) {
+//       setLoading(true);
+
+//       // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
+//       // TODO: don't pass if the value is undefined
+//       const update = await composeClient.executeQuery(`
+//         mutation {
+//           createBasicProfile(input: {
+//             content: {
+//               displayName: "${data?.displayName}"
+//               username: "${data?.username}"
+//               bio: "${data?.bio}"
+//             }
+//           }) 
+//           {
+//             document {
+//               displayName
+//               username
+//               bio
+//             }
+//           }
+//         }
+//       `);
+//       if (update.errors) {
+//         toast({ title: `Something went wrong: ${update.errors}` })
+//       } else {
+//         toast({ title: "Updated profile" })
+//         setLoading(true);
+//         await getProfile();
+//       }
+//       setLoading(false);
+//     }
+//   };
+
+//   const onSubmit = async (data: ProfileFormValues) => {
+//     console.log("onSubmit", data)
+//     await updateProfile(data)
+//   }
+
+//   return (
+//     <Form {...form}>
+//       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+//         <FormField
+//           control={form.control}
+//           name="username"
+//           disabled={loading}
+//           render={({ field }) => (
+//             <FormItem>
+//               <FormLabel>Username</FormLabel>
+//               <FormControl>
+//                 <Input placeholder="john-doe" {...field} />
+//               </FormControl>
+//               <FormMessage />
+//             </FormItem>
+//           )}
+//         />
+//         <FormField
+//           control={form.control}
+//           name="displayName"
+//           disabled={loading}
+//           render={({ field }) => (
+//             <FormItem>
+//               <FormLabel>Display name</FormLabel>
+//               <FormControl>
+//                 <Input placeholder="John Doe" {...field} />
+//               </FormControl>
+//               <FormMessage />
+//             </FormItem>
+//           )}
+//         />
+//         <FormField
+//           control={form.control}
+//           name="bio"
+//           disabled={loading}
+//           render={({ field }) => (
+//             <FormItem>
+//               <FormLabel>About Me</FormLabel>
+//               <FormControl>
+//                 <Textarea
+//                   placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
+//                   className="resize-none"
+//                   {...field}
+//                 />
+//               </FormControl>
+//               <FormMessage />
+//             </FormItem>
+//           )}
+//         />
+//         <Button type="submit" disabled={loading}>Save changes</Button>
+//       </form>
+//     </Form>
+//   )
+// }
+
+// TODO: switch back to react-hook-form and zod
+// NOTE: the form below is without validation
+// TODO: username - cannot have space 
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
+import { useEffect, useState } from "react"
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { Label } from "@/components/ui/label"
 
+// TODO: add profile picture setup - upload to ipfs and store ipfs link
 // TODO: update validation rules
 // TODO: update onSubmit handling
 // TODO: learn more about the form and zod library
-// TODO: TBD - add job experience, certificates, education
-const profileFormSchema = z.object({
-  displayName: z
-    .string()
-    .min(2, {
-      message: "Display name must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Display name must not be longer than 30 characters.",
-    }),
-  bio: z.string().max(160).min(4),
-  skills: z
-    .array(
-      z.object({
-        value: z
-          .string()
-          .min(2, {
-            message: "Skill name must be at least 2 characters.",
-          })
-          .max(30, {
-            message: "Skill name must not be longer than 30 characters.",
-          }),
-      })
-    )
-    .max(3, {
-      message: "Skills must not contain more than 3 items.",
-    })
-    .optional()
-})
+// const profileFormSchema = z.object({
+//   displayName: z
+//     .string()
+//     .min(3, {
+//       message: "Display name must be at least 3 characters.",
+//     })
+//     .max(100, {
+//       message: "Display name must not be longer than 100 characters.",
+//     }),
+//   username: z
+//     .string()
+//     .min(3, {
+//       message: "Display name must be at least 3 characters.",
+//     })
+//     .max(100, {
+//       message: "Display name must not be longer than 100 characters.",
+//     }),
+//   bio: z
+//     .string()
+//     .min(4, {
+//       message: "About me must be at least 4 characters.",
+//     })
+//     .max(160, {
+//       message: "About me must not be longer than 160 characters.",
+//     })
+//     .optional(),
+//   // pfp: z
+//   //   .string()
+//   //   .min(3, {
+//   //     message: "Profile picture link must be at least 3 characters.",
+//   //   })
+//   //   .max(100, {
+//   //     message: "Profile picture link must not be longer than 100 characters.",
+//   //   }),
+// })
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>
+// type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-const defaultValues: Partial<ProfileFormValues> = {
-  displayName: "John Doe",
-  bio: "I am an interesting human",
-  skills: [
-    { value: "" },
-  ],
+export type Profile = {
+  id?: any
+  displayName?: string
+  username?: string
+  bio?: string
+  pfp?: string
 }
 
 export function ProfileForm() {
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues,
-    mode: "onChange",
-  })
+  const { composeClient, profile, getProfile } = useCeramicContext();
 
-  const { fields, append } = useFieldArray({
-    name: "skills",
-    control: form.control,
-  })
+  const [profileInput, setProfileInput] = useState<Profile | null>(null);
 
-  function onSubmit(data: ProfileFormValues) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
-  }
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (profile && !profileInput) {
+      setProfileInput(profile)
+    }
+  }, [profile, profileInput])
+
+  const updateProfile = async (e: any) => {
+    e.preventDefault()
+
+    setLoading(true);
+
+    // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
+    const update = await composeClient.executeQuery(`
+        mutation {
+          createBasicProfile(input: {
+            content: {
+              displayName: "${profileInput?.displayName || ""}"
+              username: "${profileInput?.username || ""}"
+              bio: "${profileInput?.bio?.replace(/\n/g, "\\n") || ""}"
+            }
+          }) 
+          {
+            document {
+              displayName
+              username
+              bio
+            }
+          }
+        }
+      `);
+    console.log({ update })
+    if (update.errors) {
+      toast({ title: `Something went wrong: ${update.errors}` })
+    } else {
+      toast({ title: "Updated profile" })
+      setLoading(true);
+      await getProfile()
+    }
+    setLoading(false);
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
+    <form className="space-y-8">
+      <div className="space-y-2">
+        <Label htmlFor="username">Username</Label>
+        <Input
+          placeholder="john-doe"
+          name="username"
+          disabled={loading || profile === undefined}
+          defaultValue={profileInput?.username || ""}
+          onChange={(e) => {
+            setProfileInput({ ...profileInput, username: e.target.value });
+          }}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="displayName">Display Name</Label>
+        <Input
+          placeholder="John Doe"
           name="displayName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Display name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name. It can be your real name or a pseudonym.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          disabled={loading || profile === undefined}
+          defaultValue={profileInput?.displayName || ""}
+          onChange={(e) => {
+            setProfileInput({ ...profileInput, displayName: e.target.value });
+          }}
         />
-        <FormField
-          control={form.control}
+      </div>
+
+
+      <div className="space-y-2">
+        <Label htmlFor="bio">About Me</Label>
+        <Textarea
+          placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
+          className="resize-none"
           name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>About Me</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us a little bit about yourself"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          disabled={loading || profile === undefined}
+          defaultValue={profileInput?.bio || ""}
+          onChange={(e) => {
+            setProfileInput({ ...profileInput, bio: e.target.value });
+          }}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`skills.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    Skills
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    Add your skills here.
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          {fields.length < 3 &&
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={() => append({ value: "" })}
-            >
-              Add Skill
-            </Button>
-          }
-        </div>
-        <Button type="submit">Update profile</Button>
-      </form>
-    </Form>
+      </div>
+
+      <Button disabled={loading || profile === undefined} onClick={updateProfile}>Save changes</Button>
+    </form>
   )
 }
