@@ -12,10 +12,12 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PROFILE_URL } from "@/const/links"
 import { Badge } from "../ui/badge"
+import { Award, CalendarClock } from "lucide-react"
 
 export default function BountyCard({ details }: { details: any }) {
   console.log({ details })
-  console.log(details?.expiry, new Date(details?.expiry))
+  console.log(details?.numberOfRewarders, details?.amountPerRewarder, details?.rewardCurrency)
+  console.log(`${details?.amountPerRewarder} ${details?.rewardCurrency}${details?.numberOfRewarders > 1 ? ` ${details?.numberOfRewarders}` : ""}`)
   if (!details || !(details.id)) {
     return <div>Bounty not found!</div>
   }
@@ -38,13 +40,9 @@ export default function BountyCard({ details }: { details: any }) {
               </div>
             </Link>
 
-
             <div className="flex gap-3 items-center flex-wrap">
               <div className="text-xs text-muted-foreground">
                 {`Created ${formatDistance(details?.created, new Date(), { addSuffix: true })}`}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {`Due ${formatDistanceToNow(details?.expiry, { addSuffix: true })}`}
               </div>
               {/* TODO: get status from query data */}
               {/* TODO: assign different colors to different statuses */}
@@ -52,13 +50,32 @@ export default function BountyCard({ details }: { details: any }) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-4">
           <div className="text-sm font-medium">{details?.title}</div>
           {/* TODO: line-clamp-10 and view more */}
           <div className="text-sm text-muted-foreground whitespace-pre-wrap">
             {details?.description}
           </div>
-
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex gap-2">
+              <Award className="h-5 w-5 text-muted-foreground" />
+              {/* TODO: math safety check for the calculation below */}
+              <p className="text-sm text-muted-foreground">
+                {details?.amountPerRewarder * details?.numberOfRewarders} {details?.rewardCurrency?.toUpperCase()}{details?.numberOfRewarders > 1 ? ` for ${details?.numberOfRewarders}` : ""}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <CalendarClock className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {`Due ${formatDistanceToNow(details?.expiry, { addSuffix: true })}`}
+              </p>
+            </div>
+          </div>
+          {/* TODO: handle category tags */}
+          <div className="flex gap-2">
+            <Badge variant="outline">DeFi</Badge>
+            <Badge variant="outline">Web3</Badge>
+          </div>
         </CardContent>
       </Card>
     </>
