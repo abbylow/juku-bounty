@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function BountyList() {
   const { composeClient } = useCeramicContext()
 
-  const [bountyList, setBountyList] = useState([])
+  const [bountyList, setBountyList] = useState<any>([])
   const [loading, setLoading] = useState<boolean>(true)
 
   const getBountyList = async () => {
@@ -59,7 +59,7 @@ export default function BountyList() {
     console.log({ list })
 
     const queryRes: any = list?.data?.bountiesIndex;
-    setBountyList(queryRes?.edges.map((e: { node: any }) => e.node))
+    setBountyList(queryRes?.edges?.map((e: { node: any }) => e.node))
     setLoading(false)
   }
 
@@ -134,7 +134,7 @@ export default function BountyList() {
             </div>
           </div>
 
-          {bountyList.map((b: any) => (
+          {bountyList?.map((b: any) => (
             <BountyCard key={b?.id} details={b} />
           ))}
 
