@@ -15,12 +15,17 @@ import { PROFILE_URL } from "@/const/links"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { useClipboard } from "@/hooks/useClipboard";
+import getURL from "@/lib/get-url";
 
 export default function BountyCard({ details }: { details: any }) {
   console.log({ details })
 
+  const { copy } = useClipboard({ timeout: 1000 });
+
   const shareBounty = () => {
-    console.log("TODO: share this bounty")
+    const bountyUrl = getURL(`/bounty/${details?.id}`);
+    copy(bountyUrl);
   }
 
   if (!details || !(details.id)) {
