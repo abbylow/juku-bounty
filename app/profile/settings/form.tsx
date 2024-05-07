@@ -207,12 +207,12 @@
 "use client"
 
 import { z } from "zod"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { useEffect, useState } from "react"
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Label } from "@/components/ui/label"
 
@@ -220,45 +220,45 @@ import { Label } from "@/components/ui/label"
 // TODO: update validation rules
 // TODO: update onSubmit handling
 // TODO: learn more about the form and zod library
-const profileFormSchema = z.object({
-  displayName: z
-    .string()
-    .min(3, {
-      message: "Display name must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Display name must not be longer than 100 characters.",
-    }),
-  username: z
-    .string()
-    .min(3, {
-      message: "Display name must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Display name must not be longer than 100 characters.",
-    }),
-  bio: z
-    .string()
-    .min(4, {
-      message: "About me must be at least 4 characters.",
-    })
-    .max(160, {
-      message: "About me must not be longer than 160 characters.",
-    })
-    .optional(),
-  // pfp: z
-  //   .string()
-  //   .min(3, {
-  //     message: "Profile picture link must be at least 3 characters.",
-  //   })
-  //   .max(100, {
-  //     message: "Profile picture link must not be longer than 100 characters.",
-  //   }),
-})
+// const profileFormSchema = z.object({
+//   displayName: z
+//     .string()
+//     .min(3, {
+//       message: "Display name must be at least 3 characters.",
+//     })
+//     .max(100, {
+//       message: "Display name must not be longer than 100 characters.",
+//     }),
+//   username: z
+//     .string()
+//     .min(3, {
+//       message: "Display name must be at least 3 characters.",
+//     })
+//     .max(100, {
+//       message: "Display name must not be longer than 100 characters.",
+//     }),
+//   bio: z
+//     .string()
+//     .min(4, {
+//       message: "About me must be at least 4 characters.",
+//     })
+//     .max(160, {
+//       message: "About me must not be longer than 160 characters.",
+//     })
+//     .optional(),
+//   // pfp: z
+//   //   .string()
+//   //   .min(3, {
+//   //     message: "Profile picture link must be at least 3 characters.",
+//   //   })
+//   //   .max(100, {
+//   //     message: "Profile picture link must not be longer than 100 characters.",
+//   //   }),
+// })
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>
+// type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-type Profile = {
+export type Profile = {
   id?: any
   displayName?: string
   username?: string
@@ -267,51 +267,31 @@ type Profile = {
 }
 
 export function ProfileForm() {
-  const { ceramic, composeClient } = useCeramicContext();
+  const { composeClient, profile, getProfile } = useCeramicContext();
 
-  const [profile, setProfile] = useState<Profile | undefined | null>();
+  const [profileInput, setProfileInput] = useState<Profile | null>(null);
+  console.log({ profileInput, profile })
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getProfile = async () => {
-    if (ceramic.did !== undefined) {
-      setLoading(true);
-      const viewerProfile = await composeClient.executeQuery(`
-        query {
-          viewer {
-            basicProfile {
-              id
-              author {
-                id
-              }
-              displayName
-              username
-              bio
-            }
-          }
-        }
-      `);
-      setProfile(viewerProfile?.data?.viewer?.basicProfile);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    getProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ceramic.did, composeClient]);
+    if (profile && !profileInput) {
+      setProfileInput(profile)
+    }
+  }, [profile, profileInput])
 
-  const updateProfile = async () => {
-    if (ceramic.did !== undefined) {
-      setLoading(true);
+  const updateProfile = async (e: any) => {
+    e.preventDefault()
 
-      // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
-      const update = await composeClient.executeQuery(`
+    setLoading(true);
+
+    // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
+    const update = await composeClient.executeQuery(`
         mutation {
           createBasicProfile(input: {
             content: {
-              displayName: "${profile?.displayName || ""}"
-              username: "${profile?.username || ""}"
-              bio: "${profile?.bio || ""}"
+              displayName: "${profileInput?.displayName || ""}"
+              username: "${profileInput?.username || ""}"
+              bio: "${profileInput?.bio?.replace(/\n/g, "\\n") || ""}"
             }
           }) 
           {
@@ -323,15 +303,15 @@ export function ProfileForm() {
           }
         }
       `);
-      if (update.errors) {
-        toast({ title: `Something went wrong: ${update.errors}` })
-      } else {
-        toast({ title: "Updated profile" })
-        setLoading(true);
-        await getProfile();
-      }
-      setLoading(false);
+    console.log({ update })
+    if (update.errors) {
+      toast({ title: `Something went wrong: ${update.errors}` })
+    } else {
+      toast({ title: "Updated profile" })
+      setLoading(true);
+      await getProfile()
     }
+    setLoading(false);
   };
 
   return (
@@ -341,10 +321,10 @@ export function ProfileForm() {
         <Input
           placeholder="john-doe"
           name="username"
-          disabled={loading}
-          defaultValue={profile?.username || ""}
+          disabled={loading || !profile}
+          defaultValue={profileInput?.username || ""}
           onChange={(e) => {
-            setProfile({ ...profile, username: e.target.value });
+            setProfileInput({ ...profileInput, username: e.target.value });
           }}
         />
       </div>
@@ -354,10 +334,10 @@ export function ProfileForm() {
         <Input
           placeholder="John Doe"
           name="displayName"
-          disabled={loading}
-          defaultValue={profile?.displayName || ""}
+          disabled={loading || !profile}
+          defaultValue={profileInput?.displayName || ""}
           onChange={(e) => {
-            setProfile({ ...profile, displayName: e.target.value });
+            setProfileInput({ ...profileInput, displayName: e.target.value });
           }}
         />
       </div>
@@ -368,14 +348,16 @@ export function ProfileForm() {
         <Textarea
           placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
           className="resize-none"
-          defaultValue={profile?.bio || ""}
+          name="bio"
+          disabled={loading || !profile}
+          defaultValue={profileInput?.bio || ""}
           onChange={(e) => {
-            setProfile({ ...profile, bio: e.target.value });
+            setProfileInput({ ...profileInput, bio: e.target.value });
           }}
         />
       </div>
 
-      <Button type="submit" disabled={loading} onClick={updateProfile}>Save changes</Button>
+      <Button disabled={loading || !profile} onClick={updateProfile}>Save changes</Button>
     </form>
   )
 }
