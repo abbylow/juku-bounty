@@ -1,26 +1,32 @@
 "use client"
 
 import Link from "next/link"
-import { format, formatDistance, formatDistanceToNow, formatRelative, subDays } from 'date-fns'
+import { formatDistance, formatDistanceToNow } from 'date-fns'
+import { Award, CalendarClock, MessageSquare, ThumbsUp, Share, Lightbulb } from "lucide-react"
 
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
+  CardFooter,
 } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PROFILE_URL } from "@/const/links"
-import { Badge } from "../ui/badge"
-import { Award, CalendarClock } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 
 export default function BountyCard({ details }: { details: any }) {
   console.log({ details })
-  console.log(details?.numberOfRewarders, details?.amountPerRewarder, details?.rewardCurrency)
-  console.log(`${details?.amountPerRewarder} ${details?.rewardCurrency}${details?.numberOfRewarders > 1 ? ` ${details?.numberOfRewarders}` : ""}`)
+
+  const shareBounty = () => {
+    console.log("TODO: share this bounty")
+  }
+
   if (!details || !(details.id)) {
     return <div>Bounty not found!</div>
   }
+
   return (
     <>
       <Card>
@@ -76,7 +82,33 @@ export default function BountyCard({ details }: { details: any }) {
             <Badge variant="outline">DeFi</Badge>
             <Badge variant="outline">Web3</Badge>
           </div>
+          <Separator />
         </CardContent>
+        <CardFooter>
+          <div className="w-full flex justify-between items-center">
+            {/* TODO: handle reactions */}
+            <div className="flex gap-3">
+              <Button variant="ghost" size="icon">
+                <ThumbsUp className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <MessageSquare className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Lightbulb className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={shareBounty}>
+                <Share className="h-5 w-5" />
+              </Button>
+            </div>
+            {/* TODO: handle dynamic CTA */}
+            <div className="">
+              <Button>
+                <Lightbulb className="mr-2 h-5 w-5" /> Contribute
+              </Button>
+            </div>
+          </div>
+        </CardFooter>
       </Card>
     </>
   )
