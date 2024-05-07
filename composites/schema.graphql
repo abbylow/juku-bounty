@@ -9,6 +9,7 @@ type BasicProfile @createModel(accountRelation: SINGLE, description: "A basic Pr
 
 # TODO: add context 
 # TODO: create a field for tags
+# TODO: create a field for status
 # TODO: create index for title, description and tags
 type Bounties
     @createModel(accountRelation: LIST, description: "A simple Bounty")
