@@ -414,9 +414,10 @@ export function BountyForm() {
         toast({ title: "Updated bounty" })
         setLoading(true);
 
-        if (update?.data?.createBounties?.document?.id) {
-          console.log(update.data.createBounties.document.id)
-          router.push(`/bounty/${update.data.createBounties.document.id}`)
+        const createdBounty: any = update?.data?.createBounties
+        if (createdBounty?.document?.id) {
+          console.log(createdBounty.document.id)
+          router.push(`/bounty/${createdBounty.document.id}`)
         }
       }
       setLoading(false);

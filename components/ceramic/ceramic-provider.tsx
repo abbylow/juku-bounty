@@ -64,10 +64,12 @@ export const CeramicProvider = ({ children }: any) => {
           }
         }
       `);
-    console.log('in context getProfile => ', { viewerProfile })
-    setProfile(viewerProfile?.data?.viewer?.basicProfile);
+    // console.log('in context getProfile => ', { viewerProfile })
+    const viewer: any = viewerProfile?.data?.viewer
+    setProfile(viewer?.basicProfile);
   };
 
+  // TODO: check the warning here
   useEffect(() => {
     if (ceramic.did !== undefined && composeClient) {
       getProfile();
