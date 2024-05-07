@@ -11,7 +11,7 @@ export default function BountyCreation() {
     return (
       <section>
         <div className="space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <h3 className="text-xl font-medium">Oops! Login or sign up first to create your quest</h3>
             <ConnectBtn />
           </div>
