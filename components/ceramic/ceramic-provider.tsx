@@ -23,7 +23,7 @@ const composeClient = new ComposeClient({
 interface ICeramicContext {
   ceramic: CeramicClient,
   composeClient: ComposeClient,
-  profile: Profile | null,
+  profile: Profile | null | undefined,
   getProfile: () => void
 }
 const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, profile: null, getProfile: () => {} });
