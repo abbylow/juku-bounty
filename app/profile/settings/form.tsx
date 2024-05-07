@@ -204,6 +204,7 @@
 
 // TODO: switch back to react-hook-form and zod
 // NOTE: the form below is without validation
+// TODO: username - cannot have space 
 "use client"
 
 import { z } from "zod"
