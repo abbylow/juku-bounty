@@ -32,7 +32,7 @@ export const CeramicProvider = ({ children }: any) => {
   const signer = useSigner()
   const { isLoggedIn, isLoading } = useUser()
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null | undefined>();
 
   /**
    * Authenticate user and create ceramic session when user logged in

@@ -374,6 +374,7 @@ export function BountyForm() {
     e.preventDefault()
     if (!profile) {
       console.log('no profile => ', profile)
+      // TODO: if no profile, can user still create bounty? if not then prompt user to setup profile first. 
     } else {
       console.log("before submission ", { profile, bountyInput })
 

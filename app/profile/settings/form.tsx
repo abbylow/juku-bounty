@@ -270,7 +270,7 @@ export function ProfileForm() {
   const { composeClient, profile, getProfile } = useCeramicContext();
 
   const [profileInput, setProfileInput] = useState<Profile | null>(null);
-  console.log({ profileInput, profile })
+
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -321,7 +321,7 @@ export function ProfileForm() {
         <Input
           placeholder="john-doe"
           name="username"
-          disabled={loading || !profile}
+          disabled={loading || profile === undefined}
           defaultValue={profileInput?.username || ""}
           onChange={(e) => {
             setProfileInput({ ...profileInput, username: e.target.value });
@@ -334,7 +334,7 @@ export function ProfileForm() {
         <Input
           placeholder="John Doe"
           name="displayName"
-          disabled={loading || !profile}
+          disabled={loading || profile === undefined}
           defaultValue={profileInput?.displayName || ""}
           onChange={(e) => {
             setProfileInput({ ...profileInput, displayName: e.target.value });
@@ -349,7 +349,7 @@ export function ProfileForm() {
           placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
           className="resize-none"
           name="bio"
-          disabled={loading || !profile}
+          disabled={loading || profile === undefined}
           defaultValue={profileInput?.bio || ""}
           onChange={(e) => {
             setProfileInput({ ...profileInput, bio: e.target.value });
@@ -357,7 +357,7 @@ export function ProfileForm() {
         />
       </div>
 
-      <Button disabled={loading || !profile} onClick={updateProfile}>Save changes</Button>
+      <Button disabled={loading || profile === undefined} onClick={updateProfile}>Save changes</Button>
     </form>
   )
 }
