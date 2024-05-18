@@ -1,9 +1,11 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -16,8 +18,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { useEffect, useState } from "react"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 
 // TODO: add profile picture setup - upload to ipfs and store ipfs link
 const profileFormSchema = z.object({
