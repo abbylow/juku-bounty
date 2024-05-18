@@ -7,8 +7,9 @@ import { RuntimeCompositeDefinition } from "@composedb/types";
 import { useSigner, useUser } from "@thirdweb-dev/react";
 
 import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/utils";
-import * as definition from "@/composites/runtime-composite.json";
-import { Profile } from "@/app/profile/settings/form";
+// import * as definition from "@/composites/runtime-composite.json";
+import * as definition from "@/composites/runtime-composite-ori.json";
+import { ProfileFormValues } from "@/app/profile/settings/form";
 
 /**
  * Configure CeramicClient and ComposeClient & create context.
@@ -23,16 +24,16 @@ const composeClient = new ComposeClient({
 interface ICeramicContext {
   ceramic: CeramicClient,
   composeClient: ComposeClient,
-  profile: Profile | null | undefined,
-  getProfile: () => void
+  viewerProfile: ProfileFormValues | null | undefined,
+  getViewerProfile: () => void
 }
-const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, profile: null, getProfile: () => {} });
+const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { } });
 
 export const CeramicProvider = ({ children }: any) => {
   const signer = useSigner()
   const { isLoggedIn, isLoading } = useUser()
 
-  const [profile, setProfile] = useState<Profile | null | undefined>();
+  const [viewerProfile, setProfile] = useState<ProfileFormValues | null | undefined>();
 
   /**
    * Authenticate user and create ceramic session when user logged in
@@ -47,8 +48,8 @@ export const CeramicProvider = ({ children }: any) => {
     }
   }, [isLoading, isLoggedIn, signer])
 
-  const getProfile = async () => {
-    console.log('in context getProfile begins')
+  const getViewerProfile = async () => {
+    console.log('in context getViewerProfile begins')
     const viewerProfile = await composeClient.executeQuery(`
         query {
           viewer {
@@ -64,15 +65,15 @@ export const CeramicProvider = ({ children }: any) => {
           }
         }
       `);
-    // console.log('in context getProfile => ', { viewerProfile })
     const viewer: any = viewerProfile?.data?.viewer
+    console.log('in context getViewerProfile => ', { viewer })
     setProfile(viewer?.basicProfile);
   };
 
   // TODO: check the warning here
   useEffect(() => {
     if (ceramic.did !== undefined && composeClient) {
-      getProfile();
+      getViewerProfile();
     }
   }, [ceramic.did, composeClient]);
 
@@ -80,8 +81,8 @@ export const CeramicProvider = ({ children }: any) => {
     <CeramicContext.Provider value={{
       ceramic,
       composeClient,
-      profile,
-      getProfile
+      viewerProfile,
+      getViewerProfile
     }}>
       {children}
     </CeramicContext.Provider>
