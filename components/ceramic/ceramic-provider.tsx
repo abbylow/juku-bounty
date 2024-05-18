@@ -7,6 +7,7 @@ import { RuntimeCompositeDefinition } from "@composedb/types";
 import { useSigner, useUser } from "@thirdweb-dev/react";
 
 import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/utils";
+// TODO: swap back to latest schema
 // import * as definition from "@/composites/runtime-composite.json";
 import * as definition from "@/composites/runtime-composite-ori.json";
 import { ProfileFormValues } from "@/app/profile/settings/form";
@@ -24,7 +25,7 @@ const composeClient = new ComposeClient({
 interface ICeramicContext {
   ceramic: CeramicClient,
   composeClient: ComposeClient,
-  viewerProfile: ProfileFormValues | null | undefined,
+  viewerProfile: ProfileFormValues | null | undefined, //TODO: ProfileFormValues is not correct, it lacks of "id"
   getViewerProfile: () => void
 }
 const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { } });
