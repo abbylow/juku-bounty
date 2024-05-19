@@ -36,8 +36,20 @@ import { cn } from "@/lib/utils"
 const tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
 
+const oneWeekFromNow = new Date();
+oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+
+const twoWeeksFromNow = new Date();
+twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+
 const oneMonthFromNow = new Date();
 oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+const EXPIRY_PRESET: Record<string, Date> = {
+  "In 7 days": oneWeekFromNow,
+  "In 14 days": twoWeeksFromNow,
+  "In 1 month": oneMonthFromNow,
+}
 
 const ACCEPTABLE_CURRENCIES = {
   USDC: "usdc",
@@ -112,7 +124,6 @@ export function BountyForm() {
     if (viewerProfile !== undefined) {
       setLoading(false)
     }
-    // TODO: if no profile, can user still create bounty? if not then prompt user to setup profile first. 
   }, [viewerProfile])
 
   const form = useForm<BountyFormValues>({
@@ -124,7 +135,6 @@ export function BountyForm() {
   const createBounty = async (data: Partial<BountyFormValues>) => {
     if (!viewerProfile) {
       console.log('no viewerProfile => ', viewerProfile)
-      // TODO: if no profile, can user still create bounty? if not then prompt user to setup profile first. 
     } else {
       console.log("before submission ", { viewerProfile, data })
 
@@ -316,16 +326,30 @@ export function BountyForm() {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < tomorrow || date > oneMonthFromNow
-                    }
-                    initialFocus
-                  />
+                <PopoverContent className="flex w-auto flex-col space-y-2 p-2" align="start">
+                  <Select
+                    onValueChange={(value) => { field.onChange(EXPIRY_PRESET[value]) }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      {Object.keys(EXPIRY_PRESET).map(p => (
+                        <SelectItem value={p} key={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="rounded-md border">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < tomorrow || date > oneMonthFromNow
+                      }
+                      initialFocus
+                    />
+                  </div>
                 </PopoverContent>
               </Popover>
               <FormMessage />
