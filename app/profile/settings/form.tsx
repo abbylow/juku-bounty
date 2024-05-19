@@ -1,7 +1,8 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useState } from "react"
+import { UserRound } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -18,6 +19,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+/** Make sure pinata gateway is provided */
+if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
+  console.log("You haven't setup your NEXT_PUBLIC_PINATA_GATEWAY yet.")
+}
+
+const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
 
 // TODO: add profile picture setup - upload to ipfs and store ipfs link
 const profileFormSchema = z.object({
@@ -46,21 +55,39 @@ const profileFormSchema = z.object({
       message: "About me must not be longer than 160 characters.",
     })
     .optional(),
-  pfp: z
-    .string()
-    .min(3, {
-      message: "Profile picture link must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Profile picture link must not be longer than 100 characters.",
-    })
-    .optional(),
 })
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export function ProfileForm() {
   const { composeClient, viewerProfile, getViewerProfile } = useCeramicContext();
+
+  /** beginning of pfp input field handling */
+  const pfpRef = useRef<HTMLInputElement>(null); // ref to corresponding hidden pfp input field
+  const [media, setMedia] = useState<File | null>(); // state to contain pfp input file
+  const [dataUrl, setDataUrl] = useState<string>(""); // used for image preview
+
+  useEffect(() => {
+    let newUrl: string;
+    if (media) {
+      newUrl = URL.createObjectURL(media); // generate new data urls for media 
+      setDataUrl(newUrl);
+    }
+    return () => {
+      URL.revokeObjectURL(newUrl);
+    }
+  }, [media]);
+
+  const triggerPfpInput = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    pfpRef?.current?.click();
+  }
+
+  const handlePfpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files)
+      setMedia(e.target.files[0]);
+  }
+  /** end of pfp input field handling */
 
   const [profileClone, setProfileClone] = useState<ProfileFormValues | undefined>();
 
@@ -70,6 +97,10 @@ export function ProfileForm() {
     // pre-populate form fields with current data
     if (viewerProfile && !profileClone) {
       setProfileClone(viewerProfile)
+
+      if (viewerProfile?.pfp) {
+        setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewerProfile?.pfp.split('://')[1]}`)
+      }
     }
     // set loading to true when it's still getting viewer profile
     if (viewerProfile !== undefined) {
@@ -92,8 +123,24 @@ export function ProfileForm() {
   const updateProfile = async (data: Partial<ProfileFormValues>) => {
     setLoading(true);
 
+    let uploadedPfp: string = "";
+    // upload new pfp to ipfs if there is
+    if (media) {
+      const formData = new FormData();
+      formData.append("file", media);
+      const mediaRes = await fetch('/ipfs/upload', {
+        method: "POST",
+        body: formData
+      });
+      if (mediaRes.status == 200) {
+        const result = await mediaRes.json();
+        uploadedPfp = result.url;
+      } else {
+        toast({ title: 'Fail to upload media' })
+      }
+    }
+
     // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
-    // TODO: add pfp field here
     const update = await composeClient.executeQuery(`
         mutation {
           createBasicProfile(input: {
@@ -101,6 +148,7 @@ export function ProfileForm() {
               displayName: "${data?.displayName || ""}"
               username: "${data?.username || ""}"
               bio: "${data?.bio?.replace(/\n/g, "\\n") || ""}"
+              pfp: "${uploadedPfp || ""}"
             }
           }) 
           {
@@ -108,6 +156,7 @@ export function ProfileForm() {
               displayName
               username
               bio
+              pfp
             }
           }
         }
@@ -124,60 +173,83 @@ export function ProfileForm() {
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
+    console.log('onSubmit => ', { data })
     await updateProfile(data)
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="username"
-          disabled={loading}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="john_doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="displayName"
-          disabled={loading}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Display name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="bio"
-          disabled={loading}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>About Me</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={loading}>Save changes</Button>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
+        <div className="flex flex-col gap-4 items-start">
+          {/* TODO: allow user to crop image / drag to adjust but maintain the square aspect - refer whatsapp pfp */}
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={dataUrl} />
+            <AvatarFallback><UserRound /></AvatarFallback>
+          </Avatar>
+
+          <Button onClick={triggerPfpInput} disabled={loading} variant="outline">
+            Edit PFP
+          </Button>
+        </div>
+
+        <div className="flex-1 space-y-8">
+          <FormField
+            control={form.control}
+            name="username"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="john_doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="displayName"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bio"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>About Me</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={loading}>Save changes</Button>
+        </div>
       </form>
+      <input
+        id="pfpInput"
+        accept={'image/*'}
+        onChange={handlePfpChange}
+        ref={pfpRef}
+        type="file"
+        className='hidden'
+      />
     </Form>
   )
 }
