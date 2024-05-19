@@ -12,7 +12,7 @@ import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/u
 import * as definition from "@/composites/runtime-composite-ori.json";
 import { ProfileFormValues } from "@/app/profile/settings/form";
 
-/** Make sure ceramic node url is valid */
+/** Make sure ceramic node url is provided */
 if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
   console.log("You haven't setup your NEXT_PUBLIC_CERAMIC_NODE_URL yet.")
 }
@@ -33,6 +33,7 @@ export interface BasicProfile extends ProfileFormValues {
   author: {
     id: string;
   };
+  pfp: string;
 }
 
 interface ICeramicContext {
