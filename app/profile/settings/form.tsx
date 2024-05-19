@@ -69,7 +69,6 @@ export function ProfileForm() {
   useEffect(() => {
     // pre-populate form fields with current data
     if (viewerProfile && !profileClone) {
-      console.log('prepopulate')
       setProfileClone(viewerProfile)
     }
     // set loading to true when it's still getting viewer profile

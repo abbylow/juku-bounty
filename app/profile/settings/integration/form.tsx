@@ -19,7 +19,6 @@ import { toast } from "@/components/ui/use-toast"
 // TODO: update validation rules
 // TODO: update onSubmit handling
 // TODO: remove unused form functions
-// TODO: learn more about the form and zod library eg: meaning of mode: onchange 
 // TODO: TBD - which platform to integrate and what data to be imported?
 const integrationFormSchema = z.object({
   linkedin: z.string(),
@@ -37,7 +36,7 @@ export function ProfileIntegrationForm() {
   const form = useForm<IntegrationFormValues>({
     resolver: zodResolver(integrationFormSchema),
     defaultValues,
-    mode: "onChange",
+    mode: "onBlur",
   })
 
   function onSubmit(data: IntegrationFormValues) {

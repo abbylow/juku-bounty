@@ -31,7 +31,6 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
-// TODO: cautious to store the local time of the expiry date
 // TODO: prompt user to create profile first 
 // TODO: add categories
 const tomorrow = new Date();
