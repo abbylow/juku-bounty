@@ -117,7 +117,7 @@ export function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Create Quest</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid gap-3 p-5 md:w-[400px] lg:w-[500px]">
+                  <ul className="grid gap-3 p-3 md:w-[400px] lg:w-[500px]">
                     <Link href={BOUNTY_CREATION_URL} passHref legacyBehavior>
                       <ListItem title="Open a Bounty">
                         Raise a request in the public to get feedback from other contributors.
@@ -171,7 +171,7 @@ export function Header() {
                         <CircleUserRound className="h-6 w-6" />
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid gap-3 p-5 w-[200px]">
+                        <ul className="grid gap-3 p-3 w-[200px]">
                           <Link href={PROFILE_URL} passHref legacyBehavior>
                             <ListItem title="My Profile" />
                           </Link>
