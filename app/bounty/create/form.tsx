@@ -229,7 +229,7 @@ export function BountyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Number of Rewarders</FormLabel>
-                <FormControl onChange={e => field.onChange(+(e.target?.value))}>
+                <FormControl onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(+(e?.target?.value))}>
                   <Input
                     type="number"
                     min={1}
@@ -277,7 +277,7 @@ export function BountyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Amount per Rewarder</FormLabel>
-                <FormControl onChange={e => field.onChange(+(e.target?.value))}>
+                <FormControl onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(+(e?.target?.value))}>
                   <Input
                     type="number"
                     {...field}

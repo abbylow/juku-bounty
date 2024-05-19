@@ -12,6 +12,11 @@ import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/u
 import * as definition from "@/composites/runtime-composite-ori.json";
 import { ProfileFormValues } from "@/app/profile/settings/form";
 
+/** Make sure ceramic node url is valid */
+if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
+  console.log("You haven't setup your NEXT_PUBLIC_CERAMIC_NODE_URL yet.")
+}
+
 /**
  * Configure CeramicClient and ComposeClient & create context.
  */
@@ -22,10 +27,18 @@ const composeClient = new ComposeClient({
   definition: definition as RuntimeCompositeDefinition
 });
 
+// Define the extended profile type
+export interface BasicProfile extends ProfileFormValues {
+  id: string;
+  author: {
+    id: string;
+  };
+}
+
 interface ICeramicContext {
   ceramic: CeramicClient,
   composeClient: ComposeClient,
-  viewerProfile: ProfileFormValues | null | undefined, //TODO: ProfileFormValues is not correct, it lacks of "id"
+  viewerProfile: BasicProfile | null | undefined,
   getViewerProfile: () => void
 }
 const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { } });
@@ -34,7 +47,7 @@ export const CeramicProvider = ({ children }: any) => {
   const signer = useSigner()
   const { isLoggedIn, isLoading } = useUser()
 
-  const [viewerProfile, setProfile] = useState<ProfileFormValues | null | undefined>();
+  const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
 
   /**
    * Authenticate user and create ceramic session when user logged in
@@ -62,6 +75,7 @@ export const CeramicProvider = ({ children }: any) => {
               displayName
               username
               bio
+              pfp
             }
           }
         }
