@@ -19,8 +19,6 @@ import { useClipboard } from "@/hooks/useClipboard";
 import getURL from "@/lib/get-url";
 
 export default function BountyCard({ details }: { details: any }) {
-  console.log({ details })
-
   const { copy } = useClipboard({ timeout: 1000 });
 
   const shareBounty = () => {

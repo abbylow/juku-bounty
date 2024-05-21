@@ -8,14 +8,16 @@ type BasicProfile @createModel(accountRelation: SINGLE, description: "A basic Pr
 }
 
 # TODO: add context 
-# TODO: create a field for tags
+# TODO: create a field for tags - link to another type - enum
+# TODO: rewardCurrency - link to another type - enum
 # TODO: create a field for status
 # TODO: create index for title, description and tags
 type Bounties
     @createModel(accountRelation: LIST, description: "A simple Bounty")
     @createIndex(fields: [{ path: "created" }])
     @createIndex(fields: [{ path: "edited" }])
-    # @createIndex(fields: [{ path: "tag" }]) 
+    @createIndex(fields: [{ path: "title" }]) 
+    # @createIndex(fields: [{ path: "description" }]) 
     {
     author: DID! @documentAccount 
     title: String! @string(minLength: 5, maxLength: 80)

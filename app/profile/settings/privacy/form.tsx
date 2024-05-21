@@ -21,7 +21,6 @@ import { Switch } from "@/components/ui/switch"
 
 // TODO: update validation rules
 // TODO: update onSubmit handling
-// TODO: learn more about the form and zod library eg: meaning of mode: onchange 
 // TODO: when allow no one to refer, turn off both switches of the quests
 const privacyFormSchema = z.object({
   allowReferGroup: z.enum(["anyone", "connections", "noOne"], {
@@ -53,7 +52,7 @@ export function ProfilePrivacyForm() {
   const form = useForm<PrivacyFormValues>({
     resolver: zodResolver(privacyFormSchema),
     defaultValues,
-    mode: "onChange",
+    mode: "onBlur",
   })
 
   function onSubmit(data: PrivacyFormValues) {
@@ -193,6 +192,7 @@ export function ProfilePrivacyForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -215,6 +215,7 @@ export function ProfilePrivacyForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -228,7 +229,7 @@ export function ProfilePrivacyForm() {
                       Peer Recommendation
                     </FormLabel>
                     <FormDescription>
-                    Allow the selected users view my peer recommendation
+                      Allow the selected users view my peer recommendation
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -237,6 +238,7 @@ export function ProfilePrivacyForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />

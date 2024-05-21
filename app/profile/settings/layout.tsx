@@ -2,9 +2,10 @@
 
 import { useUser } from "@thirdweb-dev/react";
 import { SidebarNav } from "@/components/ui/sidebar-nav"
-import { PROFILE_SETTINGS_INTEGRATION_URL, PROFILE_SETTINGS_PRIVACY_URL, PROFILE_SETTINGS_URL } from "@/const/links"
+import { PROFILE_SETTINGS_INTEGRATION_URL, PROFILE_SETTINGS_NOTIFICATION_URL, PROFILE_SETTINGS_PRIVACY_URL, PROFILE_SETTINGS_URL } from "@/const/links"
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
 
+// TODO: mobile responsiveness - tabs
 const sidebarNavItems = [
   {
     title: "Profile",
@@ -17,6 +18,10 @@ const sidebarNavItems = [
   {
     title: "Privacy",
     href: PROFILE_SETTINGS_PRIVACY_URL,
+  },
+  {
+    title: "Notification",
+    href: PROFILE_SETTINGS_NOTIFICATION_URL,
   },
 ]
 

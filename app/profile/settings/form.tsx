@@ -1,298 +1,154 @@
-// "use client"
-
-// import { zodResolver } from "@hookform/resolvers/zod"
-// import { useFieldArray, useForm } from "react-hook-form"
-// import { z } from "zod"
-
-// import { cn } from "@/lib/utils"
-// import { Button } from "@/components/ui/button"
-// import {
-//   Form,
-//   FormControl,
-//   FormField,
-//   FormItem,
-//   FormLabel,
-//   FormMessage,
-// } from "@/components/ui/form"
-// import { Input } from "@/components/ui/input"
-// import { Textarea } from "@/components/ui/textarea"
-// import { toast } from "@/components/ui/use-toast"
-// import { useEffect, useState } from "react"
-// import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-
-// // TODO: add profile picture setup - upload to ipfs and store ipfs link
-// // TODO: update validation rules
-// // TODO: update onSubmit handling
-// // TODO: learn more about the form and zod library
-// // TODO: check uncontrolled -> controlled issue (when text field on change)
-// const profileFormSchema = z.object({
-//   displayName: z
-//     .string()
-//     .min(3, {
-//       message: "Display name must be at least 3 characters.",
-//     })
-//     .max(100, {
-//       message: "Display name must not be longer than 100 characters.",
-//     }),
-//   username: z
-//     .string()
-//     .min(3, {
-//       message: "Display name must be at least 3 characters.",
-//     })
-//     .max(100, {
-//       message: "Display name must not be longer than 100 characters.",
-//     }),
-//   bio: z
-//     .string()
-//     .min(4, {
-//       message: "About me must be at least 4 characters.",
-//     })
-//     .max(160, {
-//       message: "About me must not be longer than 160 characters.",
-//     })
-//     .optional(),
-//   // pfp: z
-//   //   .string()
-//   //   .min(3, {
-//   //     message: "Profile picture link must be at least 3 characters.",
-//   //   })
-//   //   .max(100, {
-//   //     message: "Profile picture link must not be longer than 100 characters.",
-//   //   }),
-// })
-
-// type ProfileFormValues = z.infer<typeof profileFormSchema>
-
-// export function ProfileForm() {
-//   const { ceramic, composeClient } = useCeramicContext();
-
-//   const [profile, setProfile] = useState<ProfileFormValues | undefined | null>();
-//   const [loading, setLoading] = useState<boolean>(false);
-
-//   const getProfile = async () => {
-//     if (ceramic.did !== undefined) {
-//       setLoading(true);
-//       const viewerProfile = await composeClient.executeQuery(`
-//         query {
-//           viewer {
-//             basicProfile {
-//               id
-//               author {
-//                 id
-//               }
-//               displayName
-//               username
-//               bio
-//             }
-//           }
-//         }
-//       `);
-
-//       console.log({ viewerProfile });
-
-//       setProfile(viewerProfile?.data?.viewer?.basicProfile);
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     getProfile();
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [ceramic.did, composeClient]);
-
-//   // TODO: use query data as default value
-//   const form = useForm<ProfileFormValues>({
-//     resolver: zodResolver(profileFormSchema),
-//     defaultValues: profile as Partial<ProfileFormValues>,
-//     mode: "onChange",
-//   })
-
-//   const updateProfile = async (data: ProfileFormValues) => {
-//     if (ceramic.did !== undefined) {
-//       setLoading(true);
-
-//       // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
-//       // TODO: don't pass if the value is undefined
-//       const update = await composeClient.executeQuery(`
-//         mutation {
-//           createBasicProfile(input: {
-//             content: {
-//               displayName: "${data?.displayName}"
-//               username: "${data?.username}"
-//               bio: "${data?.bio}"
-//             }
-//           }) 
-//           {
-//             document {
-//               displayName
-//               username
-//               bio
-//             }
-//           }
-//         }
-//       `);
-//       if (update.errors) {
-//         toast({ title: `Something went wrong: ${update.errors}` })
-//       } else {
-//         toast({ title: "Updated profile" })
-//         setLoading(true);
-//         await getProfile();
-//       }
-//       setLoading(false);
-//     }
-//   };
-
-//   const onSubmit = async (data: ProfileFormValues) => {
-//     console.log("onSubmit", data)
-//     await updateProfile(data)
-//   }
-
-//   return (
-//     <Form {...form}>
-//       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-//         <FormField
-//           control={form.control}
-//           name="username"
-//           disabled={loading}
-//           render={({ field }) => (
-//             <FormItem>
-//               <FormLabel>Username</FormLabel>
-//               <FormControl>
-//                 <Input placeholder="john-doe" {...field} />
-//               </FormControl>
-//               <FormMessage />
-//             </FormItem>
-//           )}
-//         />
-//         <FormField
-//           control={form.control}
-//           name="displayName"
-//           disabled={loading}
-//           render={({ field }) => (
-//             <FormItem>
-//               <FormLabel>Display name</FormLabel>
-//               <FormControl>
-//                 <Input placeholder="John Doe" {...field} />
-//               </FormControl>
-//               <FormMessage />
-//             </FormItem>
-//           )}
-//         />
-//         <FormField
-//           control={form.control}
-//           name="bio"
-//           disabled={loading}
-//           render={({ field }) => (
-//             <FormItem>
-//               <FormLabel>About Me</FormLabel>
-//               <FormControl>
-//                 <Textarea
-//                   placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
-//                   className="resize-none"
-//                   {...field}
-//                 />
-//               </FormControl>
-//               <FormMessage />
-//             </FormItem>
-//           )}
-//         />
-//         <Button type="submit" disabled={loading}>Save changes</Button>
-//       </form>
-//     </Form>
-//   )
-// }
-
-// TODO: switch back to react-hook-form and zod
-// NOTE: the form below is without validation
-// TODO: username - cannot have space 
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
+import { UserRound } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
+import { SubmitHandler, useForm } from "react-hook-form"
 import { z } from "zod"
-import { useEffect, useState } from "react"
 
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { Label } from "@/components/ui/label"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-// TODO: add profile picture setup - upload to ipfs and store ipfs link
-// TODO: update validation rules
-// TODO: update onSubmit handling
-// TODO: learn more about the form and zod library
-// const profileFormSchema = z.object({
-//   displayName: z
-//     .string()
-//     .min(3, {
-//       message: "Display name must be at least 3 characters.",
-//     })
-//     .max(100, {
-//       message: "Display name must not be longer than 100 characters.",
-//     }),
-//   username: z
-//     .string()
-//     .min(3, {
-//       message: "Display name must be at least 3 characters.",
-//     })
-//     .max(100, {
-//       message: "Display name must not be longer than 100 characters.",
-//     }),
-//   bio: z
-//     .string()
-//     .min(4, {
-//       message: "About me must be at least 4 characters.",
-//     })
-//     .max(160, {
-//       message: "About me must not be longer than 160 characters.",
-//     })
-//     .optional(),
-//   // pfp: z
-//   //   .string()
-//   //   .min(3, {
-//   //     message: "Profile picture link must be at least 3 characters.",
-//   //   })
-//   //   .max(100, {
-//   //     message: "Profile picture link must not be longer than 100 characters.",
-//   //   }),
-// })
-
-// type ProfileFormValues = z.infer<typeof profileFormSchema>
-
-export type Profile = {
-  id?: any
-  displayName?: string
-  username?: string
-  bio?: string
-  pfp?: string
+/** Make sure pinata gateway is provided */
+if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
+  console.log("You haven't setup your NEXT_PUBLIC_PINATA_GATEWAY yet.")
 }
 
+const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
+
+// TODO: add profile picture setup - upload to ipfs and store ipfs link
+const profileFormSchema = z.object({
+  displayName: z
+    .string()
+    .min(3, {
+      message: "Display name must be at least 3 characters.",
+    })
+    .max(100, {
+      message: "Display name must not be longer than 100 characters.",
+    }),
+  username: z
+    .string()
+    .min(3, {
+      message: "Display name must be at least 3 characters.",
+    })
+    .max(100, {
+      message: "Display name must not be longer than 100 characters.",
+    })
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: "Your username can only contain letters, numbers and '_'",
+    }),
+  bio: z
+    .string()
+    .max(160, {
+      message: "About me must not be longer than 160 characters.",
+    })
+    .optional(),
+})
+
+export type ProfileFormValues = z.infer<typeof profileFormSchema>
+
 export function ProfileForm() {
-  const { composeClient, profile, getProfile } = useCeramicContext();
+  const { composeClient, viewerProfile, getViewerProfile } = useCeramicContext();
 
-  const [profileInput, setProfileInput] = useState<Profile | null>(null);
-
-  const [loading, setLoading] = useState<boolean>(false);
+  /** beginning of pfp input field handling */
+  const pfpRef = useRef<HTMLInputElement>(null); // ref to corresponding hidden pfp input field
+  const [media, setMedia] = useState<File | null>(); // state to contain pfp input file
+  const [dataUrl, setDataUrl] = useState<string>(""); // used for image preview
 
   useEffect(() => {
-    if (profile && !profileInput) {
-      setProfileInput(profile)
+    let newUrl: string;
+    if (media) {
+      newUrl = URL.createObjectURL(media); // generate new data urls for media 
+      setDataUrl(newUrl);
     }
-  }, [profile, profileInput])
+    return () => {
+      URL.revokeObjectURL(newUrl);
+    }
+  }, [media]);
 
-  const updateProfile = async (e: any) => {
-    e.preventDefault()
+  const triggerPfpInput = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    pfpRef?.current?.click();
+  }
 
+  const handlePfpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files)
+      setMedia(e.target.files[0]);
+  }
+  /** end of pfp input field handling */
+
+  const [profileClone, setProfileClone] = useState<ProfileFormValues | undefined>();
+
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    // pre-populate form fields with current data
+    if (viewerProfile && !profileClone) {
+      setProfileClone(viewerProfile)
+
+      if (viewerProfile?.pfp) {
+        setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewerProfile?.pfp.split('://')[1]}`)
+      }
+    }
+    // set loading to true when it's still getting viewer profile
+    if (viewerProfile !== undefined) {
+      setLoading(false)
+    }
+  }, [viewerProfile, profileClone])
+
+  const defaultValues: Partial<ProfileFormValues> = {
+    displayName: viewerProfile?.displayName || "",
+    username: viewerProfile?.username || "",
+  }
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues,
+    values: profileClone,
+    mode: "onBlur"
+  })
+
+  const updateProfile = async (data: Partial<ProfileFormValues>) => {
     setLoading(true);
+
+    let uploadedPfp: string = "";
+    // upload new pfp to ipfs if there is
+    if (media) {
+      const formData = new FormData();
+      formData.append("file", media);
+      const mediaRes = await fetch('/ipfs/upload', {
+        method: "POST",
+        body: formData
+      });
+      if (mediaRes.status == 200) {
+        const result = await mediaRes.json();
+        uploadedPfp = result.url;
+      } else {
+        toast({ title: 'Fail to upload media' })
+      }
+    }
 
     // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
     const update = await composeClient.executeQuery(`
         mutation {
           createBasicProfile(input: {
             content: {
-              displayName: "${profileInput?.displayName || ""}"
-              username: "${profileInput?.username || ""}"
-              bio: "${profileInput?.bio?.replace(/\n/g, "\\n") || ""}"
+              displayName: "${data?.displayName || ""}"
+              username: "${data?.username || ""}"
+              bio: "${data?.bio?.replace(/\n/g, "\\n") || ""}"
+              pfp: "${uploadedPfp || ""}"
             }
           }) 
           {
@@ -300,6 +156,7 @@ export function ProfileForm() {
               displayName
               username
               bio
+              pfp
             }
           }
         }
@@ -310,55 +167,89 @@ export function ProfileForm() {
     } else {
       toast({ title: "Updated profile" })
       setLoading(true);
-      await getProfile()
+      getViewerProfile()
     }
     setLoading(false);
   };
 
+  const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
+    console.log('onSubmit => ', { data })
+    await updateProfile(data)
+  }
+
   return (
-    <form className="space-y-8">
-      <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
-        <Input
-          placeholder="john-doe"
-          name="username"
-          disabled={loading || profile === undefined}
-          defaultValue={profileInput?.username || ""}
-          onChange={(e) => {
-            setProfileInput({ ...profileInput, username: e.target.value });
-          }}
-        />
-      </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
+        <div className="flex flex-col gap-4 items-start">
+          {/* TODO: allow user to crop image / drag to adjust but maintain the square aspect - refer whatsapp pfp */}
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={dataUrl} />
+            <AvatarFallback><UserRound /></AvatarFallback>
+          </Avatar>
 
-      <div className="space-y-2">
-        <Label htmlFor="displayName">Display Name</Label>
-        <Input
-          placeholder="John Doe"
-          name="displayName"
-          disabled={loading || profile === undefined}
-          defaultValue={profileInput?.displayName || ""}
-          onChange={(e) => {
-            setProfileInput({ ...profileInput, displayName: e.target.value });
-          }}
-        />
-      </div>
+          <Button onClick={triggerPfpInput} disabled={loading} variant="outline">
+            Edit PFP
+          </Button>
+        </div>
 
-
-      <div className="space-y-2">
-        <Label htmlFor="bio">About Me</Label>
-        <Textarea
-          placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
-          className="resize-none"
-          name="bio"
-          disabled={loading || profile === undefined}
-          defaultValue={profileInput?.bio || ""}
-          onChange={(e) => {
-            setProfileInput({ ...profileInput, bio: e.target.value });
-          }}
-        />
-      </div>
-
-      <Button disabled={loading || profile === undefined} onClick={updateProfile}>Save changes</Button>
-    </form>
+        <div className="flex-1 space-y-8">
+          <FormField
+            control={form.control}
+            name="username"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="john_doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="displayName"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bio"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>About Me</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={loading}>Save changes</Button>
+        </div>
+      </form>
+      <input
+        id="pfpInput"
+        accept={'image/*'}
+        onChange={handlePfpChange}
+        ref={pfpRef}
+        type="file"
+        className='hidden'
+      />
+    </Form>
   )
 }

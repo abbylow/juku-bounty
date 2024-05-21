@@ -46,7 +46,9 @@ Create schema in grapgql, eg: composites/schema.graphql
 ### Deploy composite
 `composedb composite:deploy composite.json --ceramic-url=http://localhost:7007 --did-private-key=[ADMIN_KEY]`
 #### Examples of deployed composites: 
-["kjzl6hvfrbw6cb1xctc6896v8id5qnmcdg0biqaez3yuytrsgpjaa0czc32bdgn","kjzl6hvfrbw6c7zk4c0rksxamnpnaimwnpgyme24cfd3q0gmba5km2tzkns4dfi"]
+<!-- ["kjzl6hvfrbw6cb1xctc6896v8id5qnmcdg0biqaez3yuytrsgpjaa0czc32bdgn","kjzl6hvfrbw6c7zk4c0rksxamnpnaimwnpgyme24cfd3q0gmba5km2tzkns4dfi"] -->
+["kjzl6hvfrbw6c7bmp7dp93q19itsvckt59gg8z5bm16au5v1om8zjqpxb7yywyu","kjzl6hvfrbw6c8ghb51670zsstqvydnbsg876jtfwxgw2coxt2oaida0vaqhzk5"]
+
 
 ### Compile composite 
 `composedb composite:compile composite.json runtime-composite.json`
