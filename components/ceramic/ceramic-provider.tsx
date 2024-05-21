@@ -7,9 +7,7 @@ import { RuntimeCompositeDefinition } from "@composedb/types";
 import { useSigner, useUser } from "@thirdweb-dev/react";
 
 import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/utils";
-// TODO: swap back to latest schema
-// import * as definition from "@/composites/runtime-composite.json";
-import * as definition from "@/composites/runtime-composite-ori.json";
+import * as definition from "@/composites/runtime-composite.json";
 import { ProfileFormValues } from "@/app/profile/settings/form";
 
 /** Make sure ceramic node url is provided */
