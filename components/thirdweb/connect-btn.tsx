@@ -7,6 +7,12 @@ import { base, baseSepolia } from 'thirdweb/chains'
 import { useTwebContext } from '@/components/thirdweb/thirdweb-provider'
 import { JUKU_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
 // import { lightThirdwebTheme } from './customized-themes'
+import {
+  generatePayload,
+  isLoggedIn,
+  login,
+  logout,
+} from "@/actions/auth";
 
 export function ConnectBtn() {
   const { client, wallets } = useTwebContext()
@@ -26,6 +32,22 @@ export function ConnectBtn() {
       }}
       showAllWallets={false} //TBC
       recommendedWallets={[wallets[0]]} //TBC
+      auth={{
+        isLoggedIn: async (address) => {
+          console.log("checking if logged in!", { address });
+          return await isLoggedIn();
+        },
+        doLogin: async (params) => {
+          console.log("logging in!");
+          await login(params);
+        },
+        getLoginPayload: async ({ address }) =>
+          generatePayload({ address }),
+        doLogout: async () => {
+          console.log("logging out!");
+          await logout();
+        },
+      }}
     />
   );
 }

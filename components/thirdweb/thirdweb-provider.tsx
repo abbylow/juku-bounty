@@ -1,7 +1,7 @@
 "use client"
 
 import { ReactNode, createContext, useContext } from "react";
-import { ThirdwebClient, createThirdwebClient } from "thirdweb";
+import { ThirdwebClient } from "thirdweb";
 import {
   ThirdwebProvider,
 } from "thirdweb/react";
@@ -11,15 +11,7 @@ import {
   inAppWallet,
   Wallet,
 } from "thirdweb/wallets";
-
-// Ensure environment variables are defined
-if (!process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID) {
-  throw new Error("NEXT_PUBLIC_THIRDWEB_CLIENT_ID is not defined in the environment variables.");
-}
-
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
+import { client } from "@/lib/thirdweb-client";
 
 const wallets = [
   inAppWallet({
