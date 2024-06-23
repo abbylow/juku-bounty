@@ -6,7 +6,7 @@ import { Bell, Menu, CircleUserRound, Sprout, Settings } from 'lucide-react'
 import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
-import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, FAQ_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_SETTINGS_URL, PROFILE_URL } from '@/const/links'
+import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_SETTINGS_URL, PROFILE_URL } from '@/const/links'
 import { CONNECTION_STATUS } from "@/const/thirdweb-connection";
 import { cn } from '@/lib/utils'
 // import { Icons } from "@/components/icons"
@@ -65,10 +65,6 @@ export function Header() {
               >
                 Request for Consultation
               </Link>
-
-              <a href={FAQ_URL} rel="noreferrer noopener" target="_blank">
-                FAQ
-              </a>
 
               {/* TODO: only display this about juku route when user's not logged */}
               <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
@@ -131,15 +127,6 @@ export function Header() {
                     </Link>
                   </ul>
                 </NavigationMenuContent>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link href={FAQ_URL} passHref legacyBehavior>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
-                    <a rel="noreferrer noopener" target="_blank">
-                      FAQ
-                    </a>
-                  </NavigationMenuLink>
-                </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 {/* TODO: only display this about juku route when user's not logged - move this to profile icon after logged in*/}
