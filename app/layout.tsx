@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter as FontSans } from 'next/font/google'
 import { CeramicProvider } from '@/components/ceramic/ceramic-provider'
 import { ThemeProvider } from '@/components/theme/theme-provider'
-import { ThirdwebProvider } from '@/components/thirdweb/thirdweb-provider'
+import { TwebProvider } from '@/components/thirdweb/thirdweb-provider'
 import { Footer } from '@/components/site-footer'
 import { Header } from '@/components/site-header'
 import { Toaster } from '@/components/ui/toaster'
@@ -39,7 +39,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ThirdwebProvider>
+          <TwebProvider>
             <CeramicProvider>
               <div className="relative min-h-screen flex flex-col bg-background">
                 <Header />
@@ -50,7 +50,7 @@ export default function RootLayout({
                 <Toaster />
               </div>
             </CeramicProvider>
-          </ThirdwebProvider>
+          </TwebProvider>
         </ThemeProvider>
       </body>
     </html>
