@@ -1,9 +1,10 @@
 "use client"
 
-import { useUser } from "@thirdweb-dev/react";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { SidebarNav } from "@/components/ui/sidebar-nav"
 import { PROFILE_SETTINGS_INTEGRATION_URL, PROFILE_SETTINGS_NOTIFICATION_URL, PROFILE_SETTINGS_PRIVACY_URL, PROFILE_SETTINGS_URL } from "@/const/links"
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
+import { CONNECTION_STATUS } from "@/const/thirdweb-connection";
 
 // TODO: mobile responsiveness - tabs
 const sidebarNavItems = [
@@ -30,9 +31,9 @@ export default function ProfileSettingsLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { isLoggedIn, isLoading } = useUser()
+  const connectionStatus = useActiveWalletConnectionStatus();
 
-  if (!isLoading && !isLoggedIn) {
+  if (connectionStatus === CONNECTION_STATUS.DISCONNECTED) {
     return (
       <div className="space-y-6 md:px-10 py-10 pb-16">
         <div className="space-y-4">

@@ -1,19 +1,20 @@
 "use client"
 
-import { useUser } from "@thirdweb-dev/react";
 import Link from "next/link";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
 
 import { BountyForm } from "@/app/bounty/create/form";
-import { ConnectBtn } from "@/components/thirdweb/connect-btn";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
+import { ConnectBtn } from "@/components/thirdweb/connect-btn";
+import { buttonVariants } from "@/components/ui/button";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { CONNECTION_STATUS } from "@/const/thirdweb-connection";
 
 export default function BountyCreation() {
-  const { isLoggedIn, isLoading } = useUser()
+  const connectionStatus = useActiveWalletConnectionStatus();
   const { viewerProfile } = useCeramicContext();
 
-  if (!isLoading && !isLoggedIn) {
+  if (connectionStatus === CONNECTION_STATUS.DISCONNECTED) {
     return (
       <section>
         <div className="space-y-6">
