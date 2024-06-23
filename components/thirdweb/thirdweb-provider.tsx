@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, createContext, useContext } from "react";
+import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useState } from "react";
 import { ThirdwebClient } from "thirdweb";
 import {
   ThirdwebProvider,
@@ -26,15 +26,21 @@ const wallets = [
 
 interface ITwebContext {
   client: ThirdwebClient,
-  wallets: (Wallet<"io.metamask"> | Wallet<"com.coinbase.wallet"> | Wallet<"walletConnect"> | Wallet<"inApp">)[]
+  wallets: (Wallet<"io.metamask"> | Wallet<"com.coinbase.wallet"> | Wallet<"walletConnect"> | Wallet<"inApp">)[],
+  setLoggedIn: Dispatch<SetStateAction<boolean>>,
+  loggedIn: boolean
 }
-const TwebContext = createContext<ITwebContext>({ client, wallets });
+const TwebContext = createContext<ITwebContext>({ client, wallets, setLoggedIn: () => { }, loggedIn: false });
 
 export function TwebProvider({ children }: { children: ReactNode }) {
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+
   return (
     <TwebContext.Provider value={{
       client,
       wallets,
+      setLoggedIn,
+      loggedIn
     }}>
       <ThirdwebProvider>
         {children}

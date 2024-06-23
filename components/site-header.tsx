@@ -3,11 +3,10 @@
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
 import { Bell, Menu, CircleUserRound, Sprout, Settings } from 'lucide-react'
-import { useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useTwebContext } from "@/components/thirdweb/thirdweb-provider";
 import { JukuIcon } from '@/components/juku/icon'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
 import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_SETTINGS_URL, PROFILE_URL } from '@/const/links'
-import { CONNECTION_STATUS } from "@/const/thirdweb-connection";
 import { cn } from '@/lib/utils'
 // import { Icons } from "@/components/icons"
 import {
@@ -30,7 +29,7 @@ import {
 
 export function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const connectionStatus = useActiveWalletConnectionStatus();
+  const { loggedIn } = useTwebContext();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -72,7 +71,7 @@ export function Header() {
               </a>
 
               {
-                connectionStatus === CONNECTION_STATUS.CONNECTED && (
+                loggedIn && (
                   <>
                     {/* TODO: TBD - where to link this route to? */}
                     <Link href={PLATFROM_QUEST_URL} onClick={() => setMobileNavOpen(false)}>
@@ -145,7 +144,7 @@ export function Header() {
 
         <div className="flex items-center justify-end gap-4">
           {
-            connectionStatus === CONNECTION_STATUS.CONNECTED && (
+            loggedIn && (
               <>
                 {/* TODO: TBD - where to link this route to? */}
                 <Link href={PLATFROM_QUEST_URL} className="md:block hidden">
@@ -191,7 +190,7 @@ export function Header() {
             )
           }
 
-          <div className={connectionStatus === CONNECTION_STATUS.CONNECTED ? "md:block hidden" : ""}>
+          <div className={loggedIn ? "md:block hidden" : ""}>
             <ConnectBtn />
           </div>
         </div>

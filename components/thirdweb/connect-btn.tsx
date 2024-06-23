@@ -16,7 +16,7 @@ import {
 import { CERAMIC_SESSION_KEY } from "@/components/ceramic/utils";
 
 export function ConnectBtn() {
-  const { client, wallets } = useTwebContext()
+  const { client, wallets, setLoggedIn } = useTwebContext()
 
   const deleteCeramicSession = () => {
     localStorage.removeItem(CERAMIC_SESSION_KEY);
@@ -40,7 +40,9 @@ export function ConnectBtn() {
       auth={{
         isLoggedIn: async (address) => {
           console.log("checking if logged in!", { address });
-          return await isLoggedIn();
+          const status = await isLoggedIn();
+          setLoggedIn(status);
+          return status;
         },
         doLogin: async (params) => {
           console.log("logging in!");
@@ -51,9 +53,10 @@ export function ConnectBtn() {
         doLogout: async () => {
           console.log("logging out!");
           await logout();
+          setLoggedIn(false);
+          deleteCeramicSession();
         },
       }}
-      onDisconnect={deleteCeramicSession}
     />
   );
 }
