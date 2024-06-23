@@ -1,7 +1,7 @@
 import { Linkedin, Twitter } from 'lucide-react'
 import { JukuIcon } from '@/components/juku/icon'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
-import { CONTACT_US_URL, FAQ_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
+import { CONTACT_US_URL, FAQ_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
 
 export function Footer() {
   return (
@@ -48,9 +48,6 @@ export function Footer() {
             </h5>
             <a href={FAQ_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
               FAQ
-            </a>
-            <a href={PRIVACY_POLICY_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
-              Privacy Policy
             </a>
             <a href={TERMS_OF_SERVICE_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
               Terms of Service

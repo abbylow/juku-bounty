@@ -5,7 +5,6 @@ export const CONSULTATION_CREATION_URL = "/consultation/create";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/jukunetwork/";
 export const TWITTER_URL = "https://twitter.com/jukunetwork";
 export const FAQ_URL = "https://www.gitbook.com/"; //TODO: TBD
-// export const PRIVACY_POLICY_URL = "https://www.gitbook.com/"; //TODO: TBD
 export const TERMS_OF_SERVICE_URL = "https://juku.gitbook.io/juku/other-information/legal/terms-of-use/"; //TODO: TBD
 export const HOW_IT_WORKS_URL = "https://www.gitbook.com/"; //TODO: TBD
 export const INTRODUCTION_URL = "https://www.gitbook.com/"; //TODO: TBD
