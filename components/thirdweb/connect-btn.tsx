@@ -13,9 +13,14 @@ import {
   login,
   logout,
 } from "@/actions/auth";
+import { CERAMIC_SESSION_KEY } from "@/components/ceramic/utils";
 
 export function ConnectBtn() {
   const { client, wallets } = useTwebContext()
+
+  const deleteCeramicSession = () => {
+    localStorage.removeItem(CERAMIC_SESSION_KEY);
+  }
 
   return (
     <ConnectButton
@@ -48,6 +53,7 @@ export function ConnectBtn() {
           await logout();
         },
       }}
+      onDisconnect={deleteCeramicSession}
     />
   );
 }

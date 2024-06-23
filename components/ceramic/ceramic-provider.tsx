@@ -1,14 +1,18 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ComposeClient } from "@composedb/client";
 import { RuntimeCompositeDefinition } from "@composedb/types";
-import { useSigner, useUser } from "@thirdweb-dev/react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { base, baseSepolia } from "thirdweb/chains";
+import { useActiveAccount, useActiveWalletConnectionStatus } from "thirdweb/react";
 
-import { CERAMIC_SESSION_KEY, authenticateCeramic } from "@/components/ceramic/utils";
-import * as definition from "@/composites/runtime-composite.json";
 import { ProfileFormValues } from "@/app/profile/settings/form";
+import { authenticateCeramic } from "@/components/ceramic/utils";
+import * as definition from "@/composites/runtime-composite.json";
+import { CONNECTION_STATUS } from "@/const/thirdweb-connection";
+import { client } from "@/lib/thirdweb-client";
 
 /** Make sure ceramic node url is provided */
 if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
@@ -42,24 +46,36 @@ interface ICeramicContext {
 }
 const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { } });
 
-export const CeramicProvider = ({ children }: any) => {
-  const signer = useSigner()
-  const { isLoggedIn, isLoading } = useUser()
+export const CeramicProvider = ({ children }: { children: ReactNode }) => {
+  const activeAccount = useActiveAccount();
+  const connectionStatus = useActiveWalletConnectionStatus();
+  
+  const [signer, setSigner] = useState<any>();
 
-  const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
+  useEffect(() => {
+    async function getSigner() {
+      if (activeAccount) {
+        const signer = await ethers5Adapter.signer.toEthers({
+          account: activeAccount,
+          client,
+          chain: process.env.NODE_ENV === "production" ? base : baseSepolia
+        });
+        setSigner(signer);
+      }
+    }
+    getSigner();
+  }, [activeAccount]);
 
   /**
    * Authenticate user and create ceramic session when user logged in
-   * Delete ceramic session when user logged out
    */
   useEffect(() => {
-    if (!isLoading && isLoggedIn && signer) {
+    if (connectionStatus === CONNECTION_STATUS.CONNECTED && signer) {
       authenticateCeramic(ceramic, composeClient, signer);
     }
-    if (!isLoading && !isLoggedIn) {
-      localStorage.removeItem(CERAMIC_SESSION_KEY);
-    }
-  }, [isLoading, isLoggedIn, signer])
+  }, [connectionStatus, signer])
+
+  const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
 
   const getViewerProfile = async () => {
     console.log('in context getViewerProfile begins')
