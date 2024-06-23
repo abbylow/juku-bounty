@@ -1,6 +1,5 @@
 import { Linkedin, Twitter } from 'lucide-react'
 import { JukuIcon } from '@/components/juku/icon'
-import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { CONTACT_US_URL, FAQ_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
 
 export function Footer() {
@@ -53,8 +52,6 @@ export function Footer() {
               Terms of Service
             </a>
           </div>
-
-          <ThemeToggle />
         </div>
       </div>
     </footer>

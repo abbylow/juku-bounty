@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter as FontSans } from 'next/font/google'
 import { CeramicProvider } from '@/components/ceramic/ceramic-provider'
-import { ThemeProvider } from '@/components/theme/theme-provider'
 import { TwebProvider } from '@/components/thirdweb/thirdweb-provider'
 import { Footer } from '@/components/site-footer'
 import { Header } from '@/components/site-header'
@@ -33,25 +32,18 @@ export default function RootLayout({
         "min-h-screen bg-background font-sans antialiased",
         fontSans.variable
       )}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TwebProvider>
-            <CeramicProvider>
-              <div className="relative min-h-screen flex flex-col bg-background">
-                <Header />
-                <main className="flex-1 container">
-                  {children}
-                </main>
-                <Footer />
-                <Toaster />
-              </div>
-            </CeramicProvider>
-          </TwebProvider>
-        </ThemeProvider>
+        <TwebProvider>
+          <CeramicProvider>
+            <div className="relative min-h-screen flex flex-col bg-background">
+              <Header />
+              <main className="flex-1 container">
+                {children}
+              </main>
+              <Footer />
+              <Toaster />
+            </div>
+          </CeramicProvider>
+        </TwebProvider>
       </body>
     </html>
   )
