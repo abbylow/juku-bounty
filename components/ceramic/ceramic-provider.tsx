@@ -6,13 +6,13 @@ import { RuntimeCompositeDefinition } from "@composedb/types";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { base, baseSepolia } from "thirdweb/chains";
-import { useActiveAccount, useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 
 import { ProfileFormValues } from "@/app/profile/settings/form";
 import { authenticateCeramic } from "@/components/ceramic/utils";
 import * as definition from "@/composites/runtime-composite.json";
-import { CONNECTION_STATUS } from "@/const/thirdweb-connection";
 import { client } from "@/lib/thirdweb-client";
+import { useTwebContext } from "../thirdweb/thirdweb-provider";
 
 /** Make sure ceramic node url is provided */
 if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
@@ -44,75 +44,75 @@ interface ICeramicContext {
   viewerProfile: BasicProfile | null | undefined,
   getViewerProfile: () => void
 }
-const CeramicContext = createContext<ICeramicContext>({ ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { } });
+const CeramicContext = createContext<ICeramicContext>({
+  ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { }
+});
 
 export const CeramicProvider = ({ children }: { children: ReactNode }) => {
   const activeAccount = useActiveAccount();
-  const connectionStatus = useActiveWalletConnectionStatus();
-  
-  const [signer, setSigner] = useState<any>();
+  // console.log({ activeAccount })
+
+  const { loggedIn } = useTwebContext();
+  // console.log({ loggedIn })
 
   useEffect(() => {
-    async function getSigner() {
-      if (activeAccount) {
+    async function authCeramicAndGetViewer() {
+      // console.log("authCeramicAndGetViewer is called when activeAccount, loggedIn => ", activeAccount, loggedIn)
+      if (activeAccount && loggedIn) {
+        // console.log("activeAccount && loggedIn is true and we are going to get signer now", activeAccount && loggedIn)
         const signer = await ethers5Adapter.signer.toEthers({
           account: activeAccount,
           client,
           chain: process.env.NODE_ENV === "production" ? base : baseSepolia
         });
-        setSigner(signer);
+        // console.log("we got signer here and auth ceramic", signer._isSigner, signer)
+        await authenticateCeramic(ceramic, composeClient, signer);
+        // console.log("in useEffect after ceramic auth - ceramic, composeClient ", ceramic, composeClient)
       }
     }
-    getSigner();
-  }, [activeAccount]);
+    authCeramicAndGetViewer();
+  }, [activeAccount, loggedIn]);
 
-  /**
-   * Authenticate user and create ceramic session when user logged in
-   */
-  useEffect(() => {
-    if (connectionStatus === CONNECTION_STATUS.CONNECTED && signer) {
-      authenticateCeramic(ceramic, composeClient, signer);
-    }
-  }, [connectionStatus, signer])
-
+  // TODO: dont use null and undefined to differentiate loading
   const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
 
-  const getViewerProfile = async () => {
+  // TODO: try react tanstack hook
+  async function getViewerProfile() {
     console.log('in context getViewerProfile begins')
-    const viewerProfile = await composeClient.executeQuery(`
-        query {
-          viewer {
-            basicProfile {
+    const viewerProfileReq = await composeClient.executeQuery(`
+      query {
+        viewer {
+          basicProfile {
+            id
+            author {
               id
-              author {
-                id
-              }
-              displayName
-              username
-              bio
-              pfp
             }
+            displayName
+            username
+            bio
+            pfp
           }
         }
-      `);
-    const viewer: any = viewerProfile?.data?.viewer
-    console.log('in context getViewerProfile => ', { viewer })
+      }
+    `);
+    const viewer: any = viewerProfileReq?.data?.viewer
+    console.log('in context getViewerProfile viewer => ', viewer)
     setProfile(viewer?.basicProfile);
   };
 
-  // TODO: check the warning here
-  useEffect(() => {
-    if (ceramic.did !== undefined && composeClient) {
-      getViewerProfile();
-    }
-  }, [ceramic.did, composeClient]);
+  // TODO: check the warning here - ceramic.did is often undefined - when should we actually get viewer? 
+  // useEffect(() => {
+  //   if (composeClient.did) {
+  //     getViewerProfile();
+  //   }
+  // }, [composeClient.did]);
 
   return (
     <CeramicContext.Provider value={{
       ceramic,
       composeClient,
       viewerProfile,
-      getViewerProfile
+      getViewerProfile,
     }}>
       {children}
     </CeramicContext.Provider>
