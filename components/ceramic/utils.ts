@@ -22,16 +22,18 @@ export const authenticateCeramic = async (
   ceramic: CeramicClient,
   compose: ComposeClient,
   provider: any,
+  onDone?: () => void,
 ) => {
   // authenticateEthPKH(ceramic, compose);
   const processedProvider = processProvider(provider);
-  authenticateEthPKH(ceramic, compose, processedProvider);
+  authenticateEthPKH(ceramic, compose, processedProvider, onDone);
 };
 
 const authenticateEthPKH = async (
   ceramic: CeramicClient,
   compose: ComposeClient,
   provider: any,
+  onDone?: () => void,
 ) => {
   const sessionStr = localStorage.getItem(CERAMIC_SESSION_KEY); // for production you will want a better place than localStorage for your sessions.
   let session;
@@ -77,6 +79,10 @@ const authenticateEthPKH = async (
   // Set our Ceramic DID to be our session DID.
   ceramic.did = session.did;
   compose.setDID(session.did);
+
+  if (onDone) {
+    onDone();
+  }
   return;
 };
 

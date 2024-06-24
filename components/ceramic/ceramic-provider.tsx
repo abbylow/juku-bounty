@@ -3,7 +3,7 @@
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ComposeClient } from "@composedb/client";
 import { RuntimeCompositeDefinition } from "@composedb/types";
-import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { base, baseSepolia } from "thirdweb/chains";
 import { useActiveAccount } from "thirdweb/react";
@@ -42,10 +42,11 @@ interface ICeramicContext {
   ceramic: CeramicClient,
   composeClient: ComposeClient,
   viewerProfile: BasicProfile | null | undefined,
+  setProfile: Dispatch<SetStateAction<BasicProfile | null | undefined>>,
   getViewerProfile: () => void
 }
 const CeramicContext = createContext<ICeramicContext>({
-  ceramic, composeClient, viewerProfile: null, getViewerProfile: () => { }
+  ceramic, composeClient, viewerProfile: null, setProfile: () => { }, getViewerProfile: () => { }
 });
 
 export const CeramicProvider = ({ children }: { children: ReactNode }) => {
@@ -66,17 +67,16 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
           chain: process.env.NODE_ENV === "production" ? base : baseSepolia
         });
         // console.log("we got signer here and auth ceramic", signer._isSigner, signer)
-        await authenticateCeramic(ceramic, composeClient, signer);
+        await authenticateCeramic(ceramic, composeClient, signer, getViewerProfile);
         // console.log("in useEffect after ceramic auth - ceramic, composeClient ", ceramic, composeClient)
       }
     }
     authCeramicAndGetViewer();
   }, [activeAccount, loggedIn]);
 
-  // TODO: dont use null and undefined to differentiate loading
   const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
+  console.log({ viewerProfile })
 
-  // TODO: try react tanstack hook
   async function getViewerProfile() {
     console.log('in context getViewerProfile begins')
     const viewerProfileReq = await composeClient.executeQuery(`
@@ -100,18 +100,12 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
     setProfile(viewer?.basicProfile);
   };
 
-  // TODO: check the warning here - ceramic.did is often undefined - when should we actually get viewer? 
-  // useEffect(() => {
-  //   if (composeClient.did) {
-  //     getViewerProfile();
-  //   }
-  // }, [composeClient.did]);
-
   return (
     <CeramicContext.Provider value={{
       ceramic,
       composeClient,
       viewerProfile,
+      setProfile,
       getViewerProfile,
     }}>
       {children}

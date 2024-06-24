@@ -14,12 +14,15 @@ import {
   logout,
 } from "@/actions/auth";
 import { CERAMIC_SESSION_KEY } from "@/components/ceramic/utils";
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 
 export function ConnectBtn() {
   const { client, wallets, setLoggedIn } = useTwebContext()
+  const { setProfile } = useCeramicContext()
 
   const deleteCeramicSession = () => {
     localStorage.removeItem(CERAMIC_SESSION_KEY);
+    setProfile(undefined); // reset after logout
   }
 
   return (
