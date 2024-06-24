@@ -4,12 +4,12 @@ import { DIDSession } from "did-session";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
 
 // If you are relying on an injected provider this must be here otherwise you will have a type error.
-// declare global {
-//   interface Window {
-//     ethereum: any;
-//     solflare: any;
-//   }
-// }
+declare global {
+  interface Window {
+    ethereum: any;
+    // solflare: any;
+  }
+}
 
 const threeMonths = 60 * 60 * 24 * 90;
 export const CERAMIC_SESSION_KEY = "ceramic-session";
@@ -75,8 +75,8 @@ const authenticateEthPKH = async (
   }
 
   // Set our Ceramic DID to be our session DID.
-  compose.setDID(session.did);
   ceramic.did = session.did;
+  compose.setDID(session.did);
   return;
 };
 
