@@ -51,34 +51,26 @@ const CeramicContext = createContext<ICeramicContext>({
 
 export const CeramicProvider = ({ children }: { children: ReactNode }) => {
   const activeAccount = useActiveAccount();
-  // console.log({ activeAccount })
 
   const { loggedIn } = useTwebContext();
-  // console.log({ loggedIn })
 
   useEffect(() => {
     async function authCeramicAndGetViewer() {
-      // console.log("authCeramicAndGetViewer is called when activeAccount, loggedIn => ", activeAccount, loggedIn)
       if (activeAccount && loggedIn) {
-        // console.log("activeAccount && loggedIn is true and we are going to get signer now", activeAccount && loggedIn)
         const signer = await ethers5Adapter.signer.toEthers({
           account: activeAccount,
           client,
           chain: process.env.NODE_ENV === "production" ? base : baseSepolia
         });
-        // console.log("we got signer here and auth ceramic", signer._isSigner, signer)
         await authenticateCeramic(ceramic, composeClient, signer, getViewerProfile);
-        // console.log("in useEffect after ceramic auth - ceramic, composeClient ", ceramic, composeClient)
       }
     }
     authCeramicAndGetViewer();
   }, [activeAccount, loggedIn]);
 
   const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
-  console.log({ viewerProfile })
 
   async function getViewerProfile() {
-    console.log('in context getViewerProfile begins')
     const viewerProfileReq = await composeClient.executeQuery(`
       query {
         viewer {
@@ -96,7 +88,7 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
       }
     `);
     const viewer: any = viewerProfileReq?.data?.viewer
-    console.log('in context getViewerProfile viewer => ', viewer)
+    // console.log('in context getViewerProfile viewer => ', viewer)
     setProfile(viewer?.basicProfile);
   };
 

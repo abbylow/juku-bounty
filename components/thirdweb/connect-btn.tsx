@@ -18,11 +18,20 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 
 export function ConnectBtn() {
   const { client, wallets, setLoggedIn } = useTwebContext()
-  const { setProfile } = useCeramicContext()
+  const { setProfile, ceramic, composeClient } = useCeramicContext()
 
-  const deleteCeramicSession = () => {
+  const reset = () => {
+    // reset viewer profile after logout
+    setProfile(undefined); 
+    // reset ceramic session
     localStorage.removeItem(CERAMIC_SESSION_KEY);
-    setProfile(undefined); // reset after logout
+    // TODO: check whether we need to remove DID from ceramic and composedb
+    // reset DID in ceramic client
+    // @ts-ignore
+    ceramic.did = undefined;
+    // reset DID in composedb client 
+    // @ts-ignore
+    composeClient.setDID(undefined);
   }
 
   return (
@@ -42,22 +51,22 @@ export function ConnectBtn() {
       recommendedWallets={[wallets[0]]} //TBC
       auth={{
         isLoggedIn: async (address) => {
-          console.log("checking if logged in!", { address });
+          // console.log("checking if logged in!", { address });
           const status = await isLoggedIn();
           setLoggedIn(status);
           return status;
         },
         doLogin: async (params) => {
-          console.log("logging in!");
+          // console.log("logging in!");
           await login(params);
         },
         getLoginPayload: async ({ address }) =>
           generatePayload({ address }),
         doLogout: async () => {
-          console.log("logging out!");
+          // console.log("logging out!");
           await logout();
           setLoggedIn(false);
-          deleteCeramicSession();
+          reset();
         },
       }}
     />
