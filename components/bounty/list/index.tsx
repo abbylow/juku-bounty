@@ -65,6 +65,7 @@ export default function BountyList() {
 
   useEffect(() => {
     getBountyList()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

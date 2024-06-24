@@ -1,35 +1,74 @@
 "use client"
-
 import {
-  ConnectWallet,
-  // Theme
-} from '@thirdweb-dev/react'
-// import { useTheme } from 'next-themes'
-// import { useEffect, useState } from 'react'
-// import { darkThirdwebTheme, lightThirdwebTheme } from './customized-themes'
+  ConnectButton,
+} from "thirdweb/react";
+import { base, baseSepolia } from 'thirdweb/chains'
+
+import { useTwebContext } from '@/components/thirdweb/thirdweb-provider'
+import { JUKU_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
+// import { lightThirdwebTheme } from './customized-themes'
+import {
+  generatePayload,
+  isLoggedIn,
+  login,
+  logout,
+} from "@/actions/auth";
+import { CERAMIC_SESSION_KEY } from "@/components/ceramic/utils";
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 
 export function ConnectBtn() {
-  // const { theme, systemTheme } = useTheme()
-  // const [customizedTheme, setCustomizedTheme] = useState<"dark" | "light" | Theme | undefined>("light")
-  // useEffect(() => {
-  //   const currentTheme = theme ? (theme === "system" ? systemTheme : theme) : "light"
-  //   const tempTheme = currentTheme === "dark" ? darkThirdwebTheme : lightThirdwebTheme
-  //   setCustomizedTheme(tempTheme)
-  // }, [theme, systemTheme])
+  const { client, wallets, setLoggedIn } = useTwebContext()
+  const { setProfile, ceramic, composeClient } = useCeramicContext()
+
+  const reset = () => {
+    // reset viewer profile after logout
+    setProfile(undefined); 
+    // reset ceramic session
+    localStorage.removeItem(CERAMIC_SESSION_KEY);
+    // TODO: check whether we need to remove DID from ceramic and composedb
+    // reset DID in ceramic client
+    // @ts-ignore
+    ceramic.did = undefined;
+    // reset DID in composedb client 
+    // @ts-ignore
+    composeClient.setDID(undefined);
+  }
 
   return (
-    <ConnectWallet
-      // theme={customizedTheme}
-      btnTitle="Login"
-      modalTitle="Login"
-      modalTitleIconUrl={""} //TODO: add link to our logo
-      auth={{
-        loginOptional: false,
+    <ConnectButton
+      client={client}
+      wallets={wallets}
+      chain={process.env.NODE_ENV === "production" ? base : baseSepolia}
+      // theme={lightThirdwebTheme} //TODO: customize to juku's theme
+      theme={"light"}
+      connectModal={{
+        size: "wide",
+        titleIcon: JUKU_LOGO,
+        showThirdwebBranding: false,
+        termsOfServiceUrl: TERMS_OF_SERVICE_URL,
       }}
-      switchToActiveChain
-    // termsOfServiceUrl="https://...." //TODO: add terms of service page and turn this on
-    // privacyPolicyUrl="https://...." //TODO: add privacy policy page and turn this on
-    // switchToActiveChain={true} // to turn this on, must specify `activeChain` on thirdweb provider
+      showAllWallets={false} //TBC
+      recommendedWallets={[wallets[0]]} //TBC
+      auth={{
+        isLoggedIn: async (address) => {
+          // console.log("checking if logged in!", { address });
+          const status = await isLoggedIn();
+          setLoggedIn(status);
+          return status;
+        },
+        doLogin: async (params) => {
+          // console.log("logging in!");
+          await login(params);
+        },
+        getLoginPayload: async ({ address }) =>
+          generatePayload({ address }),
+        doLogout: async () => {
+          // console.log("logging out!");
+          await logout();
+          setLoggedIn(false);
+          reset();
+        },
+      }}
     />
-  )
+  );
 }

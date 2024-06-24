@@ -1,39 +1,52 @@
 "use client"
 
-import * as React from 'react'
+import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useState } from "react";
+import { ThirdwebClient } from "thirdweb";
 import {
-  ThirdwebProvider as NextThirdwebProvider,
-  metamaskWallet,
-  coinbaseWallet,
+  ThirdwebProvider,
+} from "thirdweb/react";
+import {
+  createWallet,
   walletConnect,
-  embeddedWallet,
-  en,
-} from '@thirdweb-dev/react'
-import { Cyber, CyberTestnet} from '@thirdweb-dev/chains'
+  inAppWallet,
+  Wallet,
+} from "thirdweb/wallets";
+import { client } from "@/lib/thirdweb-client";
 
-export function ThirdwebProvider({ children, ...props }: any) {
-  return (
-    <NextThirdwebProvider
-      clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
-      supportedWallets={[
-        metamaskWallet(),
-        coinbaseWallet(),
-        walletConnect(),
-        embeddedWallet({
-          auth: {
-            options: ["email", "google"],
-          },
-        }),
-      ]}
-      locale={en()}
-      activeChain={process.env.NODE_ENV === "production" ? Cyber : CyberTestnet}
-      authConfig={{
-        authUrl: "/api/auth",
-        domain: process.env.NEXT_PUBLIC_THIRDWEB_AUTH_DOMAIN || "",
-      }}
-      {...props}
-    >
-      {children}
-    </NextThirdwebProvider>
-  )
+const wallets = [
+  inAppWallet({
+    auth: {
+      options: ["email", "google"],
+    },
+  }),
+  createWallet("io.metamask"),
+  createWallet("com.coinbase.wallet"),
+  walletConnect(),
+];
+
+interface ITwebContext {
+  client: ThirdwebClient,
+  wallets: (Wallet<"io.metamask"> | Wallet<"com.coinbase.wallet"> | Wallet<"walletConnect"> | Wallet<"inApp">)[],
+  setLoggedIn: Dispatch<SetStateAction<boolean>>,
+  loggedIn: boolean
 }
+const TwebContext = createContext<ITwebContext>({ client, wallets, setLoggedIn: () => { }, loggedIn: false });
+
+export function TwebProvider({ children }: { children: ReactNode }) {
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+
+  return (
+    <TwebContext.Provider value={{
+      client,
+      wallets,
+      setLoggedIn,
+      loggedIn
+    }}>
+      <ThirdwebProvider>
+        {children}
+      </ThirdwebProvider>
+    </TwebContext.Provider>
+  );
+}
+
+export const useTwebContext = () => useContext(TwebContext);
