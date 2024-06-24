@@ -46,6 +46,7 @@ export default function BountyDetails({ params }: { params: { slug: string } }) 
 
   useEffect(() => {
     getBounty()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) {
