@@ -37,6 +37,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 
 ## Ceramic Data Modeling 
+First of all, to use composedb command, switch to node version 20. 
+`nvm use 20` 
+
 ### Define models 
 Create schema in grapgql, eg: composites/schema.graphql
 ### Generate composite
