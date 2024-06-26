@@ -14,4 +14,5 @@ export const PROFILE_SETTINGS_INTEGRATION_URL = "/profile/settings/integration";
 export const PROFILE_SETTINGS_PRIVACY_URL = "/profile/settings/privacy"; 
 export const PROFILE_SETTINGS_NOTIFICATION_URL = "/profile/settings/notification"; 
 export const PLATFROM_QUEST_URL = "/profile"; //TODO: TBD
-export const JUKU_LOGO = "/juku.svg";
+export const FULL_LOGO = "/juku-full.svg";
+export const SHORT_LOGO = "/juku-short.svg";

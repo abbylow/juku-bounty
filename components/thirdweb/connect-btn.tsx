@@ -5,7 +5,7 @@ import {
 import { base, baseSepolia } from 'thirdweb/chains'
 
 import { useTwebContext } from '@/components/thirdweb/thirdweb-provider'
-import { JUKU_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
+import { SHORT_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
 // import { lightThirdwebTheme } from './customized-themes'
 import {
   generatePayload,
@@ -43,7 +43,7 @@ export function ConnectBtn() {
       theme={"light"}
       connectModal={{
         size: "wide",
-        titleIcon: JUKU_LOGO,
+        titleIcon: SHORT_LOGO,
         showThirdwebBranding: false,
         termsOfServiceUrl: TERMS_OF_SERVICE_URL,
       }}

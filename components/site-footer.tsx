@@ -1,6 +1,6 @@
 import { Linkedin, Twitter } from 'lucide-react'
-import { JukuIcon } from '@/components/juku/icon'
 import { CONTACT_US_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
+import { Icons } from '@/components/icons'
 
 export function Footer() {
   return (
@@ -9,7 +9,7 @@ export function Footer() {
         <div className="flex md:items-center gap-8">
           <div className="flex flex-col gap-4">
             <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
-              <JukuIcon className="w-40" />
+              <Icons.logo className="w-40" />
             </a>
             <div className='flex gap-4'>
               <a href={LINKEDIN_URL} rel="noreferrer noopener" target="_blank">
