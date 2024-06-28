@@ -49,6 +49,7 @@ export default function BountyList() {
                   id
                   username
                   displayName
+                  pfp
                 }
               }
             }

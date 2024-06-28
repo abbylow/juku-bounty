@@ -31,6 +31,7 @@ export default function BountyDetails({ params }: { params: { slug: string } }) 
                 id
                 username
                 displayName
+                pfp
               }
             }
           }

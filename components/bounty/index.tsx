@@ -10,11 +10,11 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PROFILE_URL } from "@/const/links"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import UserAvatar from "@/components/user/avatar"
 import { useClipboard } from "@/hooks/useClipboard";
 import getURL from "@/lib/get-url";
 
@@ -37,12 +37,8 @@ export default function BountyCard({ details }: { details: any }) {
           {/* TODO: replace the url to the author's profile page - currently, this is user's profile */}
           <div className="flex justify-between flex-wrap gap-2">
 
-            <Link href={PROFILE_URL} className="flex items-center space-x-4">
-              {/* TODO: replace the avatar to user's pfp */}
-              <Avatar>
-                <AvatarImage src="/avatars/01.png" />
-                <AvatarFallback>OM</AvatarFallback>
-              </Avatar>
+            <Link href={`${PROFILE_URL}/${details?.author?.basicProfile?.username}`} className="flex items-center space-x-4">
+              <UserAvatar pfp={details?.author?.basicProfile?.pfp} />
               <div>
                 <p className="text-sm font-medium leading-none">{details?.author?.basicProfile?.displayName || ''}</p>
                 <p className="text-sm text-muted-foreground">{`@${details?.author?.basicProfile?.username || ''}`}</p>
