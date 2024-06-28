@@ -2,7 +2,6 @@
 import {
   ConnectButton,
 } from "thirdweb/react";
-import { base, baseSepolia } from 'thirdweb/chains'
 
 import { useTwebContext } from '@/components/thirdweb/thirdweb-provider'
 import { SHORT_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
@@ -15,6 +14,7 @@ import {
 } from "@/actions/auth";
 import { CERAMIC_SESSION_KEY } from "@/components/ceramic/utils";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
+import { currentChain } from "@/const/chains";
 
 export function ConnectBtn() {
   const { client, wallets, setLoggedIn } = useTwebContext()
@@ -38,7 +38,7 @@ export function ConnectBtn() {
     <ConnectButton
       client={client}
       wallets={wallets}
-      chain={process.env.NODE_ENV === "production" ? base : baseSepolia}
+      chain={currentChain}
       // theme={lightThirdwebTheme} //TODO: customize to juku's theme
       theme={"light"}
       connectModal={{

@@ -1,4 +1,5 @@
-import { Linkedin, Twitter } from 'lucide-react'
+import { Linkedin } from 'lucide-react'
+import Image from "next/image";
 import { CONTACT_US_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
 import { Icons } from '@/components/icons'
 
@@ -16,7 +17,15 @@ export function Footer() {
                 <Linkedin className="h-6 w-6" />
               </a>
               <a href={TWITTER_URL} rel="noreferrer noopener" target="_blank">
-                <Twitter className="h-6 w-6" />
+                {/* TODO: update this twitter logo to svg*/}
+                {/* <Twitter className="h-6 w-6" /> */}
+                {/* <Icons.twitter className="h-6 w-6" /> */}
+                <Image
+                  src="/twitter.png"
+                  alt="X (formerly Twitter)"
+                  width={24}
+                  height={24}
+                />
               </a>
             </div>
             <p className="text-balance text-center leading-loose text-muted-foreground md:text-left">

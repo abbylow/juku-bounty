@@ -5,7 +5,6 @@ import { ComposeClient } from "@composedb/client";
 import { RuntimeCompositeDefinition } from "@composedb/types";
 import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-import { base, baseSepolia } from "thirdweb/chains";
 import { useActiveAccount } from "thirdweb/react";
 
 import { ProfileFormValues } from "@/app/profile/settings/form";
@@ -13,6 +12,7 @@ import { authenticateCeramic } from "@/components/ceramic/utils";
 import * as definition from "@/composites/runtime-composite.json";
 import { client } from "@/lib/thirdweb-client";
 import { useTwebContext } from "../thirdweb/thirdweb-provider";
+import { currentChain } from "@/const/chains";
 
 /** Make sure ceramic node url is provided */
 if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
@@ -60,7 +60,7 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
         const signer = await ethers5Adapter.signer.toEthers({
           account: activeAccount,
           client,
-          chain: process.env.NODE_ENV === "production" ? base : baseSepolia
+          chain: currentChain
         });
         await authenticateCeramic(ceramic, composeClient, signer, getViewerProfile);
       }

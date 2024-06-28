@@ -15,7 +15,7 @@ export default function Home() {
         <Tabs defaultValue="bounty">
           <TabsList>
             <TabsTrigger value="bounty">Knowledge Bounty</TabsTrigger>
-            <TabsTrigger value="consultation">Consultation</TabsTrigger>
+            <TabsTrigger value="consultation">Consultation (Coming Soon)</TabsTrigger>
           </TabsList>
 
           <TabsContent value="bounty">
