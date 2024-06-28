@@ -70,11 +70,14 @@ export function Header() {
                 Open a Bounty
               </Link>
               <Link
-                href={CONSULTATION_CREATION_URL}
+                // href={CONSULTATION_CREATION_URL}
+                className="cursor-not-allowed"
+                href={""}
                 onClick={() => setMobileNavOpen(false)}
               >
-                Request for Consultation
+                Request for Consultation (Coming Soon)
               </Link>
+
 
               {/* TODO: only display this about juku route when user's not logged */}
               <a href={LANDING_PAGE_URL} rel="noreferrer noopener" target="_blank">
@@ -85,9 +88,9 @@ export function Header() {
                 loggedIn && (
                   <>
                     {/* TODO: TBD - where to link this route to? */}
-                    <Link href={PLATFROM_QUEST_URL} onClick={() => setMobileNavOpen(false)}>
+                    {/* <Link href={PLATFROM_QUEST_URL} onClick={() => setMobileNavOpen(false)}>
                       <Sprout className="h-6 w-6" />
-                    </Link>
+                    </Link> */}
 
                     {/* TODO: display a list of menu to profile and settings */}
                     <Link href={PROFILE_URL} onClick={() => setMobileNavOpen(false)}>
@@ -130,11 +133,14 @@ export function Header() {
                         Raise a request in the public to get feedback from other contributors.
                       </ListItem>
                     </Link>
-                    <Link href={CONSULTATION_CREATION_URL} passHref legacyBehavior>
+                    {/* <Link href={CONSULTATION_CREATION_URL} passHref legacyBehavior>
                       <ListItem title="Request for Consultation">
                         Describe your consultation for experts to sign up and book a private session.
                       </ListItem>
-                    </Link>
+                    </Link> */}
+                    <ListItem title="Request for Consultation (Coming Soon)" className="cursor-not-allowed">
+                      Describe your consultation for experts to sign up and book a private session.
+                    </ListItem>
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
@@ -158,9 +164,9 @@ export function Header() {
             loggedIn && (
               <>
                 {/* TODO: TBD - where to link this route to? */}
-                <Link href={PLATFROM_QUEST_URL} className="md:block hidden">
+                {/* <Link href={PLATFROM_QUEST_URL} className="md:block hidden">
                   <Sprout className="h-6 w-6" />
-                </Link>
+                </Link> */}
 
                 <NavigationMenu className="md:block hidden">
                   <NavigationMenuList>
@@ -182,21 +188,21 @@ export function Header() {
                   </NavigationMenuList>
                 </NavigationMenu>
 
-                <Sheet>
+                {/* <Sheet>
                   <SheetTrigger>
-                    {/* TODO: determine if there is notification, show BellDot, else show Bell */}
+                    TODO: determine if there is notification, show BellDot, else show Bell
                     <Bell className="h-6 w-6" />
-                    {/* <Icons.bellDot className="h-6 w-6" /> */}
+                    <Icons.bellDot className="h-6 w-6" />
                   </SheetTrigger>
                   <SheetContent>
                     <SheetHeader>
                       <SheetTitle>Notifications</SheetTitle>
                       <SheetDescription>
-                        {/* TODO: add notification list here */}
+                        TODO: add notification list here
                       </SheetDescription>
                     </SheetHeader>
                   </SheetContent>
-                </Sheet>
+                </Sheet> */}
               </>
             )
           }
