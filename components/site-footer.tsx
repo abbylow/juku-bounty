@@ -14,7 +14,7 @@ export function Footer() {
             </a>
             <div className='flex gap-4'>
               <a href={LINKEDIN_URL} rel="noreferrer noopener" target="_blank">
-                <Linkedin className="h-6 w-6" />
+                <Icons.linkedIn className="h-6 w-6" />
               </a>
               <a href={TWITTER_URL} rel="noreferrer noopener" target="_blank">
                 {/* TODO: update this twitter logo to svg*/}

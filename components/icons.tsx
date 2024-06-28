@@ -25,4 +25,13 @@ export const Icons = {
       <circle cx="18" cy="8" r="3" fill="coral" color="coral" />
     </svg>
   ),
+  linkedIn: (props: IconProps) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="2" stroke="#292828" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 11V16" stroke="#292828" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 8V8.01" stroke="#292828" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 16V11" stroke="#292828" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 16V13C16 11.8954 15.1046 11 14 11C12.8954 11 12 11.8954 12 13" stroke="#292828" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
 }
