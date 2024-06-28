@@ -3,6 +3,8 @@
 import { ComponentPropsWithoutRef, ElementRef, forwardRef, useState } from 'react'
 import Link from 'next/link'
 import { Bell, Menu, CircleUserRound, Sprout, Settings } from 'lucide-react'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+
 import { useTwebContext } from "@/components/thirdweb/thirdweb-provider";
 import { Icons } from '@/components/icons'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
@@ -40,6 +42,15 @@ export function Header() {
             <SheetTrigger className="md:hidden block">
               <Menu className="h-6 w-6" />
             </SheetTrigger>
+            <VisuallyHidden asChild>
+              <SheetTitle>Mobile Menu</SheetTitle>
+            </VisuallyHidden>
+
+            <VisuallyHidden asChild>
+              <SheetDescription>
+                This is a menu for mobile
+              </SheetDescription>
+            </VisuallyHidden>
             <SheetContent side="left" className='flex flex-col'>
               <Link href={APP_HOMEPAGE_URL} className="flex items-center space-x-2" onClick={() => setMobileNavOpen(false)}>
                 <Icons.logo className="w-20 px-2" />
