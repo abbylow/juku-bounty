@@ -16,3 +16,4 @@ export const PROFILE_SETTINGS_NOTIFICATION_URL = "/profile/settings/notification
 export const PLATFROM_QUEST_URL = "/profile"; //TODO: TBD
 export const FULL_LOGO = "/juku-full.svg";
 export const SHORT_LOGO = "/juku-short.svg";
+export const COINBASE_VERIFICATION_URL = "https://www.coinbase.com/onchain-verify/";

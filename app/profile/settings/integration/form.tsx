@@ -1,116 +1,94 @@
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { getContract } from "thirdweb";
+import { useActiveAccount, useReadContract } from "thirdweb/react";
 
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { toast } from "@/components/ui/use-toast"
-
-// TODO: update validation rules
-// TODO: update onSubmit handling
-// TODO: remove unused form functions
-// TODO: TBD - which platform to integrate and what data to be imported?
-const integrationFormSchema = z.object({
-  linkedin: z.string(),
-  twitter: z.string(),
-})
-
-type IntegrationFormValues = z.infer<typeof integrationFormSchema>
-
-const defaultValues: Partial<IntegrationFormValues> = {
-  linkedin: '',
-  twitter: ''
-}
+import { Button } from "@/components/ui/button";
+import { currentChain } from "@/const/chains";
+import { coinbaseIndexerContract, easContract } from "@/const/contracts";
+import { verifiedAccountSchema } from "@/const/eas";
+import { COINBASE_VERIFICATION_URL } from "@/const/links";
+import { client } from "@/lib/thirdweb-client";
 
 export function ProfileIntegrationForm() {
-  const form = useForm<IntegrationFormValues>({
-    resolver: zodResolver(integrationFormSchema),
-    defaultValues,
-    mode: "onBlur",
-  })
+  const activeAccount = useActiveAccount();
 
-  function onSubmit(data: IntegrationFormValues) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
+  // use coinbase indexer to find if the wallet has any corresponding attestation with the schema
+  const indexerContract = getContract({
+    client,
+    chain: currentChain,
+    address: coinbaseIndexerContract
+  });
+
+  const { data: attestationUid } = useReadContract({
+    contract: indexerContract,
+    method: "function getAttestationUid(address recipient, bytes32 schemaUid) external view returns (bytes32)",
+    params: [(activeAccount?.address || "0x"), verifiedAccountSchema],
+    // params: ["0xB18e4C959bccc8EF86D78DC297fb5efA99550d85", verifiedAccountSchema] // hardcoded valid address
+  });
+
+  // use the responded attestation uid to check if it's valid in EAS contract
+  const eas = getContract({
+    client,
+    chain: currentChain,
+    address: easContract
+  });
+
+  const { data: attestationValid } = useReadContract({
+    contract: eas,
+    method: "function isAttestationValid(bytes32 uid) public view returns (bool)",
+    params: [attestationUid || "0x"]
+  });
+
+  const verifyCoinbase = () => {
+    window.open(COINBASE_VERIFICATION_URL, '_blank', 'noreferrer noopener')
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div>
-          <h3 className="mb-4 text-base font-medium">Link and/or authenticate your Juku profile with your other social accounts to increase the credentials and showcase your skills.</h3>
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="linkedin"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>LinkedIn</FormLabel>
-                  <FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="block mt-2"
-                    // onClick={} //TODO: connect 
-                    >
-                      Connect
-                    </Button>
-                  </FormControl>
-                  <FormDescription>
-                    Link your LinkedIn to import experience
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="twitter"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>X (Formerly Twitter)</FormLabel>
-                  <FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="block mt-2"
-                    // onClick={} //TODO: connect 
-                    >
-                      Connect
-                    </Button>
-                  </FormControl>
-                  <FormDescription>
-                    Link your Twitter to import number of followers
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-
-        <Button type="submit">Update integration</Button>
-      </form>
-    </Form>
+    <div>
+      <div className="flex flex-col gap-2 mb-4">
+        <h3 className="font-semibold">Coinbase Verification</h3>
+        {
+          attestationValid ? (
+            <p className="text-sm text-muted-foreground">
+              Verified Coinbase ID on this wallet address
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Click Verify button below to sign into your Coinbase account and verify Coinbase ID on this wallet address
+              </p>
+              <p className="text-sm text-muted-foreground">
+                After verifying on Coinbase, you may try refreshing this page to get the updated verification. 
+              </p>
+            </>
+          )
+        }
+      </div>
+      
+      {
+        attestationValid ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="block mt-2"
+            disabled
+          >
+            Verified
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            className="block mt-2"
+            onClick={verifyCoinbase}
+          >
+            Verify
+          </Button>
+        )
+      }
+    </div >
   )
 }
