@@ -1,12 +1,15 @@
 type Profile
   @createModel(accountRelation: SINGLE, description: "User profile")
-  @createIndex(fields: [{ path: "username" }])
-  @createIndex(fields: [{ path: "author" }]) {
+  @createIndex(fields: [{ path: "username" }]) {
   displayName: String! @string(minLength: 1, maxLength: 100)
   username: ID!
   bio: String @string(maxLength: 160)
   pfp: String @string(maxLength: 100)
   topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId")
+  bounties: [Bounty] @relationFrom(model: "Bounty", property: "profileId")
+  platforms: [Platform]
+    @relationFrom(model: "Platform", property: "profileId")
+  followers: [Follow] @relationFrom(model: "Follow", property: "followeeId")
   author: DID! @documentAccount
   createdAt: DateTime!
   editedAt: DateTime
@@ -16,8 +19,7 @@ type Profile
 type Bounty
   @createModel(accountRelation: LIST, description: "Bounty")
   @createIndex(fields: [{ path: "title" }])
-  @createIndex(fields: [{ path: "description" }])
-  @createIndex(fields: [{ path: "author" }]) {
+  @createIndex(fields: [{ path: "description" }]) {
   title: String! @string(maxLength: 200)
   description: String @string(maxLength: 1000)
   numberOfRewarders: Int!
@@ -26,6 +28,8 @@ type Bounty
   expiry: DateTime!
   topics: [Topic] @relationFrom(model: "BountyTopic", property: "bountyId")
   tags: [Tag] @relationFrom(model: "BountyTag", property: "bountyId")
+  profileId: StreamID! @documentReference(model: "Profile")
+  profile: Profile! @relationDocument(property: "profileId")
   author: DID! @documentAccount
   createdAt: DateTime!
   editedAt: DateTime
@@ -51,8 +55,8 @@ type ProfileTopic
   @createIndex(fields: [{ path: "profileId" }])
   @createIndex(fields: [{ path: "topicId" }]) {
   profileId: StreamID! @documentReference(model: "Profile")
-  topicId: StreamID! @documentReference(model: "Topic")
   profile: Profile! @relationDocument(property: "profileId")
+  topicId: StreamID! @documentReference(model: "Topic")
   topic: Topic! @relationDocument(property: "topicId")
   active: Boolean! 
   createdAt: DateTime!
@@ -64,8 +68,8 @@ type BountyTopic
   @createIndex(fields: [{ path: "bountyId" }])
   @createIndex(fields: [{ path: "topicId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
-  topicId: StreamID! @documentReference(model: "Topic")
   bounty: Profile! @relationDocument(property: "bountyId")
+  topicId: StreamID! @documentReference(model: "Topic")
   topic: Topic! @relationDocument(property: "topicId")
   active: Boolean! 
   createdAt: DateTime!
@@ -89,21 +93,54 @@ type BountyTag
   @createIndex(fields: [{ path: "bountyId" }])
   @createIndex(fields: [{ path: "tagId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
-  tagId: StreamID! @documentReference(model: "Tag")
   bounty: Bounty! @relationDocument(property: "bountyId")
+  tagId: StreamID! @documentReference(model: "Tag")
   tag: Tag! @relationDocument(property: "tagId")
   active: Boolean! 
   createdAt: DateTime!
   editedAt: DateTime
 }
 
+interface Platform @createModel(description: "Platform integration interface") {
+  name: String! @string(maxLength: 100)
+  verified: Boolean!
+  profileId: StreamID! @documentReference(model: "Profile")
+  profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  created: DateTime!
+  edited: DateTime
+}
+
+type CoinbaseIntegration implements Platform @createModel(description: "Platform integration - Coinbase") {
+  name: String! @string(maxLength: 100)
+  verified: Boolean!
+  profileId: StreamID! @documentReference(model: "Profile")
+  profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  created: DateTime!
+  edited: DateTime
+}
+
+type LinkedInIntegration implements Platform @createModel(description: "Platform integration - LinkedIn") {
+  name: String! @string(maxLength: 100)
+  verified: Boolean!
+  profileId: StreamID! @documentReference(model: "Profile")
+  profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  created: DateTime!
+  edited: DateTime
+}
+
 type Follow 
-  @createModel(accountRelation: LIST, description: "Uni-directional user relationship - follow")
-  @createIndex(fields: [{ path: "author" }])
-  @createIndex(fields: [{ path: "followee" }]) {
+  @createModel(accountRelation: LIST, description: "A user follows another user")
+  @createIndex(fields: [{ path: "followerId" }])
+  @createIndex(fields: [{ path: "followeeId" }]) {
   author: DID! @documentAccount
-  followee: DID! @accountReference
   active: Boolean!
+  followerId: StreamID! @documentReference(model: "Profile") # who initiates the follow action 
+  follower: Profile! @relationDocument(property: "followerId")
+  followeeId: StreamID! @documentReference(model: "Profile") # who receives the follow
+  followee: Profile! @relationDocument(property: "followeeId")
   data: String @string(maxLength: 1000)
   createdAt: DateTime!
   editedAt: DateTime
