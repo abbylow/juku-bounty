@@ -1,36 +1,110 @@
-type BasicProfile @createModel(accountRelation: SINGLE, description: "A basic Profile") {
-  author: DID! @documentAccount 
-  displayName: String! @string(minLength: 3, maxLength: 100)
-  username: String! @unique @string(minLength: 3, maxLength: 100) # TODO: username has to be unique
+type Profile
+  @createModel(accountRelation: SINGLE, description: "User profile")
+  @createIndex(fields: [{ path: "username" }])
+  @createIndex(fields: [{ path: "author" }]) {
+  displayName: String! @string(minLength: 1, maxLength: 100)
+  username: ID!
   bio: String @string(maxLength: 160)
   pfp: String @string(maxLength: 100)
-  bounties: [Bounties] @relationFrom(model: "Bounties", property: "profileId")
+  topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId")
+  author: DID! @documentAccount
+  createdAt: DateTime!
+  editedAt: DateTime
+  data: String @string(maxLength: 1000)
 }
 
-# TODO: add context 
-# TODO: create a field for tags - link to another type - enum
-# TODO: rewardCurrency - link to another type - enum
-# TODO: create a field for status
-# TODO: create index for title, description and tags
-type Bounties
-    @createModel(accountRelation: LIST, description: "A simple Bounty")
-    @createIndex(fields: [{ path: "created" }])
-    @createIndex(fields: [{ path: "edited" }])
-    @createIndex(fields: [{ path: "title" }]) 
-    # @createIndex(fields: [{ path: "description" }]) 
-    {
-    author: DID! @documentAccount 
-    title: String! @string(minLength: 5, maxLength: 80)
-    description: String! @string(minLength: 2, maxLength: 1000)
-    numberOfRewarders: Int! @int(min: 1, max: 10)
-    rewardCurrency: String! @string(minLength: 2, maxLength: 100)
-    amountPerRewarder: Float!
-    expiry: DateTime!
-    # tag: String! @string(minLength: 1, maxLength: 100) // TODO: link to categories type
-    created: DateTime!
-    edited: DateTime
-    profileId: StreamID! @documentReference(model: "BasicProfile")
-    profile: BasicProfile! @relationDocument(property: "profileId")
+type Bounty
+  @createModel(accountRelation: LIST, description: "Bounty")
+  @createIndex(fields: [{ path: "title" }])
+  @createIndex(fields: [{ path: "description" }])
+  @createIndex(fields: [{ path: "author" }]) {
+  title: String! @string(maxLength: 200)
+  description: String @string(maxLength: 1000)
+  numberOfRewarders: Int!
+  rewardCurrency: String! @string(maxLength: 100)
+  amountPerRewarder: Float!
+  expiry: DateTime!
+  topics: [Topic] @relationFrom(model: "BountyTopic", property: "bountyId")
+  tags: [Tag] @relationFrom(model: "BountyTag", property: "bountyId")
+  author: DID! @documentAccount
+  createdAt: DateTime!
+  editedAt: DateTime
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
+type Topic
+  @createModel(accountRelation: LIST, description: "Topic")
+  @createIndex(fields: [{ path: "slug" }]) {
+  name: String! @string(minLength: 1, maxLength: 300)
+  slug: ID! @string(minLength: 1, maxLength: 300)
+  author: DID! @documentAccount
+  createdAt: DateTime!
+  editedAt: DateTime
+  profiles: [Profile] @relationFrom(model: "ProfileTopic", property: "topicId")
+  bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId")
+  data: String @string(maxLength: 1000)
+}
 
+type ProfileTopic
+  @createModel(accountRelation: LIST, description: "Join table for Profile and Topic") 
+  @createIndex(fields: [{ path: "profileId" }])
+  @createIndex(fields: [{ path: "topicId" }]) {
+  profileId: StreamID! @documentReference(model: "Profile")
+  topicId: StreamID! @documentReference(model: "Topic")
+  profile: Profile! @relationDocument(property: "profileId")
+  topic: Topic! @relationDocument(property: "topicId")
+  active: Boolean! 
+  createdAt: DateTime!
+  editedAt: DateTime
+}
+
+type BountyTopic
+  @createModel(accountRelation: LIST, description: "Join table for Bounty and Topic")
+  @createIndex(fields: [{ path: "bountyId" }])
+  @createIndex(fields: [{ path: "topicId" }]) {
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  topicId: StreamID! @documentReference(model: "Topic")
+  bounty: Profile! @relationDocument(property: "bountyId")
+  topic: Topic! @relationDocument(property: "topicId")
+  active: Boolean! 
+  createdAt: DateTime!
+  editedAt: DateTime
+}
+
+type Tag
+  @createModel(accountRelation: LIST, description: "Tag")
+  @createIndex(fields: [{ path: "slug" }]) {
+  name: String! @string(minLength: 1, maxLength: 300)
+  slug: ID! @string(minLength: 1, maxLength: 300)
+  author: DID! @documentAccount
+  createdAt: DateTime!
+  editedAt: DateTime
+  bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId")
+  data: String @string(maxLength: 1000)
+}
+
+type BountyTag
+  @createModel(accountRelation: LIST, description: "Join table for Bounty and Tag")
+  @createIndex(fields: [{ path: "bountyId" }])
+  @createIndex(fields: [{ path: "tagId" }]) {
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  tagId: StreamID! @documentReference(model: "Tag")
+  bounty: Bounty! @relationDocument(property: "bountyId")
+  tag: Tag! @relationDocument(property: "tagId")
+  active: Boolean! 
+  createdAt: DateTime!
+  editedAt: DateTime
+}
+
+type Follow 
+  @createModel(accountRelation: LIST, description: "Uni-directional user relationship - follow")
+  @createIndex(fields: [{ path: "author" }])
+  @createIndex(fields: [{ path: "followee" }]) {
+  author: DID! @documentAccount
+  followee: DID! @accountReference
+  active: Boolean!
+  data: String @string(maxLength: 1000)
+  createdAt: DateTime!
+  editedAt: DateTime
+}
