@@ -7,9 +7,13 @@ type Profile
   pfp: String @string(maxLength: 100)
   topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId")
   bounties: [Bounty] @relationFrom(model: "Bounty", property: "profileId")
-  platforms: [Platform]
-    @relationFrom(model: "Platform", property: "profileId")
+  platforms: [Platform] @relationFrom(model: "Platform", property: "profileId")
+  privacySettings: PrivacySettings
+  notificationSettings: NotificationSettings
+  notifications: [Notification]
+    @relationFrom(model: "Notification", property: "profileId")
   followers: [Follow] @relationFrom(model: "Follow", property: "followeeId")
+  followersCount: Int! @relationCountFrom(model: "Follow", property: "followeeId")
   author: DID! @documentAccount
   createdAt: DateTime!
   editedAt: DateTime
@@ -51,27 +55,33 @@ type Topic
 }
 
 type ProfileTopic
-  @createModel(accountRelation: LIST, description: "Join table for Profile and Topic") 
+  @createModel(
+    accountRelation: LIST
+    description: "Join table for Profile and Topic"
+  )
   @createIndex(fields: [{ path: "profileId" }])
   @createIndex(fields: [{ path: "topicId" }]) {
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   topicId: StreamID! @documentReference(model: "Topic")
   topic: Topic! @relationDocument(property: "topicId")
-  active: Boolean! 
+  active: Boolean!
   createdAt: DateTime!
   editedAt: DateTime
 }
 
 type BountyTopic
-  @createModel(accountRelation: LIST, description: "Join table for Bounty and Topic")
+  @createModel(
+    accountRelation: LIST
+    description: "Join table for Bounty and Topic"
+  )
   @createIndex(fields: [{ path: "bountyId" }])
   @createIndex(fields: [{ path: "topicId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
   bounty: Profile! @relationDocument(property: "bountyId")
   topicId: StreamID! @documentReference(model: "Topic")
   topic: Topic! @relationDocument(property: "topicId")
-  active: Boolean! 
+  active: Boolean!
   createdAt: DateTime!
   editedAt: DateTime
 }
@@ -89,14 +99,17 @@ type Tag
 }
 
 type BountyTag
-  @createModel(accountRelation: LIST, description: "Join table for Bounty and Tag")
+  @createModel(
+    accountRelation: LIST
+    description: "Join table for Bounty and Tag"
+  )
   @createIndex(fields: [{ path: "bountyId" }])
   @createIndex(fields: [{ path: "tagId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
   bounty: Bounty! @relationDocument(property: "bountyId")
   tagId: StreamID! @documentReference(model: "Tag")
   tag: Tag! @relationDocument(property: "tagId")
-  active: Boolean! 
+  active: Boolean!
   createdAt: DateTime!
   editedAt: DateTime
 }
@@ -111,7 +124,8 @@ interface Platform @createModel(description: "Platform integration interface") {
   edited: DateTime
 }
 
-type CoinbaseIntegration implements Platform @createModel(description: "Platform integration - Coinbase") {
+type CoinbaseIntegration implements Platform
+  @createModel(description: "Platform integration - Coinbase") {
   name: String! @string(maxLength: 100)
   verified: Boolean!
   profileId: StreamID! @documentReference(model: "Profile")
@@ -121,7 +135,8 @@ type CoinbaseIntegration implements Platform @createModel(description: "Platform
   edited: DateTime
 }
 
-type LinkedInIntegration implements Platform @createModel(description: "Platform integration - LinkedIn") {
+type LinkedInIntegration implements Platform
+  @createModel(description: "Platform integration - LinkedIn") {
   name: String! @string(maxLength: 100)
   verified: Boolean!
   profileId: StreamID! @documentReference(model: "Profile")
@@ -131,17 +146,65 @@ type LinkedInIntegration implements Platform @createModel(description: "Platform
   edited: DateTime
 }
 
-type Follow 
-  @createModel(accountRelation: LIST, description: "A user follows another user")
+type Follow
+  @createModel(
+    accountRelation: LIST
+    description: "A user follows another user"
+  )
   @createIndex(fields: [{ path: "followerId" }])
   @createIndex(fields: [{ path: "followeeId" }]) {
   author: DID! @documentAccount
   active: Boolean!
-  followerId: StreamID! @documentReference(model: "Profile") # who initiates the follow action 
+  followerId: StreamID! @documentReference(model: "Profile") # who initiates the follow action
   follower: Profile! @relationDocument(property: "followerId")
   followeeId: StreamID! @documentReference(model: "Profile") # who receives the follow
   followee: Profile! @relationDocument(property: "followeeId")
   data: String @string(maxLength: 1000)
   createdAt: DateTime!
   editedAt: DateTime
+}
+
+type PrivacySettings {
+  allowReferGroup: String @string(maxLength: 100)
+  allowReferKnowledgeBounty: Boolean
+  allowReferConsultation: Boolean
+  allowViewPortfolioGroup: String @string(maxLength: 100)
+  allowViewWorkExperience: Boolean
+  allowViewSkillAttestation: Boolean
+  allowViewPeerRecommendation: Boolean
+  # author: DID! @documentAccount
+  # profileId: StreamID! @documentReference(model: "Profile")
+  # profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  created: DateTime!
+  edited: DateTime
+}
+
+type NotificationSettings {
+  platformNewFeature: Boolean
+  platformNewQuest: Boolean
+  newContributionToInvolvedQuest: Boolean
+  newLikesToInvolvedQuest: Boolean
+  newRepliesToInvolvedQuest: Boolean
+  statusChangeToInvolvedQuest: Boolean
+  beMentioned: Boolean
+  # author: DID! @documentAccount
+  # profileId: StreamID! @documentReference(model: "Profile")
+  # profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  created: DateTime!
+  edited: DateTime
+}
+
+type Notification
+  @createModel(accountRelation: LIST, description: "In app notifications") {
+  title: String @string(maxLength: 80)
+  description: String @string(maxLength: 1000)
+  type: String! @string(maxLength: 100)
+  viewed: Boolean
+  profileId: StreamID! @documentReference(model: "Profile")
+  profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  created: DateTime!
+  edited: DateTime
 }
