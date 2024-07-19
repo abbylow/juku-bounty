@@ -51,19 +51,19 @@ export function ConnectBtn() {
       recommendedWallets={[wallets[0]]} //TBC
       auth={{
         isLoggedIn: async (address) => {
-          // console.log("checking if logged in!", { address });
+          console.log("checking if logged in!", { address });
           const status = await isLoggedIn();
           setLoggedIn(status);
           return status;
         },
         doLogin: async (params) => {
-          // console.log("logging in!");
+          console.log("logging in!");
           await login(params);
         },
         getLoginPayload: async ({ address }) =>
-          generatePayload({ address }),
+          generatePayload({ address, chainId: currentChain.id }),
         doLogout: async () => {
-          // console.log("logging out!");
+          console.log("logging out!");
           await logout();
           setLoggedIn(false);
           reset();
