@@ -14,13 +14,13 @@ import {
 import { client } from "@/lib/thirdweb-client";
 
 const wallets = [
+  createWallet("com.coinbase.wallet"),
   inAppWallet({
     auth: {
       options: ["email", "google"],
     },
   }),
   createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
   walletConnect(),
 ];
 
