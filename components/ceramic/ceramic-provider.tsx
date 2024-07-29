@@ -3,6 +3,7 @@
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ComposeClient } from "@composedb/client";
 import { RuntimeCompositeDefinition } from "@composedb/types";
+import { useRouter } from 'next/navigation'
 import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useActiveAccount } from "thirdweb/react";
@@ -13,6 +14,7 @@ import * as definition from "@/composites/runtime-composite.json";
 import { client } from "@/lib/thirdweb-client";
 import { useTwebContext } from "../thirdweb/thirdweb-provider";
 import { currentChain } from "@/const/chains";
+import { PROFILE_SETTINGS_URL } from "@/const/links";
 
 /** Make sure ceramic node url is provided */
 if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
@@ -30,7 +32,7 @@ const composeClient = new ComposeClient({
 });
 
 // Define the extended profile type
-export interface BasicProfile extends ProfileFormValues {
+export interface Profile extends ProfileFormValues {
   id: string;
   author: {
     id: string;
@@ -41,8 +43,8 @@ export interface BasicProfile extends ProfileFormValues {
 interface ICeramicContext {
   ceramic: CeramicClient,
   composeClient: ComposeClient,
-  viewerProfile: BasicProfile | null | undefined,
-  setProfile: Dispatch<SetStateAction<BasicProfile | null | undefined>>,
+  viewerProfile: Profile | null | undefined,
+  setProfile: Dispatch<SetStateAction<Profile | null | undefined>>,
   getViewerProfile: () => void
 }
 const CeramicContext = createContext<ICeramicContext>({
@@ -66,15 +68,18 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     authCeramicAndGetViewer();
+    // console.log({ceramic, composeClient})
   }, [activeAccount, loggedIn]);
 
-  const [viewerProfile, setProfile] = useState<BasicProfile | null | undefined>();
+  const [viewerProfile, setProfile] = useState<Profile | null | undefined>();
+
+  const router = useRouter();
 
   async function getViewerProfile() {
     const viewerProfileReq = await composeClient.executeQuery(`
       query {
         viewer {
-          basicProfile {
+          profile {
             id
             author {
               id
@@ -89,7 +94,11 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
     `);
     const viewer: any = viewerProfileReq?.data?.viewer
     // console.log('in context getViewerProfile viewer => ', viewer)
-    setProfile(viewer?.basicProfile);
+    setProfile(viewer?.profile);
+    if (viewer.profile === null) {
+      // console.log("time to prompt user for profile settings")
+      router.push(PROFILE_SETTINGS_URL);
+    }
   };
 
   return (
