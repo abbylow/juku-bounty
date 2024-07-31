@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,6 +21,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import MultipleSelector from '@/components/ui/multiple-selector';
+import { CATEGORY_OPTIONS } from "@/const/categories"
 
 /** Make sure pinata gateway is provided */
 if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
@@ -28,7 +31,12 @@ if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
 
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
 
-// TODO: add profile picture setup - upload to ipfs and store ipfs link
+const optionSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  disable: z.boolean().optional(),
+});
+
 const profileFormSchema = z.object({
   displayName: z
     .string()
@@ -55,6 +63,12 @@ const profileFormSchema = z.object({
       message: "About me must not be longer than 160 characters.",
     })
     .optional(),
+  categories: z.array(optionSchema)
+    .min(1, {
+      message: "Choose at least 1 category for discovery"
+    }).max(3, {
+      message: "Only allow maximum 3 categories"
+    }),
 })
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
@@ -143,7 +157,7 @@ export function ProfileForm() {
     // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
     const update = await composeClient.executeQuery(`
         mutation {
-          createBasicProfile(input: {
+          createProfile(input: {
             content: {
               displayName: "${data?.displayName || ""}"
               username: "${data?.username || ""}"
@@ -203,6 +217,7 @@ export function ProfileForm() {
                 <FormControl>
                   <Input placeholder="john_doe" {...field} />
                 </FormControl>
+                <FormDescription>Your unique identifier on Juku, only letters, numerical values and underscore (_) are allowed with a minimum of 3 characters.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -239,6 +254,38 @@ export function ProfileForm() {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="categories"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Expert Categories</FormLabel>
+                <FormControl>
+                  <MultipleSelector
+                    {...field}
+                    maxSelected={3}
+                    onMaxSelected={(maxLimit) => {
+                      toast({
+                        title: `You have reached max selected: ${maxLimit}`,
+                      });
+                    }}
+                    defaultOptions={CATEGORY_OPTIONS}
+                    placeholder="Add categories for discovery..."
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        no results found.
+                      </p>
+                    }
+                  />
+                </FormControl>
+                <FormDescription>Choose the most relevant experts category based on your experience, industry or skills.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <Button type="submit" disabled={loading}>Save changes</Button>
         </div>
       </form>
