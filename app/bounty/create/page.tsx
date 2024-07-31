@@ -26,6 +26,7 @@ export default function BountyCreation() {
     )
   }
 
+  // prompt user to create profile first 
   if (viewerProfile === null) {
     return (
       <section>

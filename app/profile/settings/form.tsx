@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import MultipleSelector from '@/components/ui/multiple-selector';
+import MultipleSelector, { optionSchema } from '@/components/ui/multiple-selector';
 import { CATEGORY_OPTIONS } from "@/const/categories"
 
 /** Make sure pinata gateway is provided */
@@ -30,12 +30,6 @@ if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
 }
 
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
-
-const optionSchema = z.object({
-  label: z.string(),
-  value: z.string(),
-  disable: z.boolean().optional(),
-});
 
 const profileFormSchema = z.object({
   displayName: z
