@@ -3,6 +3,7 @@
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ComposeClient } from "@composedb/client";
 import { RuntimeCompositeDefinition } from "@composedb/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from 'next/navigation'
 import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
@@ -38,6 +39,17 @@ export interface Profile extends ProfileFormValues {
     id: string;
   };
   pfp: string;
+  createdAt: string;
+  profileTopicList: {
+    edges: {
+      node: {
+        topicId: string
+        profileId: string
+        createdAt: string
+      }
+    }
+  }
+  profileTopicListCount: number
 }
 
 interface ICeramicContext {
@@ -45,16 +57,17 @@ interface ICeramicContext {
   composeClient: ComposeClient,
   viewerProfile: Profile | null | undefined,
   setProfile: Dispatch<SetStateAction<Profile | null | undefined>>,
-  getViewerProfile: () => void
 }
 const CeramicContext = createContext<ICeramicContext>({
-  ceramic, composeClient, viewerProfile: null, setProfile: () => { }, getViewerProfile: () => { }
+  ceramic, composeClient, viewerProfile: null, setProfile: () => { }
 });
 
 export const CeramicProvider = ({ children }: { children: ReactNode }) => {
   const activeAccount = useActiveAccount();
 
   const { loggedIn } = useTwebContext();
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     async function authCeramicAndGetViewer() {
@@ -64,7 +77,13 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
           client,
           chain: currentChain
         });
-        await authenticateCeramic(ceramic, composeClient, signer, getViewerProfile);
+        await authenticateCeramic(ceramic, composeClient, signer,
+          // getViewerProfile
+          () => {
+            console.log('authceramic ondone invalidate query ');
+            queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+          }
+        );
       }
     }
     authCeramicAndGetViewer();
@@ -73,9 +92,13 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
 
   const [viewerProfile, setProfile] = useState<Profile | null | undefined>();
 
-  const router = useRouter();
+  const { data } = useQuery({
+    queryKey: ['retrieveViewerProfile'],
+    queryFn: async () => await retrieveViewerProfile()
+  })
 
-  async function getViewerProfile() {
+  async function retrieveViewerProfile() {
+    // console.log("called retrieveViewerProfile")
     const viewerProfileReq = await composeClient.executeQuery(`
       query {
         viewer {
@@ -88,18 +111,54 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
             username
             bio
             pfp
+            createdAt
           }
+          profileTopicList(first: 10) {
+            edges {
+              node {
+                id
+                active
+                topicId
+                profileId
+                topic {
+                  slug
+                  name
+                }
+              }
+            }
+          }
+          profileTopicListCount
         }
       }
     `);
+    if (viewerProfileReq.errors) {
+      throw viewerProfileReq.errors;
+    }
     const viewer: any = viewerProfileReq?.data?.viewer
-    // console.log('in context getViewerProfile viewer => ', viewer)
-    setProfile(viewer?.profile);
-    if (viewer.profile === null) {
-      // console.log("time to prompt user for profile settings")
+    const latestProfile = viewer?.profile
+    // process profileTopics and map to categories
+    if (viewer?.profileTopicListCount) {
+      latestProfile.categories = viewer?.profileTopicList.edges.filter((el: { node: { active: any; }; }) => el.node.active).map((el: { node: any; }) => {
+        return {
+          ...el.node,
+          value: el.node.topicId,
+          label: el.node.topic.name
+        }
+      })
+    }
+    console.log('in context retrieveViewerProfile latestProfile', latestProfile)
+    setProfile(latestProfile); // return undefined as viewerProfile if user never setup the profile
+    return latestProfile || null; // return null because tanstack doesn't accept undefined as data
+  };
+
+  const router = useRouter();
+  useEffect(() => {
+    // check if logged in and viewer.profile === null, redirect to profile settings page
+    if (loggedIn && viewerProfile === null) {
+      console.log("time to prompt user for profile settings")
       router.push(PROFILE_SETTINGS_URL);
     }
-  };
+  }, [viewerProfile, loggedIn, router]);
 
   return (
     <CeramicContext.Provider value={{
@@ -107,7 +166,6 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
       composeClient,
       viewerProfile,
       setProfile,
-      getViewerProfile,
     }}>
       {children}
     </CeramicContext.Provider>

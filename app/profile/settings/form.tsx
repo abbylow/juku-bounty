@@ -1,12 +1,13 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useQueryClient } from "@tanstack/react-query"
 import { UserRound } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { Profile, useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -21,8 +22,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import MultipleSelector, { optionSchema } from '@/components/ui/multiple-selector';
+import MultipleSelector from '@/components/ui/multiple-selector'
 import { CATEGORY_OPTIONS } from "@/const/categories"
+import { profileFormSchema } from "@/app/profile/settings/formSchema"
 
 /** Make sure pinata gateway is provided */
 if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
@@ -31,49 +33,41 @@ if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
 
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
 
-const profileFormSchema = z.object({
-  displayName: z
-    .string()
-    .min(3, {
-      message: "Display name must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Display name must not be longer than 100 characters.",
-    }),
-  username: z
-    .string()
-    .min(3, {
-      message: "Display name must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Display name must not be longer than 100 characters.",
-    })
-    .regex(/^[a-zA-Z0-9_]+$/, {
-      message: "Your username can only contain letters, numbers and '_'",
-    }),
-  bio: z
-    .string()
-    .max(160, {
-      message: "About me must not be longer than 160 characters.",
-    })
-    .optional(),
-  categories: z.array(optionSchema)
-    .min(1, {
-      message: "Choose at least 1 category for discovery"
-    }).max(3, {
-      message: "Only allow maximum 3 categories"
-    }),
-})
-
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
 
+type ProfileUpdateResponse = {
+  document: {
+    id: string;
+    displayName: string;
+    username: string;
+    bio: string;
+    pfp: string;
+    createdAt: string;
+    editedAt: string;
+  };
+};
+
+type ProfileTopicIndexResponse = {
+  edges: Array<{
+    node: {
+      id: string;
+      profileId: string;
+      topicId: string;
+      active: boolean;
+    };
+  }>;
+};
+
 export function ProfileForm() {
-  const { composeClient, viewerProfile, getViewerProfile } = useCeramicContext();
+  const { composeClient, viewerProfile } = useCeramicContext();
+
+  const queryClient = useQueryClient();
 
   /** beginning of pfp input field handling */
   const pfpRef = useRef<HTMLInputElement>(null); // ref to corresponding hidden pfp input field
   const [media, setMedia] = useState<File | null>(); // state to contain pfp input file
   const [dataUrl, setDataUrl] = useState<string>(""); // used for image preview
+  // console.log({ media, dataUrl })
 
   useEffect(() => {
     let newUrl: string;
@@ -97,21 +91,24 @@ export function ProfileForm() {
   }
   /** end of pfp input field handling */
 
-  const [profileClone, setProfileClone] = useState<ProfileFormValues | undefined>();
-
+  const [profileClone, setProfileClone] = useState<Profile | undefined>();
+  // console.log("pre-populated profileClone ", profileClone)
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // pre-populate form fields with current data
     if (viewerProfile && !profileClone) {
-      setProfileClone(viewerProfile)
+      // console.log('pre-populating with viewerProfile ', viewerProfile)
+      setProfileClone({ ...viewerProfile })
 
       if (viewerProfile?.pfp) {
+        // console.log('pre-populate and render pfp ', viewerProfile?.pfp)
         setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewerProfile?.pfp.split('://')[1]}`)
       }
     }
     // set loading to true when it's still getting viewer profile
     if (viewerProfile !== undefined) {
+      // console.log('disabled loading state')
       setLoading(false)
     }
   }, [viewerProfile, profileClone])
@@ -119,6 +116,8 @@ export function ProfileForm() {
   const defaultValues: Partial<ProfileFormValues> = {
     displayName: viewerProfile?.displayName || "",
     username: viewerProfile?.username || "",
+    bio: viewerProfile?.bio || "",
+    categories: viewerProfile?.categories || [],
   }
 
   const form = useForm<ProfileFormValues>({
@@ -148,40 +147,171 @@ export function ProfileForm() {
       }
     }
 
-    // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
     const update = await composeClient.executeQuery(`
         mutation {
-          createProfile(input: {
+          setProfile(input: {
             content: {
               displayName: "${data?.displayName || ""}"
               username: "${data?.username || ""}"
               bio: "${data?.bio?.replace(/\n/g, "\\n") || ""}"
-              pfp: "${uploadedPfp || ""}"
+              pfp: "${media ? uploadedPfp : (profileClone?.pfp || "")}"
+              createdAt: "${profileClone?.createdAt || new Date().toISOString()}"
+              editedAt: "${new Date().toISOString()}"
             }
           }) 
           {
             document {
+              id
               displayName
               username
               bio
               pfp
+              createdAt
+              editedAt
             }
           }
         }
       `);
-    console.log({ update })
-    if (update.errors) {
+    // console.log({ update })
+
+    // Find items in viewerProfile.categories that are not in data.categories (to be removed)
+    const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
+
+    toRemove.map(async (c) => {
+      // console.log("time to remove c ", c)
+      const removeRelation = await composeClient.executeQuery(`
+        mutation {
+          updateProfileTopic(
+            input: {
+              id: "${c.value}",
+              content: {
+                active: false,
+                editedAt: "${new Date().toISOString()}"
+              }
+            }
+          ) {
+            document {
+              active
+              id
+              profileId
+              topicId
+            }
+          }
+        }
+      `)
+      // console.log('removed result ', { removeRelation })
+      if (!removeRelation.errors) {
+        // console.log('after remove topic profile relation - invalidate query ');
+        queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+      }
+    })
+
+    // Find items in data.categories that are not in viewerProfile.categories (to be added)
+    const toAdd = data?.categories?.map(el => el.value)?.filter(category => !viewerProfile?.categories?.map(el => el.value)?.includes(category)) || [];
+
+    toAdd.map(async (c) => {
+      const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
+      // console.log("in toAdd array , c = ", c, profileClone?.id || profileUpdateRes?.document?.id)
+      // find existing relation, if found then update, else create new relation
+      const toAddRelation = await composeClient.executeQuery(`
+        query {
+          profileTopicIndex(
+            filters: {
+              where: {
+                profileId: {
+                  equalTo: "${profileClone?.id || profileUpdateRes?.document?.id}"
+                }, 
+                topicId: {
+                  equalTo: "${c}"
+                }
+              }
+            }
+            first: 1
+          ) {
+            edges {
+              node {
+                id
+                profileId
+                topicId
+                active
+              }
+            }
+          }
+        }
+      `)
+      // console.log('toadd ', { toAddRelation })
+
+      const profileTopicIndexRes = toAddRelation?.data?.profileTopicIndex as ProfileTopicIndexResponse
+
+      if (profileTopicIndexRes?.edges?.length) {
+        // update existing relation to be active 
+        // console.log("update this id ", profileTopicIndexRes?.edges[0]?.node?.id)
+        const updatedRelation = await composeClient.executeQuery(`
+          mutation {
+            updateProfileTopic(
+              input: {
+                id: "${profileTopicIndexRes?.edges[0]?.node?.id}",
+                content: {
+                  active: true,
+                  editedAt: "${new Date().toISOString()}"
+                }
+              }
+            ) {
+              document {
+                active
+                id
+              }
+            }
+          }
+        `)
+        // console.log('updated result ', { updatedRelation })
+        if (!updatedRelation.errors) {
+          // console.log('after updating topic profile - invalidate query ');
+          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+        }
+      } else {
+        // create new relation
+        const createdRelation = await composeClient.executeQuery(`
+          mutation {
+            createProfileTopic(
+              input: {
+                content: {
+                  active: true,
+                  profileId: "${profileClone?.id || profileUpdateRes?.document?.id}",
+                  topicId: "${c}", 
+                  createdAt: "${new Date().toISOString()}",
+                  editedAt: "${new Date().toISOString()}"
+                }
+              }
+            ) {
+              document {
+                active
+                id
+              }
+            }
+          }
+        `)
+        // console.log('created result ', { createdRelation })
+        if (!createdRelation.errors) {
+          // console.log('after updating topic profile - invalidate query ');
+          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+        }
+      }
+    })
+
+    if (update?.errors) {
       toast({ title: `Something went wrong: ${update.errors}` })
     } else {
       toast({ title: "Updated profile" })
       setLoading(true);
-      getViewerProfile()
+      // console.log('after updating profile - invalidate query ');
+      queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
     }
     setLoading(false);
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    console.log('onSubmit => ', { data })
+    // console.log('onSubmit => ', { data })
     await updateProfile(data)
   }
 
@@ -280,7 +410,7 @@ export function ProfileForm() {
             )}
           />
 
-          <Button type="submit" disabled={loading}>Save changes</Button>
+          <Button type="submit" disabled={loading || (!media && !form.formState.isDirty)}>Save changes</Button>
         </div>
       </form>
       <input
