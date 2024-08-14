@@ -5,7 +5,6 @@ import { useQueryClient } from "@tanstack/react-query"
 import { UserRound } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Profile, useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Button } from "@/components/ui/button"
@@ -24,7 +23,8 @@ import { toast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import MultipleSelector from '@/components/ui/multiple-selector'
 import { CATEGORY_OPTIONS } from "@/const/categories"
-import { profileFormSchema } from "@/app/profile/settings/formSchema"
+import { profileFormSchema } from "@/app/profile/settings/form-schema"
+import { ProfileFormValues, ProfileUpdateResponse, ProfileTopicIndexResponse } from "@/app/profile/settings/types"
 
 /** Make sure pinata gateway is provided */
 if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
@@ -32,31 +32,6 @@ if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
 }
 
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
-
-export type ProfileFormValues = z.infer<typeof profileFormSchema>
-
-type ProfileUpdateResponse = {
-  document: {
-    id: string;
-    displayName: string;
-    username: string;
-    bio: string;
-    pfp: string;
-    createdAt: string;
-    editedAt: string;
-  };
-};
-
-type ProfileTopicIndexResponse = {
-  edges: Array<{
-    node: {
-      id: string;
-      profileId: string;
-      topicId: string;
-      active: boolean;
-    };
-  }>;
-};
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
