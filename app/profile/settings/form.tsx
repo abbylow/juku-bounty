@@ -24,7 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import MultipleSelector from '@/components/ui/multiple-selector'
 import { CATEGORY_OPTIONS } from "@/const/categories"
 import { profileFormSchema } from "@/app/profile/settings/form-schema"
-import { ProfileFormValues, ProfileUpdateResponse, ProfileTopicIndexResponse } from "@/app/profile/settings/types"
+import { ProfileFormValues, ProfileUpdateResponse, ProfileTopicIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
 
 /** Make sure pinata gateway is provided */
 if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
@@ -290,6 +290,46 @@ export function ProfileForm() {
     await updateProfile(data)
   }
 
+  const checkDuplication = async (e: any) => {
+    if (e.target.value) {
+      // console.log('checking duplication ', e.target.value)
+      const duplication = await composeClient.executeQuery(`
+        query {
+          profileIndex(
+          filters: {
+            where: {
+              username: {
+                equalTo: "${e.target.value}",
+              }
+            }
+          }, 
+          first: 1
+        ) {
+            edges {
+              node {
+                id
+                username
+              }
+            }
+          }
+        }
+      `)
+
+      // console.log({ duplication, profileClone })
+      const foundProfileRes = duplication?.data?.profileIndex as FoundProfileResponse
+      // if found existing username
+      if (foundProfileRes?.edges?.length) {
+        if (profileClone && profileClone.id === foundProfileRes?.edges[0]?.node?.id) {
+          // console.log('has existing profile and found duplication and it is from same account')
+        } else {
+          form.setError('username', { type: 'custom', message: 'This username is already taken.' })
+          // console.log('set error, formstate errors', form.formState.errors)
+        }
+      }
+    }
+
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
@@ -311,7 +351,7 @@ export function ProfileForm() {
             name="username"
             disabled={loading}
             render={({ field }) => (
-              <FormItem>
+              <FormItem onBlur={checkDuplication}>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input placeholder="john_doe" {...field} />
@@ -385,7 +425,17 @@ export function ProfileForm() {
             )}
           />
 
-          <Button type="submit" disabled={loading || (!media && !form.formState.isDirty)}>Save changes</Button>
+          <Button
+            type="submit"
+            disabled={
+              loading ||
+              (!media && !form.formState.isDirty) ||
+              (Object.values(form.formState.errors).length > 0) || // check this bcoz setError wont impact formState.isValid
+              !form.formState.isValid
+            }
+          >
+            Save changes
+          </Button>
         </div>
       </form>
       <input
