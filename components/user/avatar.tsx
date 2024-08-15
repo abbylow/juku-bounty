@@ -1,12 +1,15 @@
 "use client"
 
 import { UserRound } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ComponentPropsWithoutRef, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PINATA_GATEWAY } from '@/lib/pinata-gateway';
 
-const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
+interface UserAvatarProps extends ComponentPropsWithoutRef<'div'> {
+  pfp: string;
+}
 
-export default function UserAvatar({ pfp }: { pfp: string }) {
+export default function UserAvatar({ pfp, ...props }: UserAvatarProps) {
   const [dataUrl, setDataUrl] = useState<string>("");
 
   useEffect(() => {
@@ -15,7 +18,7 @@ export default function UserAvatar({ pfp }: { pfp: string }) {
   }, [pfp]);
 
   return (
-    <Avatar>
+    <Avatar {...props}>
       <AvatarImage src={dataUrl} />
       <AvatarFallback><UserRound /></AvatarFallback>
     </Avatar>

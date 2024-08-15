@@ -25,3 +25,12 @@ export type ProfileTopicIndexResponse = {
     };
   }>;
 };
+
+export type FoundProfileResponse = {
+  edges: Array<{
+    node: {
+      id: string;
+      username: string;
+    };
+  }>;
+}

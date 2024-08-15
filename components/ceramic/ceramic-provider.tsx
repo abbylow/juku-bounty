@@ -9,7 +9,7 @@ import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useEffe
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useActiveAccount } from "thirdweb/react";
 
-import { ProfileFormValues } from "@/app/profile/settings/form";
+import { ProfileFormValues } from "@/app/profile/settings/types";
 import { authenticateCeramic } from "@/components/ceramic/utils";
 import * as definition from "@/composites/runtime-composite.json";
 import { client } from "@/lib/thirdweb-client";

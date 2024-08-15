@@ -25,13 +25,7 @@ import MultipleSelector from '@/components/ui/multiple-selector'
 import { CATEGORY_OPTIONS } from "@/const/categories"
 import { profileFormSchema } from "@/app/profile/settings/form-schema"
 import { ProfileFormValues, ProfileUpdateResponse, ProfileTopicIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
-
-/** Make sure pinata gateway is provided */
-if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
-  console.log("You haven't setup your NEXT_PUBLIC_PINATA_GATEWAY yet.")
-}
-
-const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
+import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
