@@ -327,7 +327,6 @@ export function ProfileForm() {
         }
       }
     }
-
   }
 
   return (
@@ -429,9 +428,9 @@ export function ProfileForm() {
             type="submit"
             disabled={
               loading ||
-              (!media && !form.formState.isDirty) ||
-              (Object.values(form.formState.errors).length > 0) || // check this bcoz setError wont impact formState.isValid
-              !form.formState.isValid
+              (!media && !form.formState.isDirty) || // disable when nothing is changed
+              (Object.values(form.formState.errors).length > 0) // check this bcoz setError wont impact formState.isValid
+              // || !form.formState.isValid // categories is not validated onblur, it takes one step later to be validated, so we allow user to submit and this will be checked onsubmit
             }
           >
             Save changes
