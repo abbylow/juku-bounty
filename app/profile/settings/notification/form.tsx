@@ -1,10 +1,12 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useQueryClient } from "@tanstack/react-query"
+import Link from "next/link";
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -15,16 +17,18 @@ import {
 } from "@/components/ui/form"
 import { toast } from "@/components/ui/use-toast"
 import { Switch } from "@/components/ui/switch"
+import { INotificationSettings, useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { PROFILE_SETTINGS_URL } from "@/const/links";
+import { useEffect, useState } from "react";
 
-// TODO: update validation rules
-// TODO: update onSubmit handling
 const notificationFormSchema = z.object({
   platformNewFeature: z.boolean(),
   platformNewQuest: z.boolean(),
-  newContributionToCreatedQuest: z.boolean(),
-  newLikesToCreatedQuest: z.boolean(),
-  newRepliesToContributedQuest: z.boolean(),
-  statusChangeToContributedQuest: z.boolean(),
+  newContributionToInvolvedQuest: z.boolean(),
+  newLikesToInvolvedQuest: z.boolean(),
+  newRepliesToInvolvedQuest: z.boolean(),
+  statusChangeToInvolvedQuest: z.boolean(),
+  beMentioned: z.boolean()
 })
 
 type NotificationFormValues = z.infer<typeof notificationFormSchema>
@@ -32,28 +36,105 @@ type NotificationFormValues = z.infer<typeof notificationFormSchema>
 const defaultValues: Partial<NotificationFormValues> = {
   platformNewFeature: true,
   platformNewQuest: true,
-  newContributionToCreatedQuest: true,
-  newLikesToCreatedQuest: true,
-  newRepliesToContributedQuest: true,
-  statusChangeToContributedQuest: true,
+  newContributionToInvolvedQuest: true,
+  newLikesToInvolvedQuest: true,
+  newRepliesToInvolvedQuest: true,
+  statusChangeToInvolvedQuest: true,
+  beMentioned: true
 }
 
 export function ProfileNotificationForm() {
+  const { composeClient, viewerProfile } = useCeramicContext();
+  // console.log('notifi:: viewerProfile notificationSettings = ', viewerProfile?.notificationSettings)
+
+  const queryClient = useQueryClient();
+
+  const [settingsClone, setSettingsClone] = useState<INotificationSettings | undefined>();
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    // pre-populate form fields with current data
+    if (viewerProfile?.notificationSettings && !settingsClone) {
+      // console.log('notifi:: pre populating ', { ...viewerProfile.notificationSettings })
+      setSettingsClone({ ...viewerProfile.notificationSettings })
+    }
+    // set loading to true when it's still getting viewer profile
+    if (viewerProfile !== undefined) {
+      setLoading(false)
+    }
+  }, [viewerProfile, settingsClone])
+
   const form = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationFormSchema),
     defaultValues,
+    values: settingsClone,
     mode: "onBlur",
   })
 
-  function onSubmit(data: NotificationFormValues) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
+  const onSubmit = async (data: NotificationFormValues) => {
+    console.log('notifi:: onSubmit data = ', { data })
+    setLoading(true);
+    // TODO: remove notificationSettings created
+    const update = await composeClient.executeQuery(`
+      mutation {
+        updateProfile(
+          input: {
+            id: "${viewerProfile?.id}"
+            content: {
+              notificationSettings: {
+                created: "${new Date().toISOString()}",
+                platformNewFeature: ${data.platformNewFeature},
+                platformNewQuest: ${data.platformNewQuest},
+                newContributionToInvolvedQuest: ${data.newContributionToInvolvedQuest},
+                newLikesToInvolvedQuest: ${data.newLikesToInvolvedQuest},
+                newRepliesToInvolvedQuest: ${data.newRepliesToInvolvedQuest},
+                statusChangeToInvolvedQuest: ${data.statusChangeToInvolvedQuest},
+                beMentioned: ${data.beMentioned}
+              }
+            }
+          }
+        ) {
+          document {
+            id
+            notificationSettings {
+              platformNewFeature
+              platformNewQuest
+              newContributionToInvolvedQuest
+              newLikesToInvolvedQuest
+              newRepliesToInvolvedQuest
+              statusChangeToInvolvedQuest
+              beMentioned
+            }
+          }
+        }
+      }
+    `);
+
+    if (update?.errors) {
+      console.log('notifi:: graphql error', update.errors)
+      toast({ title: `Something went wrong: ${update.errors}` })
+    } else {
+      toast({ title: "Updated notification settings" })
+      setLoading(true);
+      queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+    }
+    setLoading(false);
+  }
+
+  // prompt user to create profile first 
+  if (viewerProfile === null) {
+    return (
+      <section>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-medium">Set up your basic profile first</h3>
+            <Link href={PROFILE_SETTINGS_URL} className={buttonVariants({ variant: "outline" })}>
+              Set up profile
+            </Link>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -63,6 +144,7 @@ export function ProfileNotificationForm() {
           <h3 className="mb-4 text-base font-medium">Platform Updates</h3>
           <div className="space-y-4">
             <FormField
+              disabled={loading}
               control={form.control}
               name="platformNewFeature"
               render={({ field }) => (
@@ -83,6 +165,7 @@ export function ProfileNotificationForm() {
               )}
             />
             <FormField
+              disabled={loading}
               control={form.control}
               name="platformNewQuest"
               render={({ field }) => (
@@ -109,13 +192,14 @@ export function ProfileNotificationForm() {
           <h3 className="mb-4 text-base font-medium">Quest Updates</h3>
           <div className="space-y-4">
             <FormField
+              disabled={loading}
               control={form.control}
-              name="newContributionToCreatedQuest"
+              name="newContributionToInvolvedQuest"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel>
-                      New contribution to your created quests
+                      New contribution to your involved quests
                     </FormLabel>
                   </div>
                   <FormControl>
@@ -129,8 +213,9 @@ export function ProfileNotificationForm() {
               )}
             />
             <FormField
+              disabled={loading}
               control={form.control}
-              name="newLikesToCreatedQuest"
+              name="newLikesToInvolvedQuest"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
@@ -149,8 +234,9 @@ export function ProfileNotificationForm() {
               )}
             />
             <FormField
+              disabled={loading}
               control={form.control}
-              name="newRepliesToContributedQuest"
+              name="newRepliesToInvolvedQuest"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
@@ -169,8 +255,9 @@ export function ProfileNotificationForm() {
               )}
             />
             <FormField
+              disabled={loading}
               control={form.control}
-              name="statusChangeToContributedQuest"
+              name="statusChangeToInvolvedQuest"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
@@ -188,9 +275,30 @@ export function ProfileNotificationForm() {
                 </FormItem>
               )}
             />
+            <FormField
+              disabled={loading}
+              control={form.control}
+              name="beMentioned"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>
+                      Be mentioned
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
-        <Button type="submit">Save changes</Button>
+        <Button type="submit" disabled={loading}>Save changes</Button>
       </form>
     </Form>
   )

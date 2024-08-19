@@ -328,11 +328,8 @@ export function ProfilePrivacyForm() {
             />
           </div>
         </div>
-        <Button
-          type="submit"
-          disabled={loading}
-        >
-          Update
+        <Button type="submit" disabled={loading}>
+          Save changes
         </Button>
       </form>
     </Form>
