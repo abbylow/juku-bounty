@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect } from "react"
 import { getContract } from "thirdweb";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { Button } from "@/components/ui/button";
 import { currentChain } from "@/const/chains";
 import { coinbaseIndexerContract, easContract } from "@/const/contracts";
@@ -12,6 +14,8 @@ import { client } from "@/lib/thirdweb-client";
 
 export function ProfileIntegrationForm() {
   const activeAccount = useActiveAccount();
+  const { composeClient, viewerProfile } = useCeramicContext();
+  // console.log('platform:: viewerProfile integrations = ', viewerProfile?.integrations)
 
   // use coinbase indexer to find if the wallet has any corresponding attestation with the schema
   const indexerContract = getContract({
@@ -34,7 +38,7 @@ export function ProfileIntegrationForm() {
     address: easContract
   });
 
-  const { data: attestationValid } = useReadContract({
+  const { data: attestationValid, status: attestationStatus } = useReadContract({
     contract: eas,
     method: "function isAttestationValid(bytes32 uid) public view returns (bool)",
     params: [attestationUid || "0x"]
@@ -43,6 +47,78 @@ export function ProfileIntegrationForm() {
   const verifyCoinbase = () => {
     window.open(COINBASE_VERIFICATION_URL, '_blank', 'noreferrer noopener')
   }
+
+  // TODO: update created to createdAt and edited to editedAt
+  const createCbRecord = async (verified: boolean) => {
+    const creation = await composeClient.executeQuery(`
+      mutation {
+        createCoinbaseIntegration(
+          input: {
+            content: {
+              name: "coinbase_verified_account", 
+              created: "${new Date().toISOString()}",
+              edited: "${new Date().toISOString()}",
+              verified: ${verified}, 
+              profileId: "${viewerProfile?.id}"
+            }
+          }
+        ) {
+          document {
+            id
+            name
+            profileId
+            verified
+          }
+        }
+      }
+    `);
+    console.log({ creation })
+  }
+
+  // TODO: update edited to editedAt
+  const updateCbRecord = async (id: string, verified: boolean) => {
+    const update = await composeClient.executeQuery(`
+      mutation {
+        updateCoinbaseIntegration(
+          input: {
+            content: {
+              verified: ${verified}, 
+              profileId: "${viewerProfile?.id}",
+              edited: "${new Date().toISOString()}",
+            },
+            id: "${id}"
+          }
+        ) {
+          document {
+            id
+            name
+            profileId
+            verified
+          }
+        }
+      }
+    `);
+    console.log({ update })
+  }
+
+  // sync the latest coinbase verification result to ceramic
+  useEffect(() => {
+    console.log("platform:: ", { attestationValid, viewerProfile, attestationStatus })
+    console.log(viewerProfile?.integrations.find(el => el.name === 'coinbase_verified_account'))
+    // only perform this when attestation is loaded successfully 
+    if (attestationStatus === 'success') {
+      // create new record if there is no existing coinbase record 
+      if (!viewerProfile?.integrations || viewerProfile?.integrations.filter(el => el.name === 'coinbase_verified_account').length < 1) {
+        createCbRecord(attestationValid)
+      } else {
+        // update existing record if the attestation is updated
+        const existingRecord = viewerProfile?.integrations.find(el => el.name === 'coinbase_verified_account')
+        if (existingRecord?.verified !== attestationValid) {
+          updateCbRecord(existingRecord?.id, attestationValid)
+        }
+      }
+    }
+  }, [attestationValid, viewerProfile, attestationStatus])
 
   return (
     <div>
@@ -59,13 +135,13 @@ export function ProfileIntegrationForm() {
                 Click Verify button below to sign into your Coinbase account and verify Coinbase ID on this wallet address
               </p>
               <p className="text-sm text-muted-foreground">
-                After verifying on Coinbase, you may try refreshing this page to get the updated verification. 
+                After verifying on Coinbase, you may try refreshing this page to get the updated verification.
               </p>
             </>
           )
         }
       </div>
-      
+
       {
         attestationValid ? (
           <Button
