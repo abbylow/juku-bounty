@@ -14,6 +14,7 @@ export default function Profile() {
     <div className="space-y-6 md:px-10 py-10 pb-16">
       <section className="">
         <ProfileCard
+          id={viewerProfile?.id || ''}
           pfp={viewerProfile?.pfp || ''}
           displayName={viewerProfile?.displayName || ''}
           address={activeAccount?.address || ''}

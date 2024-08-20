@@ -14,7 +14,7 @@ import { IPlatform } from "@/components/ceramic/types";
 export default function ProfilePage({ params }: { params: { username: string } }) {
   console.log("params.username ", params.username)
 
-  const { composeClient } = useCeramicContext();
+  const { composeClient, viewerProfile } = useCeramicContext();
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -130,6 +130,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
     <div className="space-y-6 md:px-10 py-10 pb-16">
       <section className="">
         <ProfileCard
+          id={userData?.id || ''}
           pfp={userData?.pfp || ''}
           displayName={userData?.displayName || ''}
           address={''} // // TODO: get user's wallet address after schema update
@@ -138,6 +139,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
           categories={userCategories || []}
           integrations={platformIntegrations || []}
           allowEdit={false}
+          allowFollow={userData?.id !== viewerProfile?.id}
         />
       </section>
     </div >
