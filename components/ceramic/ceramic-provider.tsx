@@ -5,17 +5,17 @@ import { ComposeClient } from "@composedb/client";
 import { RuntimeCompositeDefinition } from "@composedb/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from 'next/navigation'
-import { Dispatch, ReactNode, SetStateAction, createContext, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useActiveAccount } from "thirdweb/react";
 
-import { ProfileFormValues } from "@/app/profile/settings/types";
 import { authenticateCeramic } from "@/components/ceramic/utils";
 import * as definition from "@/composites/runtime-composite.json";
 import { client } from "@/lib/thirdweb-client";
 import { useTwebContext } from "../thirdweb/thirdweb-provider";
 import { currentChain } from "@/const/chains";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
+import { ICeramicContext, Profile } from "@/components/ceramic/types";
 
 /** Make sure ceramic node url is provided */
 if (!process.env.NEXT_PUBLIC_CERAMIC_NODE_URL) {
@@ -32,32 +32,6 @@ const composeClient = new ComposeClient({
   definition: definition as RuntimeCompositeDefinition
 });
 
-// Define the extended profile type
-export interface Profile extends ProfileFormValues {
-  id: string;
-  author: {
-    id: string;
-  };
-  pfp: string;
-  createdAt: string;
-  profileTopicList: {
-    edges: {
-      node: {
-        topicId: string
-        profileId: string
-        createdAt: string
-      }
-    }
-  }
-  profileTopicListCount: number
-}
-
-interface ICeramicContext {
-  ceramic: CeramicClient,
-  composeClient: ComposeClient,
-  viewerProfile: Profile | null | undefined,
-  setProfile: Dispatch<SetStateAction<Profile | null | undefined>>,
-}
 const CeramicContext = createContext<ICeramicContext>({
   ceramic, composeClient, viewerProfile: null, setProfile: () => { }
 });
@@ -112,6 +86,24 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
             bio
             pfp
             createdAt
+            privacySettings {
+              allowReferConsultation
+              allowReferGroup
+              allowReferKnowledgeBounty
+              allowViewPortfolioGroup
+              allowViewPeerRecommendation
+              allowViewSkillAttestation
+              allowViewWorkExperience
+            }
+            notificationSettings {
+              platformNewFeature
+              platformNewQuest
+              newContributionToInvolvedQuest
+              newLikesToInvolvedQuest
+              newRepliesToInvolvedQuest
+              statusChangeToInvolvedQuest
+              beMentioned
+            }
           }
           profileTopicList(first: 10) {
             edges {
@@ -128,10 +120,22 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
             }
           }
           profileTopicListCount
+          platformList(first: 5) {
+            edges {
+              node {
+                id
+                name
+                verified
+                profileId
+              }
+            }
+          }
+          platformListCount
         }
       }
     `);
     if (viewerProfileReq.errors) {
+      console.log('error retrieve profile ', viewerProfileReq.errors)
       throw viewerProfileReq.errors;
     }
     const viewer: any = viewerProfileReq?.data?.viewer
@@ -145,6 +149,9 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
           label: el.node.topic.name
         }
       })
+    }
+    if (viewer?.platformListCount) {
+      latestProfile.integrations = viewer?.platformList.edges.map((el: { node: any; }) => el.node)
     }
     console.log('in context retrieveViewerProfile latestProfile', latestProfile)
     setProfile(latestProfile); // return undefined as viewerProfile if user never setup the profile

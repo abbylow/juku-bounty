@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/form"
 import { toast } from "@/components/ui/use-toast"
 import { Switch } from "@/components/ui/switch"
-import { INotificationSettings, useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useEffect, useState } from "react";
+import { INotificationSettings } from "@/components/ceramic/types";
 
 const notificationFormSchema = z.object({
   platformNewFeature: z.boolean(),

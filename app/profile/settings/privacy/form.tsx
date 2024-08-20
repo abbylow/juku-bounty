@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
 import { Switch } from "@/components/ui/switch"
-import { IPrivacySettings, useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { IPrivacySettings } from "@/components/ceramic/types";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 
 // TODO: extract enum
