@@ -5,7 +5,6 @@ import { useActiveAccount } from "thirdweb/react";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import ProfileCard from "@/components/profile/card";
 
-// TODO: show verification here
 export default function Profile() {
   const { viewerProfile } = useCeramicContext();
 
@@ -21,6 +20,7 @@ export default function Profile() {
           username={viewerProfile?.username || ''}
           bio={viewerProfile?.bio || ''}
           categories={viewerProfile?.categories || []}
+          integrations={viewerProfile?.integrations || []}
           allowEdit={true}
         />
       </section>

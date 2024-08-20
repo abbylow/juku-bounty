@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useActiveAccount } from "thirdweb/react";
 
+import WalletAddress from "@/components/copyable-address/address";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button"
-import UserAvatar from "@/components/user/avatar";
-import WalletAddress from "@/components/copyable-address/address";
-import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { Option } from "@/components/ui/multiple-selector";
+import UserAvatar from "@/components/user/avatar";
+import { PROFILE_SETTINGS_URL } from "@/const/links";
+import { IPlatform } from "@/components/ceramic/types";
+import { Icons } from "@/components/icons";
 
 interface IProfileCard {
   pfp: string;
@@ -16,8 +17,13 @@ interface IProfileCard {
   address: string;
   username: string;
   bio: string;
-  categories: Option[];
-  allowEdit: boolean;
+  categories?: Option[];
+  integrations?: IPlatform[];
+  allowEdit?: boolean;
+}
+
+const PLATFORM_BADGES = {
+  "coinbase_verified_account": <Icons.coinbase className="h-6 w-6" />
 }
 
 export default function ProfileCard({
@@ -27,6 +33,7 @@ export default function ProfileCard({
   username,
   bio,
   categories,
+  integrations,
   allowEdit = false
 }: IProfileCard) {
   return (
@@ -63,6 +70,10 @@ export default function ProfileCard({
             ))
           }
         </div>
+        <div className="flex gap-2">
+          {integrations?.map(c => (PLATFORM_BADGES[c.name]))}
+        </div>
+
       </div>
       {allowEdit && <Link href={PROFILE_SETTINGS_URL} className={buttonVariants({ variant: "outline" })}>
         Edit Profile

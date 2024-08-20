@@ -9,6 +9,7 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import WalletAddress from "@/components/copyable-address/address";
 import { FoundProfileResponse } from "@/app/profile/settings/types";
 import ProfileCard from "@/components/profile/card";
+import { IPlatform } from "@/components/ceramic/types";
 
 export default function ProfilePage({ params }: { params: { username: string } }) {
   console.log("params.username ", params.username)
@@ -21,6 +22,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [userData, setUserData] = useState<any>();
 
   const [userCategories, setUserCategories] = useState<any>();
+  const [platformIntegrations, setPlatformIntegrations] = useState<IPlatform[]>();
 
   // TODO: change query below to get profileTopicList by active = true after schema update
   const getProfile = async () => {
@@ -62,6 +64,17 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     }
                   }
                 }
+                platformListCount
+                platformList(first: 5) {
+                  edges {
+                    node {
+                      id
+                      name
+                      verified
+                      profileId
+                    }
+                  }
+                }
               }
             }
           }
@@ -92,6 +105,10 @@ export default function ProfilePage({ params }: { params: { username: string } }
         })
         setUserCategories(categories);
       }
+      if (foundProfileRes?.edges[0]?.node?.author?.platformListCount) {
+        const integrations = foundProfileRes?.edges[0]?.node?.author?.platformList.edges.map((el: { node: any; }) => el.node)
+        setPlatformIntegrations(integrations);
+      }
     }
   }
 
@@ -119,6 +136,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
           username={userData?.username || ''}
           bio={userData?.bio || ''}
           categories={userCategories || []}
+          integrations={platformIntegrations || []}
           allowEdit={false}
         />
       </section>
