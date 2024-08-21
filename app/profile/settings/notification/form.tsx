@@ -80,8 +80,9 @@ export function ProfileNotificationForm() {
       mutation {
         updateProfile(
           input: {
-            id: "${viewerProfile?.id}"
+            id: "${viewerProfile?.id}",
             content: {
+              editedAt: "${new Date().toISOString()}",
               notificationSettings: {
                 created: "${new Date().toISOString()}",
                 platformNewFeature: ${data.platformNewFeature},

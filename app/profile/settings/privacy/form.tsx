@@ -94,8 +94,9 @@ export function ProfilePrivacyForm() {
       mutation {
         updateProfile(
           input: {
-            id: "${viewerProfile?.id}"
+            id: "${viewerProfile?.id}",
             content: {
+              editedAt: "${new Date().toISOString()}",
               privacySettings: {
                 created: "${new Date().toISOString()}",
                 allowReferConsultation: ${data.allowReferConsultation}, 
