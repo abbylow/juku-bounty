@@ -1,11 +1,14 @@
+# TODO: rename topics to expert categories
 type Profile
   @createModel(accountRelation: SINGLE, description: "User profile")
   @createIndex(fields: [{ path: "username" }]) {
   displayName: String! @string(minLength: 1, maxLength: 100)
-  username: ID!
+  username: String!
   bio: String @string(maxLength: 160)
   pfp: String @string(maxLength: 100)
-  topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId")
+  # topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId") # this doesn't work, try the line below
+  profileTopics: [ProfileTopic]
+    @relationFrom(model: "ProfileTopic", property: "profileId")
   bounties: [Bounty] @relationFrom(model: "Bounty", property: "profileId")
   platforms: [Platform] @relationFrom(model: "Platform", property: "profileId")
   privacySettings: PrivacySettings
@@ -13,30 +16,36 @@ type Profile
   notifications: [Notification]
     @relationFrom(model: "Notification", property: "profileId")
   followers: [Follow] @relationFrom(model: "Follow", property: "followeeId")
-  followersCount: Int! @relationCountFrom(model: "Follow", property: "followeeId")
+  followersCount: Int!
+    @relationCountFrom(model: "Follow", property: "followeeId")
   author: DID! @documentAccount
   createdAt: DateTime!
-  editedAt: DateTime
+  editedAt: DateTime!
   data: String @string(maxLength: 1000)
 }
 
 type Bounty
   @createModel(accountRelation: LIST, description: "Bounty")
   @createIndex(fields: [{ path: "title" }])
-  @createIndex(fields: [{ path: "description" }]) {
+  @createIndex(fields: [{ path: "description" }])
+  @createIndex(fields: [{ path: "expiry" }]) {
   title: String! @string(maxLength: 200)
   description: String @string(maxLength: 1000)
   numberOfRewarders: Int!
   rewardCurrency: String! @string(maxLength: 100)
   amountPerRewarder: Float!
   expiry: DateTime!
-  topics: [Topic] @relationFrom(model: "BountyTopic", property: "bountyId")
-  tags: [Tag] @relationFrom(model: "BountyTag", property: "bountyId")
+  # topics: [Topic] @relationFrom(model: "BountyTopic", property: "bountyId") # this doesn't work, try the line below
+  bountyTopics: [BountyTopic]
+    @relationFrom(model: "BountyTopic", property: "bountyId")
+  # tags: [Tag] @relationFrom(model: "BountyTag", property: "bountyId") # this doesn't work, try the line below
+  bountyTags: [BountyTag]
+    @relationFrom(model: "BountyTag", property: "bountyId")
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   author: DID! @documentAccount
   createdAt: DateTime!
-  editedAt: DateTime
+  editedAt: DateTime!
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
 }
@@ -45,12 +54,16 @@ type Topic
   @createModel(accountRelation: LIST, description: "Topic")
   @createIndex(fields: [{ path: "slug" }]) {
   name: String! @string(minLength: 1, maxLength: 300)
-  slug: ID! @string(minLength: 1, maxLength: 300)
+  slug: String! @string(minLength: 1, maxLength: 300)
   author: DID! @documentAccount
   createdAt: DateTime!
-  editedAt: DateTime
-  profiles: [Profile] @relationFrom(model: "ProfileTopic", property: "topicId")
-  bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId")
+  editedAt: DateTime!
+  # profiles: [Profile] @relationFrom(model: "ProfileTopic", property: "topicId") # this doesn't work, try the line below
+  profileTopics: [ProfileTopic]
+    @relationFrom(model: "ProfileTopic", property: "topicId")
+  # bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId") # this doesn't work, try the line below
+  bountyTopics: [BountyTopic]
+    @relationFrom(model: "BountyTopic", property: "topicId")
   data: String @string(maxLength: 1000)
 }
 
@@ -60,14 +73,15 @@ type ProfileTopic
     description: "Join table for Profile and Topic"
   )
   @createIndex(fields: [{ path: "profileId" }])
-  @createIndex(fields: [{ path: "topicId" }]) {
+  @createIndex(fields: [{ path: "topicId" }])
+  @createIndex(fields: [{ path: "active" }]) {
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   topicId: StreamID! @documentReference(model: "Topic")
   topic: Topic! @relationDocument(property: "topicId")
   active: Boolean!
   createdAt: DateTime!
-  editedAt: DateTime
+  editedAt: DateTime!
 }
 
 type BountyTopic
@@ -76,25 +90,28 @@ type BountyTopic
     description: "Join table for Bounty and Topic"
   )
   @createIndex(fields: [{ path: "bountyId" }])
-  @createIndex(fields: [{ path: "topicId" }]) {
+  @createIndex(fields: [{ path: "topicId" }])
+  @createIndex(fields: [{ path: "active" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
-  bounty: Profile! @relationDocument(property: "bountyId")
+  bounty: Bounty! @relationDocument(property: "bountyId")
   topicId: StreamID! @documentReference(model: "Topic")
   topic: Topic! @relationDocument(property: "topicId")
   active: Boolean!
   createdAt: DateTime!
-  editedAt: DateTime
+  editedAt: DateTime!
 }
 
 type Tag
   @createModel(accountRelation: LIST, description: "Tag")
   @createIndex(fields: [{ path: "slug" }]) {
   name: String! @string(minLength: 1, maxLength: 300)
-  slug: ID! @string(minLength: 1, maxLength: 300)
+  slug: String! @string(minLength: 1, maxLength: 300)
   author: DID! @documentAccount
   createdAt: DateTime!
-  editedAt: DateTime
-  bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId")
+  editedAt: DateTime!
+  # bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId") # this doesn't work, try the line below
+  bountyTags: [BountyTag]
+    @relationFrom(model: "BountyTag", property: "tagId")
   data: String @string(maxLength: 1000)
 }
 
@@ -104,14 +121,15 @@ type BountyTag
     description: "Join table for Bounty and Tag"
   )
   @createIndex(fields: [{ path: "bountyId" }])
-  @createIndex(fields: [{ path: "tagId" }]) {
+  @createIndex(fields: [{ path: "tagId" }])
+  @createIndex(fields: [{ path: "active" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
   bounty: Bounty! @relationDocument(property: "bountyId")
   tagId: StreamID! @documentReference(model: "Tag")
   tag: Tag! @relationDocument(property: "tagId")
   active: Boolean!
   createdAt: DateTime!
-  editedAt: DateTime
+  editedAt: DateTime!
 }
 
 interface Platform @createModel(description: "Platform integration interface") {
@@ -120,8 +138,8 @@ interface Platform @createModel(description: "Platform integration interface") {
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
-  created: DateTime!
-  edited: DateTime
+  createdAt: DateTime!
+  editedAt: DateTime!
 }
 
 type CoinbaseIntegration implements Platform
@@ -131,8 +149,8 @@ type CoinbaseIntegration implements Platform
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
-  created: DateTime!
-  edited: DateTime
+  createdAt: DateTime!
+  editedAt: DateTime!
 }
 
 type LinkedInIntegration implements Platform
@@ -142,8 +160,8 @@ type LinkedInIntegration implements Platform
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
-  created: DateTime!
-  edited: DateTime
+  createdAt: DateTime!
+  editedAt: DateTime!
 }
 
 type Follow
@@ -152,7 +170,8 @@ type Follow
     description: "A user follows another user"
   )
   @createIndex(fields: [{ path: "followerId" }])
-  @createIndex(fields: [{ path: "followeeId" }]) {
+  @createIndex(fields: [{ path: "followeeId" }])
+  @createIndex(fields: [{ path: "active" }]) {
   author: DID! @documentAccount
   active: Boolean!
   followerId: StreamID! @documentReference(model: "Profile") # who initiates the follow action
@@ -161,7 +180,7 @@ type Follow
   followee: Profile! @relationDocument(property: "followeeId")
   data: String @string(maxLength: 1000)
   createdAt: DateTime!
-  editedAt: DateTime
+  editedAt: DateTime!
 }
 
 type PrivacySettings {
@@ -172,12 +191,7 @@ type PrivacySettings {
   allowViewWorkExperience: Boolean
   allowViewSkillAttestation: Boolean
   allowViewPeerRecommendation: Boolean
-  # author: DID! @documentAccount
-  # profileId: StreamID! @documentReference(model: "Profile")
-  # profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
-  created: DateTime!
-  edited: DateTime
 }
 
 type NotificationSettings {
@@ -188,12 +202,7 @@ type NotificationSettings {
   newRepliesToInvolvedQuest: Boolean
   statusChangeToInvolvedQuest: Boolean
   beMentioned: Boolean
-  # author: DID! @documentAccount
-  # profileId: StreamID! @documentReference(model: "Profile")
-  # profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
-  created: DateTime!
-  edited: DateTime
 }
 
 type Notification
@@ -205,6 +214,6 @@ type Notification
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
-  created: DateTime!
-  edited: DateTime
+  createdAt: DateTime!
+  editedAt: DateTime!
 }
