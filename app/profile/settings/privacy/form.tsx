@@ -165,7 +165,7 @@ export function ProfilePrivacyForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Who can refer me to quests</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={loading}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a group" />
@@ -240,7 +240,7 @@ export function ProfilePrivacyForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Who can view my portfolio</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={loading}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a group" />

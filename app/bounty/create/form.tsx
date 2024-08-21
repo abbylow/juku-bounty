@@ -3,7 +3,7 @@
 import { format } from "date-fns"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from 'next/navigation'
-import { CalendarIcon, ChevronDownIcon } from "@radix-ui/react-icons"
+import { CalendarIcon } from "@radix-ui/react-icons"
 import { useEffect, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { CATEGORY_OPTIONS } from "@/const/categories"
 import { TOPIC_OPTIONS } from "@/const/topics"
-import { questTemplates } from "@/const/quest-templates"
+import { QUEST_TEMPLATES } from "@/const/quest-templates"
 import { Label } from "@/components/ui/label"
 import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
@@ -44,93 +44,97 @@ export function BountyForm() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // set loading to true when it's still getting viewer profile
     if (viewerProfile !== undefined) {
       setLoading(false)
     }
   }, [viewerProfile])
 
+  const [formValues, setFormValues] = useState({ ...defaultValues });
+
   const form = useForm<BountyFormValues>({
     resolver: zodResolver(bountyFormSchema),
     defaultValues,
+    values: formValues as BountyFormValues,
     mode: "onBlur",
   })
 
   const createBounty = async (data: Partial<BountyFormValues>) => {
-    if (!viewerProfile) {
-      console.log('no viewerProfile => ', viewerProfile)
-    } else {
-      console.log("before submission ", { viewerProfile, data })
+    console.log("before submission ", { viewerProfile, data })
 
-      setLoading(true);
+    setLoading(true);
 
-      const creation = await composeClient.executeQuery(`
-        mutation {
-          createBounty(input: {
-            content: {
-              title: "${data?.title || ""}"
-              description: "${data?.description?.replace(/\n/g, "\\n") || ""}"
-              numberOfRewarders: ${data?.numberOfRewarders || ""}
-              rewardCurrency: "${data?.rewardCurrency || ""}"
-              amountPerRewarder: ${data?.amountPerRewarder || ""}
-              expiry: "${data?.expiry?.toISOString() || ""}"
-              createdAt: "${new Date().toISOString()}"
-              profileId: "${viewerProfile.id}"
-            }
-          }) 
-          {
-            document {
-              id
-              title
-              description
-              numberOfRewarders
-              rewardCurrency
-              amountPerRewarder
-              expiry
-            }
+    // TODO: set context according to the environment
+    const creation = await composeClient.executeQuery(`
+      mutation {
+        createBounty(input: {
+          content: {
+            title: "${data?.title || ""}"
+            description: "${data?.description?.replace(/\n/g, "\\n") || ""}"
+            numberOfRewarders: ${data?.numberOfRewarders || ""}
+            rewardCurrency: "${data?.rewardCurrency || ""}"
+            amountPerRewarder: ${data?.amountPerRewarder || ""}
+            expiry: "${data?.expiry?.toISOString() || ""}"
+            createdAt: "${new Date().toISOString()}"
+            profileId: "${viewerProfile?.id}"
+            context: "dev_test"
+          }
+        }) 
+        {
+          document {
+            id
+            title
+            description
+            numberOfRewarders
+            rewardCurrency
+            amountPerRewarder
+            expiry
           }
         }
-      `);
-      console.log({ creation })
-      if (creation.errors) {
-        toast({ title: `Something went wrong: ${creation.errors}` })
-      } else {
-        toast({ title: "Created bounty" })
-        setLoading(true);
-
-        const createdBounty: any = creation?.data?.createBounties
-        if (createdBounty?.document?.id) {
-          console.log(createdBounty.document.id)
-          router.push(`/bounty/${createdBounty.document.id}`)
-        }
       }
-      setLoading(false);
+    `);
+    console.log({ creation })
+    if (creation.errors) {
+      toast({ title: `Something went wrong: ${creation.errors}` })
+    } else {
+      toast({ title: "Created bounty" })
+      setLoading(true);
+
+      const createdBounty: any = creation?.data?.createBounties
+      if (createdBounty?.document?.id) {
+        console.log(createdBounty.document.id)
+        router.push(`/bounty/${createdBounty.document.id}`)
+      }
     }
+    setLoading(false);
   };
 
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
     console.log("Submitting form with data:", { data });
-    await createBounty(data)
+    // await createBounty(data)
   }
 
-  const selectTemplate = (value: any) => {
-    console.log(value)
-    // TODO: set title and description using selected template
+  const selectTemplate = (templateId: string) => {
+    setFormValues((currentValues) => {
+      return {
+        ...currentValues,
+        title: QUEST_TEMPLATES[templateId].title,
+        description: QUEST_TEMPLATES[templateId].description
+    }})
   }
-  
+
   return (
     <>
       <div className="space-y-2">
         <Label>Quest Template</Label>
-        <Select onValueChange={selectTemplate}>
+        <Select onValueChange={selectTemplate} defaultValue={"empty"}>
           <SelectTrigger>
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
           <SelectContent>
             {
-              questTemplates.map(template => (
-                <SelectItem value={template.type} key={template.type}>
-                  {template.type}
+              Object.keys(QUEST_TEMPLATES).map(template => (
+                <SelectItem value={template} key={template}>
+                  {QUEST_TEMPLATES[template].type}
                 </SelectItem>
               ))
             }
@@ -205,7 +209,7 @@ export function BountyForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
-                  <Select defaultValue={field.value} disabled={loading}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
                     <FormControl>
                       <SelectTrigger >
                         <SelectValue placeholder="Select a currency" />
@@ -219,7 +223,6 @@ export function BountyForm() {
                       }
                     </SelectContent>
                   </Select>
-                  <ChevronDownIcon className="absolute right-3 top-2.5 h-4 w-4 opacity-50" />
                   <FormMessage />
                 </FormItem>
               )}
@@ -309,7 +312,7 @@ export function BountyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Expert Category</FormLabel>
-                <Select defaultValue={field.value} disabled={loading}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
                   <FormControl>
                     <SelectTrigger >
                       <SelectValue placeholder="Select a category" />
@@ -323,7 +326,6 @@ export function BountyForm() {
                     }
                   </SelectContent>
                 </Select>
-                <ChevronDownIcon className="absolute right-3 top-2.5 h-4 w-4 opacity-50" />
                 <FormMessage />
               </FormItem>
             )}
