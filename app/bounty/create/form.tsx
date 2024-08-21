@@ -59,7 +59,7 @@ export function BountyForm() {
   })
 
   const createBounty = async (data: Partial<BountyFormValues>) => {
-    console.log("before submission ", { viewerProfile, data })
+    // console.log("before submission ", { viewerProfile, data })
 
     setLoading(true);
 
@@ -92,16 +92,119 @@ export function BountyForm() {
         }
       }
     `);
-    console.log({ creation })
+    // console.log({ creation })
+
     if (creation.errors) {
       toast({ title: `Something went wrong: ${creation.errors}` })
     } else {
-      toast({ title: "Created bounty" })
-      setLoading(true);
+      const createdBounty: any = creation?.data?.createBounty
+      // console.log({ createdBounty })
 
-      const createdBounty: any = creation?.data?.createBounties
       if (createdBounty?.document?.id) {
-        console.log(createdBounty.document.id)
+        // create bounty and category relationship
+        const bountyCategory = await composeClient.executeQuery(`
+          mutation {
+            createBountyTopic(
+              input: {
+                content: {
+                  active: true, 
+                  topicId: "${data.category}", 
+                  bountyId: "${createdBounty.document.id}", 
+                  createdAt: "${new Date().toISOString()}"
+                }
+              }
+            ) {
+              document {
+                active
+                bountyId
+                id
+                topicId
+                createdAt
+              }
+            }
+          }
+        `);
+        // console.log({ bountyCategory })
+
+        data?.tags?.map(async (t) => {
+          // find existing tag with the slug, if not found create tag 
+          const findTag = await composeClient.executeQuery(`
+            query {
+              tagIndex(
+                filters: {
+                  where: {
+                    slug: {
+                      equalTo: "${t.value}"
+                    }
+                  }
+                }, first: 1) {
+                edges {
+                  node {
+                    id
+                    name
+                    slug
+                  }
+                }
+              }
+            }
+          `);
+          // console.log({ findTag })
+
+          let tagId: string;
+          if (findTag?.data?.tagIndex?.edges.length === 0) {
+            // create the tag first 
+            const createdTag = await composeClient.executeQuery(`
+              mutation {
+                createTag(
+                  input: {
+                    content: {
+                      name: "${t.label}", 
+                      slug: "${t.value}", 
+                      createdAt: "${new Date().toISOString()}"
+                    }
+                  }
+                ) {
+                  document {
+                    id
+                    name
+                    slug
+                  }
+                }
+              }
+            `);
+            // console.log({ createdTag })
+            tagId = createdTag?.data?.createTag?.document?.id
+          } else {
+            tagId = findTag?.data?.tagIndex?.edges[0]?.node?.id
+          }
+
+          // create bounty and tag relationships
+          const createdBountyTag = await composeClient.executeQuery(`
+              mutation {
+                createBountyTag(
+                  input: {
+                    content: {
+                      tagId: "${tagId}", 
+                      active: true, 
+                      bountyId: "${createdBounty.document.id}", 
+                      createdAt: "${new Date().toISOString()}"
+                    }
+                  }
+                ) {
+                  document {
+                    active
+                    bountyId
+                    createdAt
+                    id
+                    tagId
+                  }
+                }
+              }
+            `);
+          // console.log({ createdBountyTag })
+        })
+
+        toast({ title: "Created bounty" })
         router.push(`/bounty/${createdBounty.document.id}`)
       }
     }
@@ -109,8 +212,8 @@ export function BountyForm() {
   };
 
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    console.log("Submitting form with data:", { data });
-    // await createBounty(data)
+    // console.log("Submitting form with data:", { data });
+    await createBounty(data)
   }
 
   const selectTemplate = (templateId: string) => {
@@ -119,14 +222,15 @@ export function BountyForm() {
         ...currentValues,
         title: QUEST_TEMPLATES[templateId].title,
         description: QUEST_TEMPLATES[templateId].description
-    }})
+      }
+    })
   }
 
   return (
     <>
       <div className="space-y-2">
         <Label>Quest Template</Label>
-        <Select onValueChange={selectTemplate} defaultValue={"empty"}>
+        <Select onValueChange={selectTemplate} defaultValue={"empty"} disabled={loading}>
           <SelectTrigger>
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>

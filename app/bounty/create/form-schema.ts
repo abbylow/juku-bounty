@@ -59,4 +59,5 @@ export const defaultValues: Partial<BountyFormValues> = {
   amountPerRewarder: 10,
   numberOfRewarders: 1,
   expiry: oneMonthFromNow,
+  tags: []
 }
