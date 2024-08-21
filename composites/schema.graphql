@@ -22,6 +22,7 @@ type Profile
   createdAt: DateTime!
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type Bounty
@@ -65,6 +66,7 @@ type Topic
   bountyTopics: [BountyTopic]
     @relationFrom(model: "BountyTopic", property: "topicId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type ProfileTopic
@@ -113,6 +115,7 @@ type Tag
   bountyTags: [BountyTag]
     @relationFrom(model: "BountyTag", property: "tagId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type BountyTag
@@ -138,6 +141,7 @@ interface Platform @createModel(description: "Platform integration interface") {
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
   createdAt: DateTime!
   editedAt: DateTime!
 }
@@ -149,6 +153,7 @@ type CoinbaseIntegration implements Platform
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
   createdAt: DateTime!
   editedAt: DateTime!
 }
@@ -160,6 +165,7 @@ type LinkedInIntegration implements Platform
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
   createdAt: DateTime!
   editedAt: DateTime!
 }
@@ -179,6 +185,7 @@ type Follow
   followeeId: StreamID! @documentReference(model: "Profile") # who receives the follow
   followee: Profile! @relationDocument(property: "followeeId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
   createdAt: DateTime!
   editedAt: DateTime!
 }
@@ -192,6 +199,7 @@ type PrivacySettings {
   allowViewSkillAttestation: Boolean
   allowViewPeerRecommendation: Boolean
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type NotificationSettings {
@@ -203,6 +211,7 @@ type NotificationSettings {
   statusChangeToInvolvedQuest: Boolean
   beMentioned: Boolean
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type Notification
@@ -214,6 +223,7 @@ type Notification
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
   data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
   createdAt: DateTime!
   editedAt: DateTime!
 }
