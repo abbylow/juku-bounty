@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { BountyForm } from "@/app/bounty/create/form";
+import { BountyCreationForm } from "@/app/bounty/create/form";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
 import { buttonVariants } from "@/components/ui/button";
@@ -51,7 +51,7 @@ export default function BountyCreation() {
             Raise a request in the public to get feedback from other contributors
           </p>
         </div>
-        <BountyForm />
+        <BountyCreationForm />
       </div>
     </section>
   )
