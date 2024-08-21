@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation'
 import { CalendarIcon, ChevronDownIcon } from "@radix-ui/react-icons"
 import { useEffect, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { z } from "zod"
-
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -19,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import MultipleSelector, { optionSchema } from '@/components/ui/multiple-selector';
+import MultipleSelector from '@/components/ui/multiple-selector';
 import {
   Popover,
   PopoverContent,
@@ -29,95 +27,14 @@ import { toast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { CATEGORY_OPTIONS } from "@/const/categories"
 import { TOPIC_OPTIONS } from "@/const/topics"
 import { questTemplates } from "@/const/quest-templates"
 import { Label } from "@/components/ui/label"
-
-const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-
-const oneWeekFromNow = new Date();
-oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
-
-const twoWeeksFromNow = new Date();
-twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
-
-const oneMonthFromNow = new Date();
-oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-
-const EXPIRY_PRESET: Record<string, Date> = {
-  "In 7 days": oneWeekFromNow,
-  "In 14 days": twoWeeksFromNow,
-  "In 1 month": oneMonthFromNow,
-}
-
-const ACCEPTABLE_CURRENCIES = {
-  USDC: "usdc",
-  USDT: "usdt"
-} as const;
-type ACCEPTABLE_CURRENCIES = typeof ACCEPTABLE_CURRENCIES[keyof typeof ACCEPTABLE_CURRENCIES];
-
-const MAX_NUM_OF_TAGS = 5;
-
-const bountyFormSchema = z.object({
-  title: z
-    .string()
-    .min(5, {
-      message: "Name must be at least 5 characters.",
-    })
-    .max(80, {
-      message: "Name must not be longer than 80 characters.",
-    }),
-  description: z
-    .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(1000, {
-      message: "Name must not be longer than 1000 characters.",
-    }),
-  rewardCurrency: z.enum(Object.values(ACCEPTABLE_CURRENCIES) as [ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES], {
-    invalid_type_error: "Select a currency",
-    required_error: "Please select a currency.",
-  }),
-  amountPerRewarder: z.number()
-    .positive({ message: "Number must be greater than zero" }),
-  numberOfRewarders: z.number()
-    .int({ message: "Value must be an integer" })
-    .min(1, { message: "Value must be at least 1" })
-    .max(10, { message: "Value must be no more than 10" }),
-  expiry: z.date()
-    .refine(date => date >= tomorrow, { // Checks if the date is at least one day in the future
-      message: "Expiry date must be at least one day in the future",
-    })
-    .refine(date => date <= oneMonthFromNow, { // Checks if the date is within one month
-      message: "Expiry date must be within one month from now",
-    }),
-  category: z.enum(CATEGORY_OPTIONS.map(option => option.value) as [string, ...string[]], {
-    invalid_type_error: "Select a category",
-    required_error: "Please select a category.",
-  }),
-  tags: z.array(optionSchema)
-    .max(MAX_NUM_OF_TAGS, { message: " Only allow maximum 5 tags" })
-    .optional()
-    .refine(array => new Set(array).size === array?.length, {
-      message: "All tags must be unique",
-    })
-})
-
-type BountyFormValues = z.infer<typeof bountyFormSchema>
-
-const defaultValues: Partial<BountyFormValues> = {
-  title: "",
-  description: "",
-  rewardCurrency: ACCEPTABLE_CURRENCIES.USDC,
-  amountPerRewarder: 10,
-  numberOfRewarders: 1,
-  expiry: oneMonthFromNow,
-}
+import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
+import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
 
 export function BountyForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -147,8 +64,6 @@ export function BountyForm() {
 
       setLoading(true);
 
-      // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
-      // TODO: update the viewer profile type in context to include `id`
       const creation = await composeClient.executeQuery(`
         mutation {
           createBounty(input: {
@@ -209,7 +124,7 @@ export function BountyForm() {
         <Label>Quest Template</Label>
         <Select onValueChange={selectTemplate}>
           <SelectTrigger>
-            <SelectValue placeholder="Select a fruit" />
+            <SelectValue placeholder="Select a template" />
           </SelectTrigger>
           <SelectContent>
             {
