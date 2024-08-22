@@ -1,5 +1,6 @@
 import { Option } from '@/components/ui/multiple-selector';
 
+// TODO: re-create all categories in updated schema and clone the stream ids here
 // TODO: make two sets of data, one for clay-testnet, one for mainnet
 // As this default list is fixed, no need to query from ceramic 
 export const CATEGORY_OPTIONS: Option[] = [
@@ -28,7 +29,7 @@ export const CATEGORY_OPTIONS: Option[] = [
     // value: 'software_engineering_and_cybersecurity', 
     value: 'kjzl6kcym7w8y5sk8lcibf2xpww85by8f69lktd0u5psr413gc45oybfe3tg8fp' },
   { 
-    label: 'Digital Marketing & SEO',
+    label: 'Marketing',
     // value: 'digital_marketing_and_seo', 
     value: 'kjzl6kcym7w8y6t9wvmv6ikxefi5bp02cyql16ty0h1y00pcozkx7wj8278ikv7' },
   { 
