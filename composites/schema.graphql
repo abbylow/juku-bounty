@@ -1,4 +1,3 @@
-# TODO: rename topics to expert categories
 type Profile
   @createModel(accountRelation: SINGLE, description: "User profile")
   @createIndex(fields: [{ path: "username" }]) {
@@ -7,8 +6,8 @@ type Profile
   bio: String @string(maxLength: 160)
   pfp: String @string(maxLength: 100)
   # topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId") # this doesn't work, try the line below
-  profileTopics: [ProfileTopic]
-    @relationFrom(model: "ProfileTopic", property: "profileId")
+  profileCategories: [ProfileCategory]
+    @relationFrom(model: "ProfileCategory", property: "profileId")
   bounties: [Bounty] @relationFrom(model: "Bounty", property: "profileId")
   platforms: [Platform] @relationFrom(model: "Platform", property: "profileId")
   privacySettings: PrivacySettings
@@ -39,8 +38,8 @@ type Bounty
   amountPerRewarder: Float!
   expiry: DateTime!
   # topics: [Topic] @relationFrom(model: "BountyTopic", property: "bountyId") # this doesn't work, try the line below
-  bountyTopics: [BountyTopic]
-    @relationFrom(model: "BountyTopic", property: "bountyId")
+  bountyCategories: [BountyCategory]
+    @relationFrom(model: "BountyCategory", property: "bountyId")
   # tags: [Tag] @relationFrom(model: "BountyTag", property: "bountyId") # this doesn't work, try the line below
   bountyTags: [BountyTag]
     @relationFrom(model: "BountyTag", property: "bountyId")
@@ -55,8 +54,8 @@ type Bounty
   likes: [Like] @relationFrom(model: "Like", property: "bountyId")
 }
 
-type Topic
-  @createModel(accountRelation: LIST, description: "Topic")
+type Category
+  @createModel(accountRelation: LIST, description: "Category")
   @createIndex(fields: [{ path: "slug" }]) {
   name: String! @string(minLength: 1, maxLength: 300)
   slug: String! @string(minLength: 1, maxLength: 300)
@@ -64,44 +63,44 @@ type Topic
   createdAt: DateTime!
   editedAt: DateTime!
   # profiles: [Profile] @relationFrom(model: "ProfileTopic", property: "topicId") # this doesn't work, try the line below
-  profileTopics: [ProfileTopic]
-    @relationFrom(model: "ProfileTopic", property: "topicId")
+  profileCategories: [ProfileCategory]
+    @relationFrom(model: "ProfileCategory", property: "categoryId")
   # bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId") # this doesn't work, try the line below
-  bountyTopics: [BountyTopic]
-    @relationFrom(model: "BountyTopic", property: "topicId")
+  bountyCategories: [BountyCategory]
+    @relationFrom(model: "BountyCategory", property: "categoryId")
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
 }
 
-type ProfileTopic
+type ProfileCategory
   @createModel(
     accountRelation: LIST
-    description: "Join table for Profile and Topic"
+    description: "Join table for Profile and Category"
   )
   @createIndex(fields: [{ path: "profileId" }])
-  @createIndex(fields: [{ path: "topicId" }])
+  @createIndex(fields: [{ path: "categoryId" }])
   @createIndex(fields: [{ path: "active" }]) {
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
-  topicId: StreamID! @documentReference(model: "Topic")
-  topic: Topic! @relationDocument(property: "topicId")
+  categoryId: StreamID! @documentReference(model: "Category")
+  category: Category! @relationDocument(property: "categoryId")
   active: Boolean!
   createdAt: DateTime!
   editedAt: DateTime!
 }
 
-type BountyTopic
+type BountyCategory
   @createModel(
     accountRelation: LIST
-    description: "Join table for Bounty and Topic"
+    description: "Join table for Bounty and Category"
   )
   @createIndex(fields: [{ path: "bountyId" }])
-  @createIndex(fields: [{ path: "topicId" }])
+  @createIndex(fields: [{ path: "categoryId" }])
   @createIndex(fields: [{ path: "active" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
   bounty: Bounty! @relationDocument(property: "bountyId")
-  topicId: StreamID! @documentReference(model: "Topic")
-  topic: Topic! @relationDocument(property: "topicId")
+  categoryId: StreamID! @documentReference(model: "Category")
+  category: Category! @relationDocument(property: "categoryId")
   active: Boolean!
   createdAt: DateTime!
   editedAt: DateTime!
