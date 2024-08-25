@@ -19,6 +19,8 @@ type Profile
   followersCount: Int!
     @relationCountFrom(model: "Follow", property: "followeeId")
   author: DID! @documentAccount
+  walletAddress: String
+  loginMethod: String
   createdAt: DateTime!
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
@@ -49,6 +51,8 @@ type Bounty
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
+  contributions: [Contribution] @relationFrom(model: "Contribution", property: "bountyId")
+  likes: [Like] @relationFrom(model: "Like", property: "bountyId")
 }
 
 type Topic
@@ -112,8 +116,7 @@ type Tag
   createdAt: DateTime!
   editedAt: DateTime!
   # bounties: [Bounty] @relationFrom(model: "BountyTopic", property: "topicId") # this doesn't work, try the line below
-  bountyTags: [BountyTag]
-    @relationFrom(model: "BountyTag", property: "tagId")
+  bountyTags: [BountyTag] @relationFrom(model: "BountyTag", property: "tagId")
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
 }
@@ -222,6 +225,91 @@ type Notification
   viewed: Boolean
   profileId: StreamID! @documentReference(model: "Profile")
   profile: Profile! @relationDocument(property: "profileId")
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
+  createdAt: DateTime!
+  editedAt: DateTime!
+}
+
+type Like
+  @createModel(
+    description: "Like on a bounty"
+    accountRelation: SET
+    accountRelationFields: ["bountyId"]
+  )
+  @createIndex(fields: [{ path: "bountyId" }])
+  @createIndex(fields: [{ path: "active" }]) {
+  active: Boolean!
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  bounty: Bounty! @relationDocument(property: "bountyId")
+  profileId: StreamID! @documentReference(model: "Profile")
+  profile: Profile! @relationDocument(property: "profileId")
+  author: DID! @documentAccount
+  createdAt: DateTime!
+  editedAt: DateTime!
+}
+
+type Contribution
+  @createModel(accountRelation: LIST, description: "Contribution on a bounty")
+  @createIndex(fields: [{ path: "bountyId" }])
+  @createIndex(fields: [{ path: "profileId" }])
+  @createIndex(fields: [{ path: "referrerId" }])
+  @createIndex(fields: [{ path: "referreeId" }]) {
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  bounty: Bounty! @relationDocument(property: "bountyId")
+  profileId: StreamID! @documentReference(model: "Profile") # contribution creator
+  profile: Profile! @relationDocument(property: "profileId") # contribution creator
+  author: DID! @documentAccount
+  referrerId: StreamID @documentReference(model: "Profile") # who refers the candidate 
+  referrer: Profile @relationDocument(property: "referrerId")
+  referreeId: StreamID @documentReference(model: "Profile") # who is referred
+  referree: Profile @relationDocument(property: "referreeId")
+  comments: [Comment] @relationFrom(model: "Comment", property: "contributionId")
+  text: String! @string(maxLength: 2000)
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
+  createdAt: DateTime!
+  editedAt: DateTime!
+}
+
+type Comment
+  @createModel(
+    accountRelation: LIST
+    description: "Comment on a contribution"
+  ) 
+  @createIndex(fields: [{ path: "contributionId" }])
+  @createIndex(fields: [{ path: "replyToId" }])
+  @createIndex(fields: [{ path: "profileId" }])
+  {
+  contributionId: StreamID! @documentReference(model: "Contribution")
+  contribution: Contribution! @relationDocument(property: "contributionId")
+  replyToId: StreamID @documentReference(model: "Comment")
+  replyTo: Comment @relationDocument(property: "replyToId")
+  mentions: [Mention] @relationFrom(model: "Mention", property: "commentId")
+  profileId: StreamID! @documentReference(model: "Profile") # creator
+  profile: Profile! @relationDocument(property: "profileId")
+  author: DID! @documentAccount
+  text: String! @string(maxLength: 2000)
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
+  createdAt: DateTime!
+  editedAt: DateTime!
+}
+
+type Mention
+  @createModel(
+    accountRelation: LIST
+    description: "Mention on a comment"
+  ) 
+  @createIndex(fields: [{ path: "commentId" }])
+  @createIndex(fields: [{ path: "profileId" }])
+  {
+  commentId: StreamID! @documentReference(model: "Comment")
+  comment: Comment! @relationDocument(property: "commentId")
+  profileId: StreamID! @documentReference(model: "Profile") # creator
+  profile: Profile! @relationDocument(property: "profileId")
+  author: DID! @documentAccount
+  text: String! @string(maxLength: 2000)
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
   createdAt: DateTime!
