@@ -50,24 +50,43 @@ type Bounty
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
-  contributions: [Contribution] @relationFrom(model: "Contribution", property: "bountyId")
+  contributions: [Contribution]
+    @relationFrom(model: "Contribution", property: "bountyId")
   likes: [Like] @relationFrom(model: "Like", property: "bountyId")
+  deposit: BountyDeposit
   isWinnerPicked: Boolean
-  results: [BountyWinner] @relationFrom(model: "BountyWinner", property: "bountyId")
-  settlements: [BountySettlement] @relationFrom(model: "BountySettlement", property: "bountyId")
+  results: [BountyWinner]
+    @relationFrom(model: "BountyWinner", property: "bountyId")
+  settlements: [BountySettlement]
+    @relationFrom(model: "BountySettlement", property: "bountyId")
+}
+
+type BountyDeposit
+  @createModel(accountRelation: LIST, description: "Winner of a bounty")
+  @createIndex(fields: [{ path: "bountyId" }]) {
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  bounty: Bounty! @relationDocument(property: "bountyId")
+  txId: String!
+  chainId: String!
+  escrowContractAddress: String!
+  profileId: StreamID! @documentReference(model: "Profile") # who deposits
+  profile: Profile! @relationDocument(property: "profileId") 
+  author: DID! @documentAccount # the result must be created by the system / bounty creator
+  createdAt: DateTime!
+  editedAt: DateTime!
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type BountyWinner
-  @createModel(
-    accountRelation: LIST
-    description: "Winner of a bounty"
-  )
+  @createModel(accountRelation: LIST, description: "deposit info of a bounty")
   @createIndex(fields: [{ path: "bountyId" }])
   @createIndex(fields: [{ path: "contributionId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
   bounty: Bounty! @relationDocument(property: "bountyId")
   contributionId: StreamID! @documentReference(model: "Contribution")
   contribution: Contribution! @relationDocument(property: "contributionId")
+  percentageOfReward: Float! # how many percentage should this winner get in one portion of reward; referrer 20% referee 80% or 100% for sole contributor
   author: DID! @documentAccount # the result must be created by the system / bounty creator
   createdAt: DateTime!
   editedAt: DateTime!
@@ -78,11 +97,11 @@ type BountyWinner
 # settlement can be refund to creator / reward distribution to contributor and referrer if any
 # if the contribution has referrer and referree, then we need to create two separate settlement instance for them
 type BountySettlement
-  @createModel(
-    accountRelation: LIST
-    description: "Settlement of a bounty"
-  )
-  @createIndex(fields: [{ path: "bountyId" }]) {
+  @createModel(accountRelation: LIST, description: "Settlement of a bounty")
+  @createIndex(fields: [{ path: "bountyId" }]) 
+  @createIndex(fields: [{ path: "contributionId" }])
+  @createIndex(fields: [{ path: "payeeId" }]) 
+  @createIndex(fields: [{ path: "txId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
   bounty: Bounty! @relationDocument(property: "bountyId")
   contributionId: StreamID @documentReference(model: "Contribution") # can be empty if this is a refund to creator
@@ -92,9 +111,9 @@ type BountySettlement
   payeeWallet: String!
   rewardCurrency: String! @string(maxLength: 100)
   amount: Float!
-  txId: String! 
-  chainId: String! 
-  author: DID! @documentAccount # the result must be created by the system / bounty creator? 
+  txId: String!
+  chainId: String!
+  author: DID! @documentAccount # the result must be created by the system / bounty creator?
   createdAt: DateTime!
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
@@ -306,11 +325,12 @@ type Contribution
   profileId: StreamID! @documentReference(model: "Profile") # contribution creator
   profile: Profile! @relationDocument(property: "profileId") # contribution creator
   author: DID! @documentAccount
-  referrerId: StreamID @documentReference(model: "Profile") # who refers the candidate 
+  referrerId: StreamID @documentReference(model: "Profile") # who refers the candidate
   referrer: Profile @relationDocument(property: "referrerId")
   referreeId: StreamID @documentReference(model: "Profile") # who is referred
   referree: Profile @relationDocument(property: "referreeId")
-  comments: [Comment] @relationFrom(model: "Comment", property: "contributionId")
+  comments: [Comment]
+    @relationFrom(model: "Comment", property: "contributionId")
   text: String! @string(maxLength: 2000)
   data: String @string(maxLength: 1000)
   context: String @string(maxLength: 100)
@@ -319,14 +339,10 @@ type Contribution
 }
 
 type Comment
-  @createModel(
-    accountRelation: LIST
-    description: "Comment on a contribution"
-  ) 
+  @createModel(accountRelation: LIST, description: "Comment on a contribution")
   @createIndex(fields: [{ path: "contributionId" }])
   @createIndex(fields: [{ path: "replyToId" }])
-  @createIndex(fields: [{ path: "profileId" }])
-  {
+  @createIndex(fields: [{ path: "profileId" }]) {
   contributionId: StreamID! @documentReference(model: "Contribution")
   contribution: Contribution! @relationDocument(property: "contributionId")
   replyToId: StreamID @documentReference(model: "Comment")
@@ -343,13 +359,9 @@ type Comment
 }
 
 type Mention
-  @createModel(
-    accountRelation: LIST
-    description: "Mention on a comment"
-  ) 
+  @createModel(accountRelation: LIST, description: "Mention on a comment")
   @createIndex(fields: [{ path: "commentId" }])
-  @createIndex(fields: [{ path: "profileId" }])
-  {
+  @createIndex(fields: [{ path: "profileId" }]) {
   commentId: StreamID! @documentReference(model: "Comment")
   comment: Comment! @relationDocument(property: "commentId")
   profileId: StreamID! @documentReference(model: "Profile") # creator
