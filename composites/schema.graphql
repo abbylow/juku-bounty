@@ -52,6 +52,53 @@ type Bounty
   context: String @string(maxLength: 100)
   contributions: [Contribution] @relationFrom(model: "Contribution", property: "bountyId")
   likes: [Like] @relationFrom(model: "Like", property: "bountyId")
+  isWinnerPicked: Boolean
+  results: [BountyWinner] @relationFrom(model: "BountyWinner", property: "bountyId")
+  settlements: [BountySettlement] @relationFrom(model: "BountySettlement", property: "bountyId")
+}
+
+type BountyWinner
+  @createModel(
+    accountRelation: LIST
+    description: "Winner of a bounty"
+  )
+  @createIndex(fields: [{ path: "bountyId" }])
+  @createIndex(fields: [{ path: "contributionId" }]) {
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  bounty: Bounty! @relationDocument(property: "bountyId")
+  contributionId: StreamID! @documentReference(model: "Contribution")
+  contribution: Contribution! @relationDocument(property: "contributionId")
+  author: DID! @documentAccount # the result must be created by the system / bounty creator
+  createdAt: DateTime!
+  editedAt: DateTime!
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
+}
+
+# settlement can be refund to creator / reward distribution to contributor and referrer if any
+# if the contribution has referrer and referree, then we need to create two separate settlement instance for them
+type BountySettlement
+  @createModel(
+    accountRelation: LIST
+    description: "Settlement of a bounty"
+  )
+  @createIndex(fields: [{ path: "bountyId" }]) {
+  bountyId: StreamID! @documentReference(model: "Bounty")
+  bounty: Bounty! @relationDocument(property: "bountyId")
+  contributionId: StreamID @documentReference(model: "Contribution") # can be empty if this is a refund to creator
+  contribution: Contribution @relationDocument(property: "contributionId") # can be empty if this is a refund to creator
+  payeeId: StreamID! @documentReference(model: "Profile") # who being paid
+  payee: Profile! @relationDocument(property: "payeeId")
+  payeeWallet: String!
+  rewardCurrency: String! @string(maxLength: 100)
+  amount: Float!
+  txId: String! 
+  chainId: String! 
+  author: DID! @documentAccount # the result must be created by the system / bounty creator? 
+  createdAt: DateTime!
+  editedAt: DateTime!
+  data: String @string(maxLength: 1000)
+  context: String @string(maxLength: 100)
 }
 
 type Category
