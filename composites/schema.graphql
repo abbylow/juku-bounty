@@ -54,7 +54,7 @@ type Bounty
     @relationFrom(model: "Contribution", property: "bountyId")
   likes: [Like] @relationFrom(model: "Like", property: "bountyId")
   deposit: BountyDeposit
-  isWinnerPicked: Boolean
+  isResultDecided: Boolean
   results: [BountyWinner]
     @relationFrom(model: "BountyWinner", property: "bountyId")
   settlements: [BountySettlement]
@@ -106,10 +106,11 @@ type BountySettlement
   bounty: Bounty! @relationDocument(property: "bountyId")
   contributionId: StreamID @documentReference(model: "Contribution") # can be empty if this is a refund to creator
   contribution: Contribution @relationDocument(property: "contributionId") # can be empty if this is a refund to creator
+  type: String! # can be "refund" or "reward"
   payeeId: StreamID! @documentReference(model: "Profile") # who being paid
   payee: Profile! @relationDocument(property: "payeeId")
   payeeWallet: String!
-  rewardCurrency: String! @string(maxLength: 100)
+  currency: String! @string(maxLength: 100)
   amount: Float!
   txId: String!
   chainId: String!
