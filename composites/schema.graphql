@@ -2,7 +2,7 @@ type Profile
   @createModel(accountRelation: SINGLE, description: "User profile")
   @createIndex(fields: [{ path: "username" }]) {
   displayName: String! @string(minLength: 1, maxLength: 100)
-  username: String!
+  username: String! @string(minLength: 1, maxLength: 100)
   bio: String @string(maxLength: 160)
   pfp: String @string(maxLength: 100)
   # topics: [Topic] @relationFrom(model: "ProfileTopic", property: "profileId") # this doesn't work, try the line below
@@ -18,8 +18,8 @@ type Profile
   followersCount: Int!
     @relationCountFrom(model: "Follow", property: "followeeId")
   author: DID! @documentAccount
-  walletAddress: String
-  loginMethod: String
+  walletAddress: String @string(minLength: 1, maxLength: 100)
+  loginMethod: String @string(minLength: 1, maxLength: 100)
   createdAt: DateTime!
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
@@ -33,9 +33,12 @@ type Bounty
   @createIndex(fields: [{ path: "expiry" }]) {
   title: String! @string(maxLength: 200)
   description: String @string(maxLength: 1000)
-  numberOfRewarders: Int!
-  rewardCurrency: String! @string(maxLength: 100)
-  amountPerRewarder: Float!
+  # numberOfRewarders: Int! # move all reward related data to smart contract
+  # rewardCurrency: String! @string(maxLength: 100) # move all reward related data to smart contract
+  # amountPerRewarder: Float! # move all reward related data to smart contract
+  escrowContractAddress: String! @string(minLength: 1, maxLength: 100)
+  escrowContractChainId: String! @string(minLength: 1, maxLength: 100)
+  escrowId: Int! # bounty ID in the escrow smart contract 
   expiry: DateTime!
   # topics: [Topic] @relationFrom(model: "BountyTopic", property: "bountyId") # this doesn't work, try the line below
   bountyCategories: [BountyCategory]
@@ -53,33 +56,14 @@ type Bounty
   contributions: [Contribution]
     @relationFrom(model: "Contribution", property: "bountyId")
   likes: [Like] @relationFrom(model: "Like", property: "bountyId")
-  deposit: BountyDeposit
   isResultDecided: Boolean
   results: [BountyWinner]
     @relationFrom(model: "BountyWinner", property: "bountyId")
-  settlements: [BountySettlement]
-    @relationFrom(model: "BountySettlement", property: "bountyId")
 }
 
-type BountyDeposit
-  @createModel(accountRelation: LIST, description: "Winner of a bounty")
-  @createIndex(fields: [{ path: "bountyId" }]) {
-  bountyId: StreamID! @documentReference(model: "Bounty")
-  bounty: Bounty! @relationDocument(property: "bountyId")
-  txId: String!
-  chainId: String!
-  escrowContractAddress: String!
-  profileId: StreamID! @documentReference(model: "Profile") # who deposits
-  profile: Profile! @relationDocument(property: "profileId") 
-  author: DID! @documentAccount # the result must be created by the system / bounty creator
-  createdAt: DateTime!
-  editedAt: DateTime!
-  data: String @string(maxLength: 1000)
-  context: String @string(maxLength: 100)
-}
-
+# TODO: store winner info as a copy here, but in SC we will record winner info too
 type BountyWinner
-  @createModel(accountRelation: LIST, description: "deposit info of a bounty")
+  @createModel(accountRelation: LIST, description: "winner info of a bounty")
   @createIndex(fields: [{ path: "bountyId" }])
   @createIndex(fields: [{ path: "contributionId" }]) {
   bountyId: StreamID! @documentReference(model: "Bounty")
@@ -88,33 +72,6 @@ type BountyWinner
   contribution: Contribution! @relationDocument(property: "contributionId")
   percentageOfReward: Float! # how many percentage should this winner get in one portion of reward; referrer 20% referee 80% or 100% for sole contributor
   author: DID! @documentAccount # the result must be created by the system / bounty creator
-  createdAt: DateTime!
-  editedAt: DateTime!
-  data: String @string(maxLength: 1000)
-  context: String @string(maxLength: 100)
-}
-
-# settlement can be refund to creator / reward distribution to contributor and referrer if any
-# if the contribution has referrer and referree, then we need to create two separate settlement instance for them
-type BountySettlement
-  @createModel(accountRelation: LIST, description: "Settlement of a bounty")
-  @createIndex(fields: [{ path: "bountyId" }]) 
-  @createIndex(fields: [{ path: "contributionId" }])
-  @createIndex(fields: [{ path: "payeeId" }]) 
-  @createIndex(fields: [{ path: "txId" }]) {
-  bountyId: StreamID! @documentReference(model: "Bounty")
-  bounty: Bounty! @relationDocument(property: "bountyId")
-  contributionId: StreamID @documentReference(model: "Contribution") # can be empty if this is a refund to creator
-  contribution: Contribution @relationDocument(property: "contributionId") # can be empty if this is a refund to creator
-  type: String! # can be "refund" or "reward"
-  payeeId: StreamID! @documentReference(model: "Profile") # who being paid
-  payee: Profile! @relationDocument(property: "payeeId")
-  payeeWallet: String!
-  currency: String! @string(maxLength: 100)
-  amount: Float!
-  txId: String!
-  chainId: String!
-  author: DID! @documentAccount # the result must be created by the system / bounty creator?
   createdAt: DateTime!
   editedAt: DateTime!
   data: String @string(maxLength: 1000)
@@ -346,8 +303,8 @@ type Comment
   @createIndex(fields: [{ path: "profileId" }]) {
   contributionId: StreamID! @documentReference(model: "Contribution")
   contribution: Contribution! @relationDocument(property: "contributionId")
-  replyToId: StreamID @documentReference(model: "Comment")
-  replyTo: Comment @relationDocument(property: "replyToId")
+  # replyToId: StreamID @documentReference(model: "Comment")
+  # replyTo: Comment @relationDocument(property: "replyToId")
   mentions: [Mention] @relationFrom(model: "Mention", property: "commentId")
   profileId: StreamID! @documentReference(model: "Profile") # creator
   profile: Profile! @relationDocument(property: "profileId")
