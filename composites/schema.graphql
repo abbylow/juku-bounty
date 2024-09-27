@@ -14,8 +14,8 @@ type Profile
   notificationSettings: NotificationSettings
   notifications: [Notification]
     @relationFrom(model: "Notification", property: "profileId")
-  followers: [Follow] @relationFrom(model: "Follow", property: "followeeId")
-  followersCount: Int!
+  # followers: [Follow] @relationFrom(model: "Follow", property: "followeeId")
+  # followersCount: Int!
     @relationCountFrom(model: "Follow", property: "followeeId")
   author: DID! @documentAccount
   walletAddress: String @string(minLength: 1, maxLength: 100)
@@ -61,7 +61,6 @@ type Bounty
     @relationFrom(model: "BountyWinner", property: "bountyId")
 }
 
-# TODO: store winner info as a copy here, but in SC we will record winner info too
 type BountyWinner
   @createModel(accountRelation: LIST, description: "winner info of a bounty")
   @createIndex(fields: [{ path: "bountyId" }])
@@ -70,7 +69,7 @@ type BountyWinner
   bounty: Bounty! @relationDocument(property: "bountyId")
   contributionId: StreamID! @documentReference(model: "Contribution")
   contribution: Contribution! @relationDocument(property: "contributionId")
-  percentageOfReward: Float! # how many percentage should this winner get in one portion of reward; referrer 20% referee 80% or 100% for sole contributor
+  percentageOfReward: Float! # how many percentage should this winner get in one portion of reward; eg: referrer 20% referee 80% or 100% for sole contributor
   author: DID! @documentAccount # the result must be created by the system / bounty creator
   createdAt: DateTime!
   editedAt: DateTime!
@@ -196,25 +195,27 @@ type LinkedInIntegration implements Platform
   editedAt: DateTime!
 }
 
-type Follow
-  @createModel(
-    accountRelation: LIST
-    description: "A user follows another user"
-  )
-  @createIndex(fields: [{ path: "followerId" }])
-  @createIndex(fields: [{ path: "followeeId" }])
-  @createIndex(fields: [{ path: "active" }]) {
-  author: DID! @documentAccount
-  active: Boolean!
-  followerId: StreamID! @documentReference(model: "Profile") # who initiates the follow action
-  follower: Profile! @relationDocument(property: "followerId")
-  followeeId: StreamID! @documentReference(model: "Profile") # who receives the follow
-  followee: Profile! @relationDocument(property: "followeeId")
-  data: String @string(maxLength: 1000)
-  context: String @string(maxLength: 100)
-  createdAt: DateTime!
-  editedAt: DateTime!
-}
+# Temporarily hide this model for testing purpose
+# TODO: uncomment this model before deploying to mainnet
+# type Follow
+#   @createModel(
+#     accountRelation: LIST
+#     description: "A user follows another user"
+#   )
+#   @createIndex(fields: [{ path: "followerId" }])
+#   @createIndex(fields: [{ path: "followeeId" }])
+#   @createIndex(fields: [{ path: "active" }]) {
+#   author: DID! @documentAccount
+#   active: Boolean!
+#   followerId: StreamID! @documentReference(model: "Profile") # who initiates the follow action
+#   follower: Profile! @relationDocument(property: "followerId")
+#   followeeId: StreamID! @documentReference(model: "Profile") # who receives the follow
+#   followee: Profile! @relationDocument(property: "followeeId")
+#   data: String @string(maxLength: 1000)
+#   context: String @string(maxLength: 100)
+#   createdAt: DateTime!
+#   editedAt: DateTime!
+# }
 
 type PrivacySettings {
   allowReferGroup: String @string(maxLength: 100)
@@ -299,7 +300,7 @@ type Contribution
 type Comment
   @createModel(accountRelation: LIST, description: "Comment on a contribution")
   @createIndex(fields: [{ path: "contributionId" }])
-  @createIndex(fields: [{ path: "replyToId" }])
+  # @createIndex(fields: [{ path: "replyToId" }])
   @createIndex(fields: [{ path: "profileId" }]) {
   contributionId: StreamID! @documentReference(model: "Contribution")
   contribution: Contribution! @relationDocument(property: "contributionId")
