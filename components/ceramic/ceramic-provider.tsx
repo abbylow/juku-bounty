@@ -105,21 +105,21 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
               beMentioned
             }
           }
-          profileTopicList(first: 10) {
+          profileCategoryList(first: 10) {
             edges {
               node {
                 id
                 active
-                topicId
+                categoryId
                 profileId
-                topic {
+                category {
                   slug
                   name
                 }
               }
             }
           }
-          profileTopicListCount
+          profileCategoryListCount
           platformList(first: 5) {
             edges {
               node {
@@ -140,13 +140,13 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
     }
     const viewer: any = viewerProfileReq?.data?.viewer
     const latestProfile = viewer?.profile
-    // process profileTopics and map to categories
-    if (viewer?.profileTopicListCount) {
-      latestProfile.categories = viewer?.profileTopicList.edges.filter((el: { node: { active: any; }; }) => el.node.active).map((el: { node: any; }) => {
+    // process profileCategories and map to categories
+    if (viewer?.profileCategoryListCount) {
+      latestProfile.categories = viewer?.profileCategoryList.edges.filter((el: { node: { active: any; }; }) => el.node.active).map((el: { node: any; }) => {
         return {
           ...el.node,
-          value: el.node.topicId,
-          label: el.node.topic.name
+          value: el.node.categoryId,
+          label: el.node.category.name
         }
       })
     }

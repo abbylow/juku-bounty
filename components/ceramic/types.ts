@@ -40,16 +40,16 @@ export interface Profile extends ProfileFormValues {
   };
   pfp: string;
   createdAt: string;
-  profileTopicList: {
+  profileCategoryList: {
     edges: {
       node: {
-        topicId: string
+        categoryId: string
         profileId: string
         createdAt: string
       }
     }
   }
-  profileTopicListCount: number
+  profileCategoryListCount: number
   privacySettings?: IPrivacySettings
   notificationSettings?: INotificationSettings
   integrations?: IPlatform[]

@@ -24,7 +24,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [userCategories, setUserCategories] = useState<any>();
   const [platformIntegrations, setPlatformIntegrations] = useState<IPlatform[]>();
 
-  // TODO: change query below to get profileTopicList by active = true after schema update
+  // TODO: change query below to get profileCategoryList by active = true after schema update
   const getProfile = async () => {
     const findProfile = await composeClient.executeQuery(`
       query {
@@ -48,16 +48,16 @@ export default function ProfilePage({ params }: { params: { username: string } }
               createdAt
               author {
                 id
-                profileTopicListCount
-                profileTopicList(first: 10) {
+                profileCategoryListCount
+                profileCategoryList(first: 10) {
                   edges {
                     node {
                       id
                       profileId
-                      topicId
+                      categoryId
                       active
                       createdAt
-                      topic {
+                      category {
                         name
                         slug
                       }
@@ -95,12 +95,12 @@ export default function ProfilePage({ params }: { params: { username: string } }
       const foundProfile = foundProfileRes.edges[0].node;
       setUserData(foundProfile)
 
-      if (foundProfileRes?.edges[0]?.node?.author?.profileTopicListCount) {
-        const categories = foundProfileRes?.edges[0]?.node?.author?.profileTopicList.edges.filter((el: { node: { active: any; }; }) => el.node.active).map((el: { node: any; }) => {
+      if (foundProfileRes?.edges[0]?.node?.author?.profileCategoryListCount) {
+        const categories = foundProfileRes?.edges[0]?.node?.author?.profileCategoryList.edges.filter((el: { node: { active: any; }; }) => el.node.active).map((el: { node: any; }) => {
           return {
             ...el.node,
-            value: el.node.topicId,
-            label: el.node.topic.name
+            value: el.node.categoryId,
+            label: el.node.category.name
           }
         })
         setUserCategories(categories);

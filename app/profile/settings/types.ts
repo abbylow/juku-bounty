@@ -15,12 +15,12 @@ export type ProfileUpdateResponse = {
   };
 };
 
-export type ProfileTopicIndexResponse = {
+export type ProfileCategoriesIndexResponse = {
   edges: Array<{
     node: {
       id: string;
       profileId: string;
-      topicId: string;
+      categoryId: string;
       active: boolean;
     };
   }>;

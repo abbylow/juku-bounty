@@ -9,7 +9,7 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Profile } from "@/components/ceramic/types"
 import { toast } from "@/components/ui/use-toast"
 import { profileFormSchema } from "@/app/profile/settings/form-schema"
-import { ProfileFormValues, ProfileUpdateResponse, ProfileTopicIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
+import { ProfileFormValues, ProfileUpdateResponse, ProfileCategoriesIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
 import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
 import { ProfileFormComponent } from "@/components/profile/form"
 
@@ -129,7 +129,7 @@ export function ProfileForm() {
     toRemove.map(async (c) => {
       const removeRelation = await composeClient.executeQuery(`
         mutation {
-          updateProfileTopic(
+          updateProfileCategory(
             input: {
               id: "${c.value}",
               content: {
@@ -142,7 +142,7 @@ export function ProfileForm() {
               active
               id
               profileId
-              topicId
+              categoryId
             }
           }
         }
@@ -160,13 +160,13 @@ export function ProfileForm() {
       // find existing relation, if found then update, else create new relation
       const toAddRelation = await composeClient.executeQuery(`
         query {
-          profileTopicIndex(
+          profileCategoryIndex(
             filters: {
               where: {
                 profileId: {
                   equalTo: "${profileClone?.id || profileUpdateRes?.document?.id}"
                 }, 
-                topicId: {
+                categoryId: {
                   equalTo: "${c}"
                 }
               }
@@ -177,7 +177,7 @@ export function ProfileForm() {
               node {
                 id
                 profileId
-                topicId
+                categoryId
                 active
               }
             }
@@ -185,15 +185,15 @@ export function ProfileForm() {
         }
       `)
 
-      const profileTopicIndexRes = toAddRelation?.data?.profileTopicIndex as ProfileTopicIndexResponse
+      const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
 
-      if (profileTopicIndexRes?.edges?.length) {
+      if (profileCategoryIndexRes?.edges?.length) {
         // update existing relation to be active 
         const updatedRelation = await composeClient.executeQuery(`
           mutation {
-            updateProfileTopic(
+            updateProfileCategory(
               input: {
-                id: "${profileTopicIndexRes?.edges[0]?.node?.id}",
+                id: "${profileCategoryIndexRes?.edges[0]?.node?.id}",
                 content: {
                   active: true,
                   editedAt: "${new Date().toISOString()}"
@@ -214,12 +214,12 @@ export function ProfileForm() {
         // create new relation
         const createdRelation = await composeClient.executeQuery(`
           mutation {
-            createProfileTopic(
+            createProfileCategory(
               input: {
                 content: {
                   active: true,
                   profileId: "${profileClone?.id || profileUpdateRes?.document?.id}",
-                  topicId: "${c}", 
+                  categoryId: "${c}", 
                   createdAt: "${new Date().toISOString()}",
                   editedAt: "${new Date().toISOString()}"
                 }
