@@ -46,11 +46,9 @@ export function BountyCreationForm() {
           content: {
             title: "${data?.title || ""}"
             description: "${data?.description?.replace(/\n/g, "\\n") || ""}"
-            numberOfRewarders: ${data?.numberOfRewarders || ""}
-            rewardCurrency: "${data?.rewardCurrency || ""}"
-            amountPerRewarder: ${data?.amountPerRewarder || ""}
             expiry: "${data?.expiry?.toISOString() || ""}"
             createdAt: "${new Date().toISOString()}"
+            editedAt: "${new Date().toISOString()}"
             profileId: "${viewerProfile?.id}"
             context: "dev_test"
           }
@@ -60,15 +58,12 @@ export function BountyCreationForm() {
             id
             title
             description
-            numberOfRewarders
-            rewardCurrency
-            amountPerRewarder
             expiry
           }
         }
       }
     `);
-    // console.log({ creation })
+    console.log("bounty/create/form createBounty", { creation })
 
     if (creation.errors) {
       toast({ title: `Something went wrong: ${creation.errors}` })
@@ -80,13 +75,14 @@ export function BountyCreationForm() {
         // create bounty and category relationship
         const bountyCategory = await composeClient.executeQuery(`
           mutation {
-            createBountyTopic(
+            createBountyCategory(
               input: {
                 content: {
                   active: true, 
-                  topicId: "${data.category}", 
+                  categoryId: "${data.category}", 
                   bountyId: "${createdBounty.document.id}", 
-                  createdAt: "${new Date().toISOString()}"
+                  createdAt: "${new Date().toISOString()}",
+                  editedAt: "${new Date().toISOString()}"
                 }
               }
             ) {
@@ -94,13 +90,14 @@ export function BountyCreationForm() {
                 active
                 bountyId
                 id
-                topicId
+                categoryId
                 createdAt
+                editedAt
               }
             }
           }
         `);
-        // console.log({ bountyCategory })
+        console.log("bounty/create/form createBountyCategory ", { bountyCategory })
 
         data?.tags?.map(async (t) => {
           // find existing tag with the slug, if not found create tag 
@@ -124,7 +121,7 @@ export function BountyCreationForm() {
               }
             }
           `);
-          // console.log({ findTag })
+          console.log("bounty/create/form findTag ", { findTag })
 
           let tagId: string;
           if (findTag?.data?.tagIndex?.edges.length === 0) {
@@ -136,7 +133,8 @@ export function BountyCreationForm() {
                     content: {
                       name: "${t.label}", 
                       slug: "${t.value}", 
-                      createdAt: "${new Date().toISOString()}"
+                      createdAt: "${new Date().toISOString()}",
+                      editedAt: "${new Date().toISOString()}"
                     }
                   }
                 ) {
@@ -148,7 +146,7 @@ export function BountyCreationForm() {
                 }
               }
             `);
-            // console.log({ createdTag })
+            console.log("bounty/create/form createdTag", { createdTag })
             tagId = createdTag?.data?.createTag?.document?.id
           } else {
             tagId = findTag?.data?.tagIndex?.edges[0]?.node?.id
@@ -163,7 +161,8 @@ export function BountyCreationForm() {
                       tagId: "${tagId}", 
                       active: true, 
                       bountyId: "${createdBounty.document.id}", 
-                      createdAt: "${new Date().toISOString()}"
+                      createdAt: "${new Date().toISOString()}",
+                      editedAt: "${new Date().toISOString()}",
                     }
                   }
                 ) {
@@ -171,13 +170,14 @@ export function BountyCreationForm() {
                     active
                     bountyId
                     createdAt
+                    editedAt
                     id
                     tagId
                   }
                 }
               }
             `);
-          // console.log({ createdBountyTag })
+          console.log("bounty/create/form createdBountyTag", { createdBountyTag })
         })
 
         toast({ title: "Created bounty" })
