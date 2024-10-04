@@ -1,9 +1,9 @@
-// Bounty topics
+// Bounty tags
 import { Option } from '@/components/ui/multiple-selector';
 
 // TODO: show some default hardcoded tags 
 // TODO: get from ceramic 
-export const TOPIC_OPTIONS: Option[] = [
+export const TAG_OPTIONS: Option[] = [
   { label: 'Startup Idea', value: 'Startup Idea' },
   { label: 'Entrepreneur Advice', value: 'Entrepreneur Advice' },
   { label: 'Financing', value: 'Financing' },

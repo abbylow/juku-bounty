@@ -26,7 +26,7 @@ import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { CATEGORY_OPTIONS } from "@/const/categories"
-import { TOPIC_OPTIONS } from "@/const/topics"
+import { TAG_OPTIONS } from "@/const/tags"
 import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
 
 interface IBountyForm {
@@ -261,7 +261,7 @@ export function BountyForm({
           disabled={loading}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Topics</FormLabel>
+              <FormLabel>Tags</FormLabel>
               <FormControl>
                 <MultipleSelector
                   {...field}
@@ -272,8 +272,8 @@ export function BountyForm({
                       title: `You have reached max selected: ${maxLimit}`,
                     });
                   }}
-                  defaultOptions={TOPIC_OPTIONS}
-                  placeholder="Add topics for discovery..."
+                  defaultOptions={TAG_OPTIONS}
+                  placeholder="Add tags for discovery..."
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
                       no results found.
