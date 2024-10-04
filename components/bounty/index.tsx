@@ -23,7 +23,7 @@ export default function BountyCard({ details }: { details: any }) {
 
   const shareBounty = () => {
     const bountyUrl = getURL(`/bounty/${details?.id}`);
-    copy(bountyUrl);
+    copy(bountyUrl, "Successfully copied post link.");
   }
 
   if (!details || !(details.id)) {
@@ -37,17 +37,17 @@ export default function BountyCard({ details }: { details: any }) {
           {/* TODO: replace the url to the author's profile page - currently, this is user's profile */}
           <div className="flex justify-between flex-wrap gap-2">
 
-            <Link href={`${PROFILE_URL}/${details?.author?.basicProfile?.username}`} className="flex items-center space-x-4">
-              <UserAvatar pfp={details?.author?.basicProfile?.pfp} />
+            <Link href={`${PROFILE_URL}/${details?.author?.profile?.username}`} className="flex items-center space-x-4">
+              <UserAvatar pfp={details?.author?.profile?.pfp} />
               <div>
-                <p className="text-sm font-medium leading-none">{details?.author?.basicProfile?.displayName || ''}</p>
-                <p className="text-sm text-muted-foreground">{`@${details?.author?.basicProfile?.username || ''}`}</p>
+                <p className="text-sm font-medium leading-none">{details?.author?.profile?.displayName || ''}</p>
+                <p className="text-sm text-muted-foreground">{`@${details?.author?.profile?.username || ''}`}</p>
               </div>
             </Link>
 
             <div className="flex gap-3 items-center flex-wrap">
               <div className="text-xs text-muted-foreground">
-                {`Created ${formatDistance(details?.created, new Date(), { addSuffix: true })}`}
+                {`Created ${formatDistance(details?.createdAt, new Date(), { addSuffix: true })}`}
               </div>
               {/* TODO: get status from query data */}
               {/* TODO: assign different colors to different statuses */}
@@ -76,7 +76,8 @@ export default function BountyCard({ details }: { details: any }) {
               </p>
             </div>
           </div>
-          {/* TODO: handle category tags */}
+          {/* TODO: display category */}
+          {/* TODO: handle tags */}
           <div className="flex gap-2">
             <Badge variant="outline">DeFi</Badge>
             <Badge variant="outline">Web3</Badge>
@@ -93,9 +94,9 @@ export default function BountyCard({ details }: { details: any }) {
               <Button variant="ghost" size="icon">
                 <MessageSquare className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              {/* <Button variant="ghost" size="icon">
                 <Lightbulb className="h-5 w-5" />
-              </Button>
+              </Button> */}
               <Button variant="ghost" size="icon" onClick={shareBounty}>
                 <Share className="h-5 w-5" />
               </Button>
