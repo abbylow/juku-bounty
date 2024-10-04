@@ -12,6 +12,7 @@ import { profileFormSchema } from "@/app/profile/settings/form-schema"
 import { ProfileFormValues, ProfileUpdateResponse, ProfileCategoriesIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
 import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
 import { ProfileFormComponent } from "@/components/profile/form"
+import { findProfileByUsername } from "@/queries/find-profile-by-username"
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -97,6 +98,8 @@ export function ProfileForm() {
       }
     }
 
+    // TODO: set "walletAddress" and "loginMethod" into Profile
+    // TODO: set context according to the environment
     const update = await composeClient.executeQuery(`
         mutation {
           setProfile(input: {
@@ -122,6 +125,7 @@ export function ProfileForm() {
           }
         }
       `);
+    console.log("profile/settings/form", { update })
 
     // Find items in viewerProfile.categories that are not in data.categories (to be removed)
     const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
@@ -147,6 +151,7 @@ export function ProfileForm() {
           }
         }
       `)
+      console.log("profile/settings/form", { removeRelation })
       if (!removeRelation.errors) {
         queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
       }
@@ -158,6 +163,7 @@ export function ProfileForm() {
     toAdd.map(async (c) => {
       const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
       // find existing relation, if found then update, else create new relation
+      // TODO: filter by "active"
       const toAddRelation = await composeClient.executeQuery(`
         query {
           profileCategoryIndex(
@@ -168,6 +174,9 @@ export function ProfileForm() {
                 }, 
                 categoryId: {
                   equalTo: "${c}"
+                },
+                active: {
+                  equalTo: true
                 }
               }
             }
@@ -184,6 +193,7 @@ export function ProfileForm() {
           }
         }
       `)
+      console.log("profile/settings/form", { toAddRelation })
 
       const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
 
@@ -207,6 +217,8 @@ export function ProfileForm() {
             }
           }
         `)
+        console.log("profile/settings/form", { updatedRelation })
+
         if (!updatedRelation.errors) {
           queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
         }
@@ -232,6 +244,7 @@ export function ProfileForm() {
             }
           }
         `)
+        console.log("profile/settings/form", { createdRelation })
         if (!createdRelation.errors) {
           queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
         }
@@ -249,40 +262,17 @@ export function ProfileForm() {
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    await updateProfile(data)
+    console.log("onsubmit", { data })
+    // await updateProfile(data)
   }
 
   const checkDuplication = async (e: any) => {
-    if (e.target.value) {
-      const duplication = await composeClient.executeQuery(`
-        query {
-          profileIndex(
-          filters: {
-            where: {
-              username: {
-                equalTo: "${e.target.value}",
-              }
-            }
-          }, 
-          first: 1
-        ) {
-            edges {
-              node {
-                id
-                username
-              }
-            }
-          }
-        }
-      `)
-
-      const foundProfileRes = duplication?.data?.profileIndex as FoundProfileResponse
-      // if found existing username
-      if (foundProfileRes?.edges?.length) {
-        if (profileClone && profileClone.id === foundProfileRes?.edges[0]?.node?.id) {
-        } else {
-          form.setError('username', { type: 'custom', message: 'This username is already taken.' })
-        }
+    const foundProfile = await findProfileByUsername(composeClient, e.target.value);
+    if (foundProfile) {
+      if (profileClone && profileClone.id === foundProfile?.id) {
+        console.log('the found profile is exactly this current profile')
+      } else {
+        form.setError('username', { type: 'custom', message: 'This username is already taken.' })
       }
     }
   }
