@@ -89,7 +89,7 @@ export function ProfilePrivacyForm() {
   const onSubmit = async (data: PrivacyFormValues) => {
     console.log('privacy:: onSubmit data = ', { data })
     setLoading(true);
-    // TODO: remove privacySettings created
+
     const update = await composeClient.executeQuery(`
       mutation {
         updateProfile(
@@ -98,7 +98,6 @@ export function ProfilePrivacyForm() {
             content: {
               editedAt: "${new Date().toISOString()}",
               privacySettings: {
-                created: "${new Date().toISOString()}",
                 allowReferConsultation: ${data.allowReferConsultation}, 
                 allowReferGroup: "${data.allowReferGroup}",
                 allowReferKnowledgeBounty: ${data.allowReferKnowledgeBounty},
@@ -125,6 +124,7 @@ export function ProfilePrivacyForm() {
         }
       }
     `);
+    console.log("profile/settings/privacy/form", {update})
 
     if (update?.errors) {
       console.log('privacy:: graphql error', update.errors)

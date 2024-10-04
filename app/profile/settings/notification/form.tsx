@@ -75,7 +75,7 @@ export function ProfileNotificationForm() {
   const onSubmit = async (data: NotificationFormValues) => {
     console.log('notifi:: onSubmit data = ', { data })
     setLoading(true);
-    // TODO: remove notificationSettings created
+
     const update = await composeClient.executeQuery(`
       mutation {
         updateProfile(
@@ -84,7 +84,6 @@ export function ProfileNotificationForm() {
             content: {
               editedAt: "${new Date().toISOString()}",
               notificationSettings: {
-                created: "${new Date().toISOString()}",
                 platformNewFeature: ${data.platformNewFeature},
                 platformNewQuest: ${data.platformNewQuest},
                 newContributionToInvolvedQuest: ${data.newContributionToInvolvedQuest},
@@ -111,7 +110,8 @@ export function ProfileNotificationForm() {
         }
       }
     `);
-
+    console.log("profile/settings/notification/form ", { update })
+    
     if (update?.errors) {
       console.log('notifi:: graphql error', update.errors)
       toast({ title: `Something went wrong: ${update.errors}` })

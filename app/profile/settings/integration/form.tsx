@@ -48,7 +48,6 @@ export function ProfileIntegrationForm() {
     window.open(COINBASE_VERIFICATION_URL, '_blank', 'noreferrer noopener')
   }
 
-  // TODO: update created to createdAt and edited to editedAt
   const createCbRecord = async (verified: boolean) => {
     const creation = await composeClient.executeQuery(`
       mutation {
@@ -56,8 +55,8 @@ export function ProfileIntegrationForm() {
           input: {
             content: {
               name: "coinbase_verified_account", 
-              created: "${new Date().toISOString()}",
-              edited: "${new Date().toISOString()}",
+              createdAt: "${new Date().toISOString()}",
+              editedAt: "${new Date().toISOString()}",
               verified: ${verified}, 
               profileId: "${viewerProfile?.id}"
             }
@@ -72,10 +71,9 @@ export function ProfileIntegrationForm() {
         }
       }
     `);
-    console.log({ creation })
+    console.log("profile/settings/integration/form", { creation })
   }
 
-  // TODO: update edited to editedAt
   const updateCbRecord = async (id: string, verified: boolean) => {
     const update = await composeClient.executeQuery(`
       mutation {
@@ -84,7 +82,7 @@ export function ProfileIntegrationForm() {
             content: {
               verified: ${verified}, 
               profileId: "${viewerProfile?.id}",
-              edited: "${new Date().toISOString()}",
+              editedAt: "${new Date().toISOString()}",
             },
             id: "${id}"
           }
@@ -98,7 +96,7 @@ export function ProfileIntegrationForm() {
         }
       }
     `);
-    console.log({ update })
+    console.log("profile/settings/integration/form", { update })
   }
 
   // sync the latest coinbase verification result to ceramic
