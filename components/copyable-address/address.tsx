@@ -23,8 +23,11 @@ const WalletAddress: React.FC<WalletAddressProps> = ({ address, className = '' }
 
   return (
     <div className="flex items-center gap-2">
-      <p className={className}>
+      <p className={`md:hidden block ${className}`}>
         {truncateAddress(address)}
+      </p>
+      <p className={`md:block hidden ${className}`}>
+        {address}
       </p>
       <Copy className="w-4 h-4" onClick={copyAddress} />
     </div>
