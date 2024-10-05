@@ -140,7 +140,7 @@ export function ProfileForm() {
         mutation {
           updateProfileCategory(
             input: {
-              id: "${c.value}",
+              id: "${c.id}",
               content: {
                 active: false,
                 editedAt: "${new Date().toISOString()}"
