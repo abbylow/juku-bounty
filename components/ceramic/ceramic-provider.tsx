@@ -88,6 +88,7 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
             walletAddress
             loginMethod
             createdAt
+            context
             privacySettings {
               allowReferConsultation
               allowReferGroup
@@ -107,7 +108,16 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
               beMentioned
             }
           }
-          profileCategoryList(first: 10) {
+          profileCategoryList(
+            filters: {
+              where: {
+                active: {
+                  equalTo: true,
+                }
+              }
+            }, 
+            first: 10
+          ) {
             edges {
               node {
                 id
@@ -155,7 +165,7 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
       })
     }
     if (viewer?.platformListCount) {
-      latestProfile.integrations = viewer?.platformList.edges.map((el: { node: any; }) => el.node)
+      latestProfile.integrations = viewer?.platformList.edges.map((el: { node: any; }) => el.node).filter(el => el.verified)
     }
     console.log('in context retrieveViewerProfile latestProfile', latestProfile)
     setProfile(latestProfile); // return undefined as viewerProfile if user never setup the profile

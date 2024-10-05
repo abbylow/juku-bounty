@@ -29,14 +29,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
     const findProfile = await composeClient.executeQuery(`
       query {
         profileIndex(
-        filters: {
-          where: {
-            username: {
-              equalTo: "${params.username}",
+          filters: {
+            where: {
+              username: {
+                equalTo: "${params.username}",
+              }
             }
-          }
-        }, 
-        first: 1
+          }, 
+          first: 1
       ) {
           edges {
             node {
@@ -51,7 +51,16 @@ export default function ProfilePage({ params }: { params: { username: string } }
               author {
                 id
                 profileCategoryListCount
-                profileCategoryList(first: 10) {
+                profileCategoryList(
+                  filters: {
+                    where: {
+                      active: {
+                        equalTo: true,
+                      }
+                    }
+                  }, 
+                  first: 10
+                ) {
                   edges {
                     node {
                       id
@@ -108,7 +117,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         setUserCategories(categories);
       }
       if (foundProfileRes?.edges[0]?.node?.author?.platformListCount) {
-        const integrations = foundProfileRes?.edges[0]?.node?.author?.platformList.edges.map((el: { node: any; }) => el.node)
+        const integrations = foundProfileRes?.edges[0]?.node?.author?.platformList.edges.map((el: { node: any; }) => el.node).filter(el => el.verified)
         setPlatformIntegrations(integrations);
       }
     }
@@ -135,13 +144,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
           id={userData?.id || ''}
           pfp={userData?.pfp || ''}
           displayName={userData?.displayName || ''}
-          address={''} // // TODO: get user's wallet address after schema update
+          address={userData?.walletAddress || ''}
           username={userData?.username || ''}
           bio={userData?.bio || ''}
           categories={userCategories || []}
           integrations={platformIntegrations || []}
           allowEdit={false}
-          allowFollow={userData?.id !== viewerProfile?.id}
+          // allowFollow={userData?.id !== viewerProfile?.id} // comment follow feature first
         />
       </section>
     </div >
