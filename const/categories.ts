@@ -7,69 +7,69 @@ export const CATEGORY_OPTIONS: Option[] = [
   { 
     label: 'Entrepreneurship',
     // value: 'entrepreneurship', 
-    value: 'kjzl6kcym7w8y5gkoxlhpfolj9931kgosi78f0kt71t1vizxn6ouzfzzlfre2ev' },
+    value: 'kjzl6kcym7w8y98jzwz6shi1rsh5pwcguncnqdv3cahap87ialu0c9eidbi5294' },
   { 
     label: 'Business Development & Strategy',
     // value: 'business_development_and_strategy', 
-    value: 'kjzl6kcym7w8y6pmnx0jrbsab7seal3mdf9z3guslla6899ztib8xkvs3iu1gzf' },
+    value: 'kjzl6kcym7w8y943cave8rpdx3f12sdew8m8qqfl1fjowabim2pkpoxm1oc5e6a' },
   { 
     label: 'Product',
     // value: 'product', 
-    value: 'kjzl6kcym7w8ya96m8onigl7vtgkv1oytagt5jpzhvhiwhvq0b99yu8qdc7ztj0' },
+    value: 'kjzl6kcym7w8y6yxlg9q0wwqj3i3o3n21hk7kn0612r0dqermh7ss9vrwsv6k5w' },
   { 
     label: 'Art & Design',
     // value: 'art_and_design', 
-    value: 'kjzl6kcym7w8y5egmaqg29halzirpxv5sd4nffpk2y9m3m4w74eyemtlsoys7xa' },
+    value: 'kjzl6kcym7w8yb7xl1u1awu9y32fwj9mpl9zuqpcbj3rbq1ukggg20tqz2300ei' },
   { 
     label: 'Web3 & Crypto',
     // value: 'web3_and_crypto', 
-    value: 'kjzl6kcym7w8y7ylb0jtx2sfk8fxohmwj36mk9dwwh9jw9ag3bb4jdawekmv6a3' },
+    value: 'kjzl6kcym7w8y8ciilgt67yswexqap7vuikl8tn6b805lucxc52urzbp8cywukq' },
   { 
     label: 'Software Engineering & Cybersecurity',
     // value: 'software_engineering_and_cybersecurity', 
-    value: 'kjzl6kcym7w8y5sk8lcibf2xpww85by8f69lktd0u5psr413gc45oybfe3tg8fp' },
+    value: 'kjzl6kcym7w8ya02xwv5qjrguc8runv34oigs4cyukx865cp6pfai6dfy83vt4j' },
   { 
     label: 'Marketing',
-    // value: 'digital_marketing_and_seo', 
-    value: 'kjzl6kcym7w8y6t9wvmv6ikxefi5bp02cyql16ty0h1y00pcozkx7wj8278ikv7' },
+    // value: 'marketing', 
+    value: 'kjzl6kcym7w8ya13iw4nh8imx0or8ylou7u9ijlt8gxfogtxtko5wc9woip4egv' },
   { 
     label: 'Social Media & Community',
     // value: 'social_media_and_community', 
-    value: 'kjzl6kcym7w8y659hcli4isp6wj6hc1r1hrpcxud83ekilglkok92jbhx8nu7e1' },
+    value: 'kjzl6kcym7w8y840fdrtre0grn37224ovcn7v5ap74ysr6v3gk81i6ob2a9ajtj' },
   { 
     label: 'Data & Artificial Intelligence',
     // value: 'data_and_ai', 
-    value: 'kjzl6kcym7w8y5j8li8qxnwjcwsbf0k5pbgb66jangw59is5syw98awlvvvwnls' },
+    value: 'kjzl6kcym7w8y947xo9p4tfr4cf85di9vi4073lji2yx843kmhs5comn3bwxwut' },
   { 
     label: 'Talent',
     // value: 'talent', 
-    value: 'kjzl6kcym7w8y73eqir093h5s39se4ua38m1gvap8m70135rscvj9w3pl4nziws' },
+    value: 'kjzl6kcym7w8y531yy1kibrcyp6eljt9n8vnmwn1y69g59b89wozfoj3twukvr3' },
   { 
     label: 'Finance & Investment',
     // value: 'finance_and_investment', 
-    value: 'kjzl6kcym7w8y925518o6dh62aowthhyk4vnfqc2sluyhrkg75ixwsn7571oyeg' },
+    value: 'kjzl6kcym7w8y70gv797zj7q79jx0mcuopil76xcsb0yak4kehdt1angqiqzfpr' },
   { 
     label: 'Legal & Regulation',
     // value: 'legal_and_regulation', 
-    value: 'kjzl6kcym7w8y8rymor6s16vs5ct7kqj5fo9ugk1ot6tdnaq3wiia9r602fdap8' },
+    value: 'kjzl6kcym7w8y9e9qgldbf5ddrx5djrqiiyb2g5khq1a4fxmmvtk7qsdts8pwp1' },
   { 
     label: 'Health, Fitness & Sports',
     // value: 'health_fitness_and_sports', 
-    value: 'kjzl6kcym7w8yamnyldhod4mmhgw28hjjmzybnbwgk0rqxo1mtd24cep7sosika' },
+    value: 'kjzl6kcym7w8y7a8tu6877d3h4r19tyx8ynn73ul121ycy9d94fbfv6qxpkzwq0' },
   { 
     label: 'Gaming',
     // value: 'gaming', 
-    value: 'kjzl6kcym7w8yaqx77s694oseihaojf6yolwa86ku0dxsnnjne93zoed6gjpqm5' },
+    value: 'kjzl6kcym7w8y937dvaznicof12avsdxmgikurfdwbeokdf56m9jgicxd5j9ta2' },
   { 
     label: 'Music & Entertainment',
     // value: 'music_and_entertainment', 
-    value: 'kjzl6kcym7w8y6lav83477p9pbo7e65p5aka0x7y2rkhys23we4ttmgk6yvdvmn' },
+    value: 'kjzl6kcym7w8y6ru8pgnnzdk9u4xewonszxcki6ici4ua25o3brlwe8h10hx7bp' },
   { 
     label: 'Education',
     // value: 'education', 
-    value: 'kjzl6kcym7w8y75y5akoz8fyx43okrhszouqkl3t8rh7csexbnc4h6xntuf6d37' },
+    value: 'kjzl6kcym7w8y52i9rela1elb1j16nn9av6ivv6yyfs053meedazot9z4eicr0h' },
   { 
     label: 'Others',
     // value: 'others', 
-    value: 'kjzl6kcym7w8y9p6brz0721l6atkidunnklmu1metlqjvtysc1ad9pvq8tgg6en' },
+    value: 'kjzl6kcym7w8y77ox05283ro7r34wnze450ppttk3elww1n83fsie9u2tfj1bw4' },
 ];
