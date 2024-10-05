@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import React, { useEffect, useRef, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
+import { useActiveAccount, useActiveWallet } from "thirdweb/react"
 
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { Profile } from "@/components/ceramic/types"
@@ -16,8 +17,9 @@ import { findProfileByUsername } from "@/queries/find-profile-by-username"
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
-
   const queryClient = useQueryClient();
+  const activeAccount = useActiveAccount();
+  const wallet = useActiveWallet();
 
   /** beginning of pfp input field handling */
   const pfpRef = useRef<HTMLInputElement>(null); // ref to corresponding hidden pfp input field
@@ -98,8 +100,6 @@ export function ProfileForm() {
       }
     }
 
-    // TODO: set "walletAddress" and "loginMethod" into Profile
-    // TODO: set context according to the environment
     const update = await composeClient.executeQuery(`
         mutation {
           setProfile(input: {
@@ -108,8 +108,11 @@ export function ProfileForm() {
               username: "${data?.username || ""}"
               bio: "${data?.bio?.replace(/\n/g, "\\n") || ""}"
               pfp: "${media ? uploadedPfp : (profileClone?.pfp || "")}"
+              walletAddress: "${profileClone?.walletAddress || activeAccount?.address}"
+              loginMethod: "${profileClone?.loginMethod || wallet?.id}"
               createdAt: "${profileClone?.createdAt || new Date().toISOString()}"
               editedAt: "${new Date().toISOString()}"
+              context: "${profileClone?.context || process.env.NEXT_PUBLIC_CONTEXT_ID}"
             }
           }) 
           {
@@ -119,6 +122,8 @@ export function ProfileForm() {
               username
               bio
               pfp
+              walletAddress
+              loginMethod
               createdAt
               editedAt
             }
@@ -163,7 +168,6 @@ export function ProfileForm() {
     toAdd.map(async (c) => {
       const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
       // find existing relation, if found then update, else create new relation
-      // TODO: filter by "active"
       const toAddRelation = await composeClient.executeQuery(`
         query {
           profileCategoryIndex(
@@ -174,9 +178,6 @@ export function ProfileForm() {
                 }, 
                 categoryId: {
                   equalTo: "${c}"
-                },
-                active: {
-                  equalTo: true
                 }
               }
             }
@@ -262,8 +263,7 @@ export function ProfileForm() {
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    console.log("onsubmit", { data })
-    // await updateProfile(data)
+    await updateProfile(data)
   }
 
   const checkDuplication = async (e: any) => {

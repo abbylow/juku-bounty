@@ -85,6 +85,8 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
             username
             bio
             pfp
+            walletAddress
+            loginMethod
             createdAt
             privacySettings {
               allowReferConsultation
@@ -134,6 +136,8 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     `);
+    console.log("ceramic-provider ", { viewerProfileReq })
+    
     if (viewerProfileReq.errors) {
       console.log('error retrieve profile ', viewerProfileReq.errors)
       throw viewerProfileReq.errors;

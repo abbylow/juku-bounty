@@ -45,6 +45,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
               displayName
               pfp
               bio
+              walletAddress
+              loginMethod
               createdAt
               author {
                 id
@@ -83,7 +85,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
     `)
 
     const foundProfileRes = findProfile?.data?.profileIndex as FoundProfileResponse
-    console.log({ foundProfileRes })
+    console.log("profile/[username]", { foundProfileRes })
 
     if (findProfile.errors || foundProfileRes.edges.length < 1) {
       console.log('display error said this user is not found')

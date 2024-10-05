@@ -40,6 +40,9 @@ export interface Profile extends ProfileFormValues {
   };
   pfp: string;
   createdAt: string;
+  walletAddress: string;
+  loginMethod: string;
+  context: string;
   profileCategoryList: {
     edges: {
       node: {
