@@ -117,7 +117,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         setUserCategories(categories);
       }
       if (foundProfileRes?.edges[0]?.node?.author?.platformListCount) {
-        const integrations = foundProfileRes?.edges[0]?.node?.author?.platformList.edges.map((el: { node: any; }) => el.node).filter(el => el.verified)
+        const integrations = foundProfileRes?.edges[0]?.node?.author?.platformList.edges.map((el: { node: any; }) => el.node)
         setPlatformIntegrations(integrations);
       }
     }

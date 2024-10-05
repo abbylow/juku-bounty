@@ -78,7 +78,7 @@ export default function ProfileCard({
         }
       }
     `)
-    console.log({ followRecord })
+    console.log("components/profile/card ", { followRecord })
     if (followRecord?.data?.viewer?.followList?.edges?.length) {
       // has existing follow record, check if it's active
       setFollowing(followRecord.data.viewer.followList.edges[0]?.node?.active)
@@ -123,7 +123,7 @@ export default function ProfileCard({
           }
         }
       `)
-      console.log({ update })
+      console.log("components/profile/card ", { update })
       if (update.errors) {
         toast({ title: `Something went wrong: ${update.errors}` })
       } else {
@@ -132,6 +132,7 @@ export default function ProfileCard({
       }
     } else {
       // create new follow relationship
+      // TODO: set context according to the environment
       const creation = await composeClient.executeQuery(`
         mutation {
           createFollow(
@@ -157,7 +158,7 @@ export default function ProfileCard({
         }
 
       `)
-      console.log({ creation })
+      console.log("components/profile/card ", { creation })
 
       if (creation.errors) {
         toast({ title: `Something went wrong: ${creation.errors}` })
@@ -204,7 +205,7 @@ export default function ProfileCard({
           }
         </div>
         <div className="flex gap-2">
-          {integrations?.map(c => (PLATFORM_BADGES[c.name]))}
+          {integrations?.filter(el => el.verified).map(c => (PLATFORM_BADGES[c.name]))}
         </div>
 
       </div>

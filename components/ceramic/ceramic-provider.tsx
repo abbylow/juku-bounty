@@ -165,7 +165,7 @@ export const CeramicProvider = ({ children }: { children: ReactNode }) => {
       })
     }
     if (viewer?.platformListCount) {
-      latestProfile.integrations = viewer?.platformList.edges.map((el: { node: any; }) => el.node).filter(el => el.verified)
+      latestProfile.integrations = viewer?.platformList.edges.map((el: { node: any; }) => el.node)
     }
     console.log('in context retrieveViewerProfile latestProfile', latestProfile)
     setProfile(latestProfile); // return undefined as viewerProfile if user never setup the profile
