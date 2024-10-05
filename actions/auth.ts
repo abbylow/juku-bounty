@@ -15,6 +15,7 @@ if (!privateKey) {
 const thirdwebAuth = createAuth({
   domain: process.env.NEXT_PUBLIC_THIRDWEB_AUTH_DOMAIN || "",
   adminAccount: privateKeyToAccount({ client, privateKey }),
+  client
 });
 
 export const generatePayload = thirdwebAuth.generatePayload;
@@ -26,6 +27,8 @@ export async function login(payload: VerifyLoginPayloadParams) {
       payload: verifiedPayload.payload,
     });
     cookies().set(JWT_COOKIE_NAME, jwt);
+  } else {
+    console.error("thirdweb payload is invalid =>", verifiedPayload)
   }
 }
 

@@ -15,14 +15,14 @@ const sidebarNavItems = [
     title: "Integration",
     href: PROFILE_SETTINGS_INTEGRATION_URL,
   },
-  // {
-  //   title: "Privacy",
-  //   href: PROFILE_SETTINGS_PRIVACY_URL,
-  // },
-  // {
-  //   title: "Notification",
-  //   href: PROFILE_SETTINGS_NOTIFICATION_URL,
-  // },
+  {
+    title: "Privacy",
+    href: PROFILE_SETTINGS_PRIVACY_URL,
+  },
+  {
+    title: "Notification",
+    href: PROFILE_SETTINGS_NOTIFICATION_URL,
+  },
 ]
 
 export default function ProfileSettingsLayout({

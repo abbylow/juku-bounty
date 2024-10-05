@@ -1,4 +1,3 @@
-// Testing with kjzl6kcym7w8y8fgvmgdikf2a8kl2vt5jyqyrzhxqsegv7hmi30y7jh3sbsy5qp
 "use client"
 
 import { useEffect, useState } from "react"
@@ -14,30 +13,30 @@ export default function BountyDetails({ params }: { params: { slug: string } }) 
   const [loading, setLoading] = useState<boolean>(true)
 
   const getBounty = async () => {
+    // TODO: get category from Bounty 
+    // TODO: get tag from Bounty 
     const details = await composeClient.executeQuery(`
       query {
         node(id:"$${params.slug}"){
-          ...on Bounties{
+          ...on Bounty{
             id
             title
             description
-            numberOfRewarders
-            rewardCurrency
-            amountPerRewarder
             expiry
-            created
+            createdAt
             author {
-              basicProfile {
+              profile {
                 id
                 username
                 displayName
+                pfp
               }
             }
           }
         }
       }
     `)
-    console.log({ details })
+    console.log("bounty/[slug] getBounty", { details })
 
     const queryRes: any = details?.data?.node;
     setBountyDetails(queryRes);

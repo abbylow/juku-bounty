@@ -6,13 +6,13 @@ import { useEffect, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { toast } from "@/components/ui/use-toast"
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { QUEST_TEMPLATES } from "@/const/quest-templates"
-import { Label } from "@/components/ui/label"
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
 import { BountyForm } from "@/components/bounty/form"
 
-export function BountyCreationForm() {
+// NOTE: THIS FORM IS NOT COMPLETED. ALL CODE BELOW ARE MOSTLY CLONED FROM CREATION FORM AND NOT CORRECT FOR UPDATE ACTION. 
+// TODO: pre-fill the form with existing bounty data (setFormValues)
+// TODO: update bounty with latest form data
+export function BountyUpdateForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
 
   const router = useRouter();
@@ -34,7 +34,7 @@ export function BountyCreationForm() {
     mode: "onBlur",
   })
 
-  const createBounty = async (data: Partial<BountyFormValues>) => {
+  const updateBounty = async (data: Partial<BountyFormValues>) => {
     // console.log("before submission ", { viewerProfile, data })
 
     setLoading(true);
@@ -63,7 +63,7 @@ export function BountyCreationForm() {
         }
       }
     `);
-    console.log("bounty/create/form createBounty", { creation })
+    console.log("bounty/update/[slug]/form creation", { creation })
 
     if (creation.errors) {
       toast({ title: `Something went wrong: ${creation.errors}` })
@@ -97,7 +97,7 @@ export function BountyCreationForm() {
             }
           }
         `);
-        console.log("bounty/create/form createBountyCategory ", { bountyCategory })
+        console.log("bounty/update/[slug]/form bountyCategory", { bountyCategory })
 
         data?.tags?.map(async (t) => {
           // find existing tag with the slug, if not found create tag 
@@ -121,12 +121,11 @@ export function BountyCreationForm() {
               }
             }
           `);
-          console.log("bounty/create/form findTag ", { findTag })
+          console.log("bounty/update/[slug]/form findTag", { findTag })
 
           let tagId: string;
           if (findTag?.data?.tagIndex?.edges.length === 0) {
             // create the tag first 
-            // TODO: set context according to the environment
             const createdTag = await composeClient.executeQuery(`
               mutation {
                 createTag(
@@ -148,7 +147,7 @@ export function BountyCreationForm() {
                 }
               }
             `);
-            console.log("bounty/create/form createdTag", { createdTag })
+            console.log("bounty/update/[slug]/form createdTag", { createdTag })
             tagId = createdTag?.data?.createTag?.document?.id
           } else {
             tagId = findTag?.data?.tagIndex?.edges[0]?.node?.id
@@ -179,7 +178,7 @@ export function BountyCreationForm() {
                 }
               }
             `);
-          console.log("bounty/create/form createdBountyTag", { createdBountyTag })
+          console.log("bounty/update/[slug]/form", { createdBountyTag })
         })
 
         toast({ title: "Created bounty" })
@@ -190,44 +189,15 @@ export function BountyCreationForm() {
   };
 
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    // console.log("Submitting form with data:", { data });
-    await createBounty(data)
-  }
-
-  const selectTemplate = (templateId: string) => {
-    setFormValues((currentValues) => {
-      return {
-        ...currentValues,
-        title: QUEST_TEMPLATES[templateId].title,
-        description: QUEST_TEMPLATES[templateId].description
-      }
-    })
+    console.log("Submitting form with data:", { data });
+    // await updateBounty(data)
   }
 
   return (
-    <>
-      <div className="space-y-2">
-        <Label>Quest Template</Label>
-        <Select onValueChange={selectTemplate} defaultValue={"empty"} disabled={loading}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a template" />
-          </SelectTrigger>
-          <SelectContent>
-            {
-              Object.keys(QUEST_TEMPLATES).map(template => (
-                <SelectItem value={template} key={template}>
-                  {QUEST_TEMPLATES[template].type}
-                </SelectItem>
-              ))
-            }
-          </SelectContent>
-        </Select>
-      </div>
-      <BountyForm
-        form={form}
-        onSubmit={onSubmit}
-        loading={loading}
-      />
-    </>
+    <BountyForm
+      form={form}
+      onSubmit={onSubmit}
+      loading={loading}
+    />
   )
 }

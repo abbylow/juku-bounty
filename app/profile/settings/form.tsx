@@ -1,66 +1,25 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { UserRound } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import React, { useEffect, useRef, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { z } from "zod"
+import { useActiveAccount, useActiveWallet } from "thirdweb/react"
 
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Profile } from "@/components/ceramic/types"
 import { toast } from "@/components/ui/use-toast"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-/** Make sure pinata gateway is provided */
-if (!process.env.NEXT_PUBLIC_PINATA_GATEWAY) {
-  console.log("You haven't setup your NEXT_PUBLIC_PINATA_GATEWAY yet.")
-}
-
-const PINATA_GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
-
-// TODO: add profile picture setup - upload to ipfs and store ipfs link
-const profileFormSchema = z.object({
-  displayName: z
-    .string()
-    .min(3, {
-      message: "Display name must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Display name must not be longer than 100 characters.",
-    }),
-  username: z
-    .string()
-    .min(3, {
-      message: "Display name must be at least 3 characters.",
-    })
-    .max(100, {
-      message: "Display name must not be longer than 100 characters.",
-    })
-    .regex(/^[a-zA-Z0-9_]+$/, {
-      message: "Your username can only contain letters, numbers and '_'",
-    }),
-  bio: z
-    .string()
-    .max(160, {
-      message: "About me must not be longer than 160 characters.",
-    })
-    .optional(),
-})
-
-export type ProfileFormValues = z.infer<typeof profileFormSchema>
+import { profileFormSchema } from "@/app/profile/settings/form-schema"
+import { ProfileFormValues, ProfileUpdateResponse, ProfileCategoriesIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
+import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
+import { ProfileFormComponent } from "@/components/profile/form"
+import { findProfileByUsername } from "@/queries/find-profile-by-username"
 
 export function ProfileForm() {
-  const { composeClient, viewerProfile, getViewerProfile } = useCeramicContext();
+  const { composeClient, viewerProfile } = useCeramicContext();
+  const queryClient = useQueryClient();
+  const activeAccount = useActiveAccount();
+  const wallet = useActiveWallet();
 
   /** beginning of pfp input field handling */
   const pfpRef = useRef<HTMLInputElement>(null); // ref to corresponding hidden pfp input field
@@ -89,14 +48,13 @@ export function ProfileForm() {
   }
   /** end of pfp input field handling */
 
-  const [profileClone, setProfileClone] = useState<ProfileFormValues | undefined>();
-
+  const [profileClone, setProfileClone] = useState<Profile | undefined>();
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // pre-populate form fields with current data
     if (viewerProfile && !profileClone) {
-      setProfileClone(viewerProfile)
+      setProfileClone({ ...viewerProfile })
 
       if (viewerProfile?.pfp) {
         setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewerProfile?.pfp.split('://')[1]}`)
@@ -111,6 +69,8 @@ export function ProfileForm() {
   const defaultValues: Partial<ProfileFormValues> = {
     displayName: viewerProfile?.displayName || "",
     username: viewerProfile?.username || "",
+    bio: viewerProfile?.bio || "",
+    categories: viewerProfile?.categories || [],
   }
 
   const form = useForm<ProfileFormValues>({
@@ -140,116 +100,195 @@ export function ProfileForm() {
       }
     }
 
-    // TODO: change this mutation to setBasicProfile as createBasicProfile is deprecated soon
     const update = await composeClient.executeQuery(`
         mutation {
-          createBasicProfile(input: {
+          setProfile(input: {
             content: {
               displayName: "${data?.displayName || ""}"
               username: "${data?.username || ""}"
               bio: "${data?.bio?.replace(/\n/g, "\\n") || ""}"
-              pfp: "${uploadedPfp || ""}"
+              pfp: "${media ? uploadedPfp : (profileClone?.pfp || "")}"
+              walletAddress: "${profileClone?.walletAddress || activeAccount?.address}"
+              loginMethod: "${profileClone?.loginMethod || wallet?.id}"
+              createdAt: "${profileClone?.createdAt || new Date().toISOString()}"
+              editedAt: "${new Date().toISOString()}"
+              context: "${profileClone?.context || process.env.NEXT_PUBLIC_CONTEXT_ID}"
             }
           }) 
           {
             document {
+              id
               displayName
               username
               bio
               pfp
+              walletAddress
+              loginMethod
+              createdAt
+              editedAt
             }
           }
         }
       `);
-    console.log({ update })
-    if (update.errors) {
-      toast({ title: `Something went wrong: ${update.errors}` })
-    } else {
+    console.log("profile/settings/form", { update })
+
+    if (!update.errors) {
+      // Find items in viewerProfile.categories that are not in data.categories (to be removed)
+      const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
+
+      toRemove.map(async (c) => {
+        const removeRelation = await composeClient.executeQuery(`
+        mutation {
+          updateProfileCategory(
+            input: {
+              id: "${c.id}",
+              content: {
+                active: false,
+                editedAt: "${new Date().toISOString()}"
+              }
+            }
+          ) {
+            document {
+              active
+              id
+              profileId
+              categoryId
+            }
+          }
+        }
+      `)
+        console.log("profile/settings/form", { removeRelation })
+        if (!removeRelation.errors) {
+          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+        }
+      })
+
+      // Find items in data.categories that are not in viewerProfile.categories (to be added)
+      const toAdd = data?.categories?.map(el => el.value)?.filter(category => !viewerProfile?.categories?.map(el => el.value)?.includes(category)) || [];
+
+      toAdd.map(async (c) => {
+        const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
+        // find existing relation, if found then update, else create new relation
+        const toAddRelation = await composeClient.executeQuery(`
+        query {
+          profileCategoryIndex(
+            filters: {
+              where: {
+                profileId: {
+                  equalTo: "${profileClone?.id || profileUpdateRes?.document?.id}"
+                }, 
+                categoryId: {
+                  equalTo: "${c}"
+                }
+              }
+            }
+            first: 1
+          ) {
+            edges {
+              node {
+                id
+                profileId
+                categoryId
+                active
+              }
+            }
+          }
+        }
+      `)
+        console.log("profile/settings/form", { toAddRelation })
+
+        const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
+
+        if (profileCategoryIndexRes?.edges?.length) {
+          // update existing relation to be active 
+          const updatedRelation = await composeClient.executeQuery(`
+          mutation {
+            updateProfileCategory(
+              input: {
+                id: "${profileCategoryIndexRes?.edges[0]?.node?.id}",
+                content: {
+                  active: true,
+                  editedAt: "${new Date().toISOString()}"
+                }
+              }
+            ) {
+              document {
+                active
+                id
+              }
+            }
+          }
+        `)
+          console.log("profile/settings/form", { updatedRelation })
+
+          if (!updatedRelation.errors) {
+            queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+          }
+        } else {
+          // TODO: first time setup profile, after creation, the new created is not shown
+          // create new relation
+          const createdRelation = await composeClient.executeQuery(`
+          mutation {
+            createProfileCategory(
+              input: {
+                content: {
+                  active: true,
+                  profileId: "${profileClone?.id || profileUpdateRes?.document?.id}",
+                  categoryId: "${c}", 
+                  createdAt: "${new Date().toISOString()}",
+                  editedAt: "${new Date().toISOString()}"
+                }
+              }
+            ) {
+              document {
+                active
+                id
+              }
+            }
+          }
+        `)
+        console.log("profile/settings/form", { createdRelation })
+        if (!createdRelation.errors) {
+          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+        }
+      }
+    })
+
       toast({ title: "Updated profile" })
       setLoading(true);
-      getViewerProfile()
+      queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+    } else {
+      toast({ title: `Something went wrong: ${update.errors}` })
     }
     setLoading(false);
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    console.log('onSubmit => ', { data })
     await updateProfile(data)
   }
 
+  const checkDuplication = async (e: any) => {
+    const foundProfile = await findProfileByUsername(composeClient, e.target.value);
+    if (foundProfile) {
+      if (profileClone && profileClone.id === foundProfile?.id) {
+        console.log('the found profile is exactly this current profile')
+      } else {
+        form.setError('username', { type: 'custom', message: 'This username is already taken.' })
+      }
+    }
+  }
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
-        <div className="flex flex-col gap-4 items-start">
-          {/* TODO: allow user to crop image / drag to adjust but maintain the square aspect - refer whatsapp pfp */}
-          <Avatar className="w-24 h-24">
-            <AvatarImage src={dataUrl} />
-            <AvatarFallback><UserRound /></AvatarFallback>
-          </Avatar>
-
-          <Button onClick={triggerPfpInput} disabled={loading} variant="outline">
-            Edit PFP
-          </Button>
-        </div>
-
-        <div className="flex-1 space-y-8">
-          <FormField
-            control={form.control}
-            name="username"
-            disabled={loading}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input placeholder="john_doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="displayName"
-            disabled={loading}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Display name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="bio"
-            disabled={loading}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>About Me</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={loading}>Save changes</Button>
-        </div>
-      </form>
-      <input
-        id="pfpInput"
-        accept={'image/*'}
-        onChange={handlePfpChange}
-        ref={pfpRef}
-        type="file"
-        className='hidden'
-      />
-    </Form>
+    <ProfileFormComponent
+      form={form}
+      onSubmit={onSubmit}
+      dataUrl={dataUrl}
+      triggerPfpInput={triggerPfpInput}
+      loading={loading}
+      checkDuplication={checkDuplication}
+      media={media}
+      handlePfpChange={handlePfpChange}
+      pfpRef={pfpRef}
+    />
   )
 }

@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 
-import { BountyCreationForm } from "@/app/bounty/create/form";
+import { BountyUpdateForm } from "@/app/bounty/update/[slug]/form";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
 import { buttonVariants } from "@/components/ui/button";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useTwebContext } from "@/components/thirdweb/thirdweb-provider";
 
-export default function BountyCreation() {
+// TODO: check if bounty has contribution / referral, if yes then don't allow user to edit 
+export default function BountyUpdate({ params }: { params: { slug: string } }) {
+  // TODO: get bounty current data using params.slug
+  console.log("params slug", params.slug)
+
   const { viewerProfile } = useCeramicContext();
   const { loggedIn } = useTwebContext();
 
@@ -46,12 +50,12 @@ export default function BountyCreation() {
     <section>
       <div className="space-y-6">
         <div className="space-y-2">
-          <h3 className="text-xl font-medium">Open a Knowledge Bounty</h3>
+          <h3 className="text-xl font-medium">Update Knowledge Bounty</h3>
           <p className="text-sm text-muted-foreground">
             Raise a request in the public to get feedback from other contributors
           </p>
         </div>
-        <BountyCreationForm />
+        <BountyUpdateForm />
       </div>
     </section>
   )

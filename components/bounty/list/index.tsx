@@ -33,22 +33,20 @@ export default function BountyList() {
   const getBountyList = async () => {
     const list = await composeClient.executeQuery(`
       query {
-        bountiesIndex (last: 20) {
+        bountyIndex(last: 20) {
           edges {
             node {
               id
               title
               description
-              numberOfRewarders
-              rewardCurrency
-              amountPerRewarder
               expiry
-              created
+              createdAt
               author {
-                basicProfile {
+                profile {
                   id
                   username
                   displayName
+                  pfp
                 }
               }
             }
@@ -56,9 +54,9 @@ export default function BountyList() {
         }
       }
     `)
-    console.log({ list })
+    console.log("bounty/list/index", { list })
 
-    const queryRes: any = list?.data?.bountiesIndex;
+    const queryRes: any = list?.data?.bountyIndex;
     setBountyList(queryRes?.edges?.map((e: { node: any }) => e.node))
     setLoading(false)
   }
