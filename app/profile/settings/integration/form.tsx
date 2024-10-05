@@ -1,12 +1,14 @@
 "use client"
 
+import Link from "next/link";
 import { useEffect } from "react"
 import { getContract } from "thirdweb";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { currentChain } from "@/const/chains";
+import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { coinbaseIndexerContract, easContract } from "@/const/contracts";
 import { verifiedAccountSchema } from "@/const/eas";
 import { COINBASE_VERIFICATION_URL } from "@/const/links";
@@ -103,7 +105,7 @@ export function ProfileIntegrationForm() {
   // sync the latest coinbase verification result to ceramic
   useEffect(() => {
     console.log("platform:: ", { attestationValid, viewerProfile, attestationStatus })
-    console.log(viewerProfile?.integrations.find(el => el.name === 'coinbase_verified_account'))
+    console.log(viewerProfile?.integrations?.find(el => el.name === 'coinbase_verified_account'))
     // only perform this when attestation is loaded successfully 
     if (attestationStatus === 'success') {
       // create new record if there is no existing coinbase record 
@@ -119,6 +121,21 @@ export function ProfileIntegrationForm() {
     }
   }, [attestationValid, viewerProfile, attestationStatus])
 
+  // prompt user to create profile first 
+  if (viewerProfile === null) {
+    return (
+      <section>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-medium">Set up your basic profile first</h3>
+            <Link href={PROFILE_SETTINGS_URL} className={buttonVariants({ variant: "outline" })}>
+              Set up profile
+            </Link>
+          </div>
+        </div>
+      </section>
+    )
+  }
   return (
     <div>
       <div className="flex flex-col gap-2 mb-4">
