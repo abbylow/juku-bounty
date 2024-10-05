@@ -1,12 +1,8 @@
 "use client";
 
-import { useActiveAccount } from "thirdweb/react";
 import { useEffect, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import UserAvatar from "@/components/user/avatar";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
-import WalletAddress from "@/components/copyable-address/address";
 import { FoundProfileResponse } from "@/app/profile/settings/types";
 import ProfileCard from "@/components/profile/card";
 import { IPlatform } from "@/components/ceramic/types";
@@ -14,7 +10,7 @@ import { IPlatform } from "@/components/ceramic/types";
 export default function ProfilePage({ params }: { params: { username: string } }) {
   console.log("params.username ", params.username)
 
-  const { composeClient, viewerProfile } = useCeramicContext();
+  const { composeClient } = useCeramicContext();
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
