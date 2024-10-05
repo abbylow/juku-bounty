@@ -226,7 +226,7 @@ type PrivacySettings {
   allowViewSkillAttestation: Boolean
   allowViewPeerRecommendation: Boolean
   data: String @string(maxLength: 1000)
-  context: String @string(maxLength: 100)
+  context: String @string(maxLength: 100) # actually this field is unnecessary
 }
 
 type NotificationSettings {
@@ -238,7 +238,7 @@ type NotificationSettings {
   statusChangeToInvolvedQuest: Boolean
   beMentioned: Boolean
   data: String @string(maxLength: 1000)
-  context: String @string(maxLength: 100)
+  context: String @string(maxLength: 100) # actually this field is unnecessary
 }
 
 type Notification

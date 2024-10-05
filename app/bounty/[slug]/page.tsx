@@ -13,6 +13,8 @@ export default function BountyDetails({ params }: { params: { slug: string } }) 
   const [loading, setLoading] = useState<boolean>(true)
 
   const getBounty = async () => {
+    // TODO: get category from Bounty 
+    // TODO: get tag from Bounty 
     const details = await composeClient.executeQuery(`
       query {
         node(id:"$${params.slug}"){
