@@ -28,9 +28,10 @@ export const profileFormSchema = z.object({
     })
     .optional(),
   categories: z.array(optionSchema)
-    .min(1, {
-      message: "Choose at least 1 category for discovery"
-    }).max(3, {
+    // .min(1, {
+    //   message: "Choose at least 1 category for discovery"
+    // })
+    .max(3, {
       message: "Only allow maximum 3 categories"
     }),
 })
