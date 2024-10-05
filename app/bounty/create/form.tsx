@@ -50,7 +50,7 @@ export function BountyCreationForm() {
             createdAt: "${new Date().toISOString()}"
             editedAt: "${new Date().toISOString()}"
             profileId: "${viewerProfile?.id}"
-            context: "dev_test"
+            context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
           }
         }) 
         {
@@ -126,6 +126,7 @@ export function BountyCreationForm() {
           let tagId: string;
           if (findTag?.data?.tagIndex?.edges.length === 0) {
             // create the tag first 
+            // TODO: set context according to the environment
             const createdTag = await composeClient.executeQuery(`
               mutation {
                 createTag(
@@ -134,7 +135,8 @@ export function BountyCreationForm() {
                       name: "${t.label}", 
                       slug: "${t.value}", 
                       createdAt: "${new Date().toISOString()}",
-                      editedAt: "${new Date().toISOString()}"
+                      editedAt: "${new Date().toISOString()}",
+                      context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
                     }
                   }
                 ) {

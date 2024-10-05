@@ -58,7 +58,8 @@ export function ProfileIntegrationForm() {
               createdAt: "${new Date().toISOString()}",
               editedAt: "${new Date().toISOString()}",
               verified: ${verified}, 
-              profileId: "${viewerProfile?.id}"
+              profileId: "${viewerProfile?.id}",
+              context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
             }
           }
         ) {

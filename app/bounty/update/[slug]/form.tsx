@@ -9,6 +9,7 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
 import { BountyForm } from "@/components/bounty/form"
 
+// NOTE: THIS FORM IS NOT COMPLETED. ALL CODE BELOW ARE MOSTLY CLONED FROM CREATION FORM AND NOT CORRECT FOR UPDATE ACTION. 
 // TODO: pre-fill the form with existing bounty data (setFormValues)
 // TODO: update bounty with latest form data
 export function BountyUpdateForm() {
@@ -49,7 +50,7 @@ export function BountyUpdateForm() {
             createdAt: "${new Date().toISOString()}"
             editedAt: "${new Date().toISOString()}"
             profileId: "${viewerProfile?.id}"
-            context: "dev_test"
+            context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
           }
         }) 
         {
@@ -133,7 +134,8 @@ export function BountyUpdateForm() {
                       name: "${t.label}", 
                       slug: "${t.value}", 
                       createdAt: "${new Date().toISOString()}",
-                      editedAt: "${new Date().toISOString()}"
+                      editedAt: "${new Date().toISOString()}",
+                      context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
                     }
                   }
                 ) {
