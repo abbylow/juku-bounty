@@ -132,11 +132,12 @@ export function ProfileForm() {
       `);
     console.log("profile/settings/form", { update })
 
-    // Find items in viewerProfile.categories that are not in data.categories (to be removed)
-    const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
+    if (!update.errors) {
+      // Find items in viewerProfile.categories that are not in data.categories (to be removed)
+      const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
 
-    toRemove.map(async (c) => {
-      const removeRelation = await composeClient.executeQuery(`
+      toRemove.map(async (c) => {
+        const removeRelation = await composeClient.executeQuery(`
         mutation {
           updateProfileCategory(
             input: {
@@ -156,19 +157,19 @@ export function ProfileForm() {
           }
         }
       `)
-      console.log("profile/settings/form", { removeRelation })
-      if (!removeRelation.errors) {
-        queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
-      }
-    })
+        console.log("profile/settings/form", { removeRelation })
+        if (!removeRelation.errors) {
+          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+        }
+      })
 
-    // Find items in data.categories that are not in viewerProfile.categories (to be added)
-    const toAdd = data?.categories?.map(el => el.value)?.filter(category => !viewerProfile?.categories?.map(el => el.value)?.includes(category)) || [];
+      // Find items in data.categories that are not in viewerProfile.categories (to be added)
+      const toAdd = data?.categories?.map(el => el.value)?.filter(category => !viewerProfile?.categories?.map(el => el.value)?.includes(category)) || [];
 
-    toAdd.map(async (c) => {
-      const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
-      // find existing relation, if found then update, else create new relation
-      const toAddRelation = await composeClient.executeQuery(`
+      toAdd.map(async (c) => {
+        const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
+        // find existing relation, if found then update, else create new relation
+        const toAddRelation = await composeClient.executeQuery(`
         query {
           profileCategoryIndex(
             filters: {
@@ -194,13 +195,13 @@ export function ProfileForm() {
           }
         }
       `)
-      console.log("profile/settings/form", { toAddRelation })
+        console.log("profile/settings/form", { toAddRelation })
 
-      const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
+        const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
 
-      if (profileCategoryIndexRes?.edges?.length) {
-        // update existing relation to be active 
-        const updatedRelation = await composeClient.executeQuery(`
+        if (profileCategoryIndexRes?.edges?.length) {
+          // update existing relation to be active 
+          const updatedRelation = await composeClient.executeQuery(`
           mutation {
             updateProfileCategory(
               input: {
@@ -218,14 +219,15 @@ export function ProfileForm() {
             }
           }
         `)
-        console.log("profile/settings/form", { updatedRelation })
+          console.log("profile/settings/form", { updatedRelation })
 
-        if (!updatedRelation.errors) {
-          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
-        }
-      } else {
-        // create new relation
-        const createdRelation = await composeClient.executeQuery(`
+          if (!updatedRelation.errors) {
+            queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+          }
+        } else {
+          // TODO: first time setup profile, after creation, the new created is not shown
+          // create new relation
+          const createdRelation = await composeClient.executeQuery(`
           mutation {
             createProfileCategory(
               input: {
@@ -252,12 +254,11 @@ export function ProfileForm() {
       }
     })
 
-    if (update?.errors) {
-      toast({ title: `Something went wrong: ${update.errors}` })
-    } else {
       toast({ title: "Updated profile" })
       setLoading(true);
       queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+    } else {
+      toast({ title: `Something went wrong: ${update.errors}` })
     }
     setLoading(false);
   };
