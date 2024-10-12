@@ -1,6 +1,7 @@
 # To deploy new schema 
 ## TODO: write down the steps to deploy the latest schema to ceramic mainnet
 ### TODO: re-create all categories (const/categories.ts) in updated schema and clone the stream ids here
+### TODO: re-list all reward token contract addresses in the select options
 
 ## Create default topics 
 repeat the mutation below to create all default categories (refer to `const/categories.ts`)

@@ -126,6 +126,7 @@ export function BountyForm({
             )}
           />
 
+{/* TODO: get reward token smart contract addresses */}
           <FormField
             control={form.control}
             name="rewardCurrency"
