@@ -15,6 +15,7 @@
     "@composedb/types": "^0.7.1",
     "@didtools/pkh-ethereum": "^0.5.0",
     "@hookform/resolvers": "^3.3.4",
+    "@neondatabase/serverless": "^0.10.1",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
