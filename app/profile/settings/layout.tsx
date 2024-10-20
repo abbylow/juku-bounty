@@ -3,7 +3,7 @@
 import { SidebarNav } from "@/components/ui/sidebar-nav"
 import { PROFILE_SETTINGS_INTEGRATION_URL, PROFILE_SETTINGS_NOTIFICATION_URL, PROFILE_SETTINGS_PRIVACY_URL, PROFILE_SETTINGS_URL } from "@/const/links"
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
-import { useTwebContext } from "@/components/thirdweb/thirdweb-provider";
+import { useTwebContext } from "@/contexts/thirdweb";
 
 // TODO: mobile responsiveness - tabs
 const sidebarNavItems = [

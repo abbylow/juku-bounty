@@ -7,7 +7,7 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
 import { buttonVariants } from "@/components/ui/button";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
-import { useTwebContext } from "@/components/thirdweb/thirdweb-provider";
+import { useTwebContext } from "@/contexts/thirdweb";
 
 export default function BountyCreation() {
   const { viewerProfile } = useCeramicContext();

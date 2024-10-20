@@ -3,7 +3,7 @@ import {
   ConnectButton,
 } from "thirdweb/react";
 
-import { useTwebContext } from '@/components/thirdweb/thirdweb-provider'
+import { useTwebContext } from '@/contexts/thirdweb'
 import { SHORT_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
 // import { lightThirdwebTheme } from './customized-themes'
 import {

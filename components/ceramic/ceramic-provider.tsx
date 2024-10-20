@@ -12,7 +12,7 @@ import { useActiveAccount } from "thirdweb/react";
 import { authenticateCeramic } from "@/components/ceramic/utils";
 import * as definition from "@/composites/runtime-composite.json";
 import { client } from "@/lib/thirdweb-client";
-import { useTwebContext } from "../thirdweb/thirdweb-provider";
+import { useTwebContext } from '@/contexts/thirdweb'
 import { currentChain } from "@/const/chains";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { ICeramicContext, Profile } from "@/components/ceramic/types";
