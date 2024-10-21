@@ -1,3 +1,4 @@
+import { ReferGroupOptionType, ViewPortfolioGroupOptionType } from '@/app/profile/settings/privacy/form-schema';
 import { Option } from '@/components/ui/multiple-selector';
 
 export interface Profile {
@@ -52,13 +53,17 @@ export interface IUpsertPrivacySettingsParams {
   allowViewPeerRecommendation?: boolean;
 }
 
+export interface IGetPrivacySettingsParams {
+  profile_id?: string;
+}
+
 export interface PrivacySettings {
   id: number;                                      // Primary key, auto-incrementing (SERIAL)
   profile_id: string;                              // UUID, foreign key referencing Profile(id)
-  allow_refer_group?: string | null;               // Optional VARCHAR(100) field for refer group
+  allow_refer_group?: ReferGroupOptionType | null;               // Optional VARCHAR(100) field for refer group
   allow_refer_knowledge_bounty: boolean;           // Boolean, defaults to true
   allow_refer_consultation: boolean;               // Boolean, defaults to true
-  allow_view_portfolio_group?: string | null;      // Optional VARCHAR(100) field for portfolio group
+  allow_view_portfolio_group?: ViewPortfolioGroupOptionType | null;      // Optional VARCHAR(100) field for portfolio group
   allow_view_work_experience: boolean;             // Boolean, defaults to true
   allow_view_skill_attestation: boolean;           // Boolean, defaults to true
   allow_view_peer_recommendation: boolean;         // Boolean, defaults to true
@@ -68,3 +73,32 @@ export interface PrivacySettings {
 }
 
 export type PrivacySettingsOrNull = PrivacySettings | null;
+
+export interface NotificationSettings {
+  id: number;                                      // Primary key, auto-incrementing (SERIAL)
+  profile_id: string;                              // UUID, foreign key referencing Profile(id)
+  platform_new_feature: boolean;                   // Boolean, defaults to true
+  platform_new_quest: boolean;                     // Boolean, defaults to true
+  new_contribution_to_involved_quest: boolean;     // Boolean, defaults to true
+  new_likes_to_involved_quest: boolean;            // Boolean, defaults to true
+  new_replies_to_involved_quest: boolean;          // Boolean, defaults to true
+  status_change_to_involved_quest: boolean;        // Boolean, defaults to true
+  be_mentioned: boolean;                           // Boolean, defaults to true
+  created_at: Date;                                // Timestamp, non-nullable
+  edited_at: Date;                                 // Timestamp, non-nullable
+  deleted_at?: Date | null;                        // Optional timestamp for soft delete
+}
+
+export type NotificationSettingsOrNull = NotificationSettings | null;
+
+export interface IUpsertNotificationSettingsParams {
+  walletAddress: string;                           // Wallet address for ownership validation
+  profileId: string;                               // UUID of the profile
+  platformNewFeature?: boolean;
+  platformNewQuest?: boolean;
+  newContributionToInvolvedQuest?: boolean;
+  newLikesToInvolvedQuest?: boolean;
+  newRepliesToInvolvedQuest?: boolean;
+  statusChangeToInvolvedQuest?: boolean;
+  beMentioned?: boolean;
+}

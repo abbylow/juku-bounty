@@ -1,11 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link";
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -26,49 +25,44 @@ import {
 } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
 import { Switch } from "@/components/ui/switch"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { IPrivacySettings } from "@/components/ceramic/types";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useViewerContext } from "@/contexts/viewer";
+import { upsertPrivacySettings } from "@/actions/privacySettings/upsertPrivacySettings";
+import { getPrivacySettings } from "@/actions/privacySettings/getPrivacySettings";
+import { PrivacyFormValues, privacyFormSchema } from '@/app/profile/settings/privacy/form-schema';
 
-// TODO: extract enum
 // TODO: when allow no one to refer, turn off both switches of the quests (?)
-const privacyFormSchema = z.object({
-  allowReferGroup: z.enum(["anyone", "connections", "noOne"], {
-    required_error: "Please select a group.",
-  }),
-  allowReferKnowledgeBounty: z.boolean(),
-  allowReferConsultation: z.boolean(),
-  allowViewPortfolioGroup: z.enum(["anyone", "connectionsAndQuesters"], {
-    required_error: "Please select a group.",
-  }),
-  allowViewWorkExperience: z.boolean(),
-  allowViewSkillAttestation: z.boolean(),
-  allowViewPeerRecommendation: z.boolean(),
-})
-
-type PrivacyFormValues = z.infer<typeof privacyFormSchema>
-
 export function ProfilePrivacyForm() {
-  const { composeClient, viewerProfile } = useCeramicContext();
-  // console.log('privacy:: viewerProfile privacySettings = ', viewerProfile?.privacySettings)
-
-  const queryClient = useQueryClient();
-
-  const [settingsClone, setSettingsClone] = useState<IPrivacySettings | undefined>();
+  const queryClient = useQueryClient()
+  
+  const { viewer } = useViewerContext()
+  const { data: privacySettings, isPending } = useQuery({
+    queryKey: ['fetchPrivacySettings', viewer?.id],
+    queryFn: async () => await getPrivacySettings({ profile_id: viewer?.id }),
+    enabled: !!(viewer?.id)
+  })
+  
+  const [settingsClone, setSettingsClone] = useState<PrivacyFormValues>();
   const [loading, setLoading] = useState<boolean>(true);
-
+  
   useEffect(() => {
     // pre-populate form fields with current data
-    if (viewerProfile?.privacySettings && !settingsClone) {
-      // console.log('privacy:: pre populating ', { ...viewerProfile.privacySettings })
-      setSettingsClone({ ...viewerProfile.privacySettings })
+    if (privacySettings && !settingsClone) {
+      setSettingsClone({
+        allowReferGroup: privacySettings.allow_refer_group || "anyone",
+        allowReferKnowledgeBounty: privacySettings.allow_refer_knowledge_bounty,
+        allowReferConsultation: privacySettings.allow_refer_consultation,
+        allowViewPortfolioGroup: privacySettings.allow_view_portfolio_group || "anyone",
+        allowViewWorkExperience: privacySettings.allow_view_work_experience,
+        allowViewSkillAttestation: privacySettings.allow_view_skill_attestation,
+        allowViewPeerRecommendation: privacySettings.allow_view_peer_recommendation
+      })
     }
-    // set loading to true when it's still getting viewer profile
-    if (viewerProfile !== undefined) {
+    // set loading to true when it's still getting privacy sertings
+    if (!isPending) {
       setLoading(false)
     }
-  }, [viewerProfile, settingsClone])
+  }, [privacySettings, isPending, settingsClone])
 
   const defaultValues: Partial<PrivacyFormValues> = {
     allowReferGroup: "anyone",
@@ -90,56 +84,28 @@ export function ProfilePrivacyForm() {
   const onSubmit = async (data: PrivacyFormValues) => {
     console.log('privacy:: onSubmit data = ', { data })
     setLoading(true);
-
-    const update = await composeClient.executeQuery(`
-      mutation {
-        updateProfile(
-          input: {
-            id: "${viewerProfile?.id}",
-            content: {
-              editedAt: "${new Date().toISOString()}",
-              privacySettings: {
-                allowReferConsultation: ${data.allowReferConsultation}, 
-                allowReferGroup: "${data.allowReferGroup}",
-                allowReferKnowledgeBounty: ${data.allowReferKnowledgeBounty},
-                allowViewPeerRecommendation: ${data.allowViewPeerRecommendation},
-                allowViewPortfolioGroup: "${data.allowViewPortfolioGroup}",
-                allowViewSkillAttestation: ${data.allowViewSkillAttestation},
-                allowViewWorkExperience: ${data.allowViewWorkExperience}
-              }
-            }
-          }
-        ) {
-          document {
-            id
-            privacySettings {
-              allowReferConsultation
-              allowViewWorkExperience
-              allowReferGroup
-              allowReferKnowledgeBounty
-              allowViewPeerRecommendation
-              allowViewPortfolioGroup
-              allowViewSkillAttestation
-            }
-          }
-        }
-      }
-    `);
-    console.log("profile/settings/privacy/form", {update})
-
-    if (update?.errors) {
-      console.log('privacy:: graphql error', update.errors)
-      toast({ title: `Something went wrong: ${update.errors}` })
-    } else {
+    try {
+      const updatedPrivacySettings = await upsertPrivacySettings({
+        walletAddress: viewer?.wallet_address!,
+        profileId: viewer?.id!,
+        allowReferGroup: data.allowReferGroup,
+        allowReferKnowledgeBounty: data.allowReferKnowledgeBounty,
+        allowReferConsultation: data.allowReferConsultation,
+        allowViewPortfolioGroup: data.allowViewPortfolioGroup,
+        allowViewWorkExperience: data.allowViewWorkExperience,
+        allowViewSkillAttestation: data.allowViewSkillAttestation,
+        allowViewPeerRecommendation: data.allowViewPeerRecommendation
+      })
+      console.log({ updatedPrivacySettings })
       toast({ title: "Updated privacy settings" })
-      setLoading(true);
-      queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+      queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+    } catch (error) {
+      toast({ title: `Something went wrong: ${error}` })
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  const { viewer } = useViewerContext()
-  
   // prompt user to create profile first 
   if (viewer === null) {
     return (
