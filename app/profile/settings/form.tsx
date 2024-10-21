@@ -2,18 +2,35 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
+import { UserRound } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { useActiveAccount, useActiveWallet } from "thirdweb/react"
 
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import MultipleSelector from '@/components/ui/multiple-selector'
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { Profile } from "@/components/ceramic/types"
 import { toast } from "@/components/ui/use-toast"
 import { profileFormSchema } from "@/app/profile/settings/form-schema"
-import { ProfileFormValues, ProfileUpdateResponse, ProfileCategoriesIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
+import { ProfileFormValues, ProfileUpdateResponse, ProfileCategoriesIndexResponse } from "@/app/profile/settings/types"
 import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
-import { ProfileFormComponent } from "@/components/profile/form"
 import { getProfile } from "@/actions/profile/getProfile"
+import { useViewerContext } from "@/contexts/viewer"
+import { Profile } from "@/actions/profile/type"
+import { updateProfile } from "@/actions/profile/updateProfile"
+import { useCategoryContext } from "@/contexts/categories"
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -48,29 +65,37 @@ export function ProfileForm() {
   }
   /** end of pfp input field handling */
 
-  const [profileClone, setProfileClone] = useState<Profile | undefined>();
   const [loading, setLoading] = useState<boolean>(true);
+
+  const { isCategoriesPending, categoryOptions } = useCategoryContext()
+  useEffect(() => {
+    if (!isCategoriesPending) {
+      setLoading(false)
+    }
+  }, [isCategoriesPending]);
+
+  const { viewer } = useViewerContext()
+  const [profileClone, setProfileClone] = useState<Profile>();
 
   useEffect(() => {
     // pre-populate form fields with current data
-    if (viewerProfile && !profileClone) {
-      setProfileClone({ ...viewerProfile })
+    if (viewer && !profileClone) {
+      setProfileClone({ ...viewer })
 
-      if (viewerProfile?.pfp) {
-        setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewerProfile?.pfp.split('://')[1]}`)
+      if (viewer?.pfp) {
+        setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewer?.pfp.split('://')[1]}`)
       }
     }
-    // set loading to true when it's still getting viewer profile
-    if (viewerProfile !== undefined) {
-      setLoading(false)
-    }
-  }, [viewerProfile, profileClone])
+  }, [viewer, profileClone])
 
+  // TODO: define type of form
+  // TODO: data prepopulation
   const defaultValues: Partial<ProfileFormValues> = {
-    displayName: viewerProfile?.displayName || "",
-    username: viewerProfile?.username || "",
-    bio: viewerProfile?.bio || "",
-    categories: viewerProfile?.categories || [],
+    displayName: viewer?.display_name || "",
+    username: viewer?.username || "",
+    bio: viewer?.bio || "",
+    // categories: viewer?.categories || [], //TODO: get viewer's current categories here
+    categories: [],
   }
 
   const form = useForm<ProfileFormValues>({
@@ -80,7 +105,7 @@ export function ProfileForm() {
     mode: "onBlur"
   })
 
-  const updateProfile = async (data: Partial<ProfileFormValues>) => {
+  const submitHandler = async (data: Partial<ProfileFormValues>) => {
     setLoading(true);
 
     let uploadedPfp: string = "";
@@ -99,6 +124,21 @@ export function ProfileForm() {
         toast({ title: 'Fail to upload media' })
       }
     }
+
+    // TODO: check if there is existing profile, if yes then update, else create
+    // if (viewer) {
+    //   const createdProfile = await updateProfile({
+    //     displayName: data?.displayName,
+    //     username: string;
+    //     bio?: string;
+    //     pfp?: string;
+    //     walletAddress: string;
+    //     loginMethod: string;
+    //   });
+    // } else {
+
+    // }
+
 
     const update = await composeClient.executeQuery(`
         mutation {
@@ -159,7 +199,7 @@ export function ProfileForm() {
       `)
         console.log("profile/settings/form", { removeRelation })
         if (!removeRelation.errors) {
-          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+          queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
         }
       })
 
@@ -222,7 +262,7 @@ export function ProfileForm() {
           console.log("profile/settings/form", { updatedRelation })
 
           if (!updatedRelation.errors) {
-            queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
           }
         } else {
           // TODO: first time setup profile, after creation, the new created is not shown
@@ -247,16 +287,16 @@ export function ProfileForm() {
             }
           }
         `)
-        console.log("profile/settings/form", { createdRelation })
-        if (!createdRelation.errors) {
-          queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+          console.log("profile/settings/form", { createdRelation })
+          if (!createdRelation.errors) {
+            queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+          }
         }
-      }
-    })
+      })
 
       toast({ title: "Updated profile" })
       setLoading(true);
-      queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+      queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
     } else {
       toast({ title: `Something went wrong: ${update.errors}` })
     }
@@ -265,7 +305,7 @@ export function ProfileForm() {
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
     console.log("on submit ", data)
-    // await updateProfile(data)
+    // await submitHandler(data)
   }
 
   const checkDuplication = async (e: any) => {
@@ -283,16 +323,121 @@ export function ProfileForm() {
   }
 
   return (
-    <ProfileFormComponent
-      form={form}
-      onSubmit={onSubmit}
-      dataUrl={dataUrl}
-      triggerPfpInput={triggerPfpInput}
-      loading={loading}
-      checkDuplication={checkDuplication}
-      media={media}
-      handlePfpChange={handlePfpChange}
-      pfpRef={pfpRef}
-    />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
+        <div className="flex flex-col gap-4 items-start">
+          {/* TODO: allow user to crop image / drag to adjust but maintain the square aspect - refer whatsapp pfp */}
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={dataUrl} />
+            <AvatarFallback><UserRound /></AvatarFallback>
+          </Avatar>
+
+          <Button onClick={triggerPfpInput} disabled={loading} variant="outline">
+            Edit PFP
+          </Button>
+        </div>
+
+        <div className="flex-1 space-y-8">
+          <FormField
+            control={form.control}
+            name="username"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem onBlur={checkDuplication}>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="john_doe" {...field} />
+                </FormControl>
+                <FormDescription>Your unique identifier on Juku, only letters, numerical values and underscore (_) are allowed with a minimum of 3 characters.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="displayName"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bio"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>About Me</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="You can write about your years of experience, industry, or skills. People also talk about their achievements or previous job experiences."
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="categories"
+            disabled={loading}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Expert Categories</FormLabel>
+                <FormControl>
+                  <MultipleSelector
+                    {...field}
+                    maxSelected={3}
+                    onMaxSelected={(maxLimit) => {
+                      toast({
+                        title: `You have reached max selected: ${maxLimit}`,
+                      });
+                    }}
+                    defaultOptions={categoryOptions}
+                    placeholder="Add categories for discovery..."
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        no results found.
+                      </p>
+                    }
+                  />
+                </FormControl>
+                <FormDescription>Choose the most relevant experts category based on your experience, industry or skills.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button
+            type="submit"
+            disabled={
+              loading ||
+              (!media && !form.formState.isDirty) || // disable when nothing is changed
+              (Object.values(form.formState.errors).length > 0) // check this bcoz setError wont impact formState.isValid
+              // || !form.formState.isValid // categories is not validated onblur, it takes one step later to be validated, so we allow user to submit and this will be checked onsubmit
+            }
+          >
+            Save changes
+          </Button>
+        </div>
+      </form>
+      <input
+        id="pfpInput"
+        accept={'image/*'}
+        onChange={handlePfpChange}
+        ref={pfpRef}
+        type="file"
+        className='hidden'
+      />
+    </Form>
   )
 }

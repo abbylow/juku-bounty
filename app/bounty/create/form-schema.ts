@@ -1,7 +1,6 @@
 import { z } from "zod"
 import { optionSchema } from '@/components/ui/multiple-selector';
 import { ACCEPTABLE_CURRENCIES, MAX_NUM_OF_TAGS, oneMonthFromNow, tomorrow } from "@/app/bounty/create/const"
-import { CATEGORY_OPTIONS } from "@/const/categories"
 
 export const bountyFormSchema = z.object({
   title: z
@@ -37,10 +36,7 @@ export const bountyFormSchema = z.object({
     .refine(date => date <= oneMonthFromNow, { // Checks if the date is within one month
       message: "Expiry date must be within one month from now",
     }),
-  category: z.enum(CATEGORY_OPTIONS.map(option => option.value) as [string, ...string[]], {
-    invalid_type_error: "Select a category",
-    required_error: "Please select a category.",
-  }),
+  category: z.string(),
   tags: z.array(optionSchema)
     .max(MAX_NUM_OF_TAGS, { message: " Only allow maximum 5 tags" })
     .optional()

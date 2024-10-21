@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/use-toast"
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
 import { BountyForm } from "@/components/bounty/form"
+import { useCategoryContext } from "@/contexts/categories"
 
 // NOTE: THIS FORM IS NOT COMPLETED. ALL CODE BELOW ARE MOSTLY CLONED FROM CREATION FORM AND NOT CORRECT FOR UPDATE ACTION. 
 // TODO: pre-fill the form with existing bounty data (setFormValues)
@@ -19,11 +20,13 @@ export function BountyUpdateForm() {
 
   const [loading, setLoading] = useState<boolean>(true);
 
+  const { isCategoriesPending, categoryOptions } = useCategoryContext()
+
   useEffect(() => {
-    if (viewerProfile !== undefined) {
+    if (viewerProfile !== undefined && !isCategoriesPending) {
       setLoading(false)
     }
-  }, [viewerProfile])
+  }, [viewerProfile, isCategoriesPending])
 
   const [formValues, setFormValues] = useState({ ...defaultValues });
 
@@ -198,6 +201,7 @@ export function BountyUpdateForm() {
       form={form}
       onSubmit={onSubmit}
       loading={loading}
+      categoryOptions={categoryOptions}
     />
   )
 }

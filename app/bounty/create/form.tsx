@@ -11,6 +11,7 @@ import { QUEST_TEMPLATES } from "@/const/quest-templates"
 import { Label } from "@/components/ui/label"
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
 import { BountyForm } from "@/components/bounty/form"
+import { useCategoryContext } from "@/contexts/categories"
 
 export function BountyCreationForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -19,11 +20,13 @@ export function BountyCreationForm() {
 
   const [loading, setLoading] = useState<boolean>(true);
 
+  const { isCategoriesPending, categoryOptions } = useCategoryContext()
+  
   useEffect(() => {
-    if (viewerProfile !== undefined) {
+    if (viewerProfile !== undefined && !isCategoriesPending) {
       setLoading(false)
     }
-  }, [viewerProfile])
+  }, [viewerProfile, isCategoriesPending])
 
   const [formValues, setFormValues] = useState({ ...defaultValues });
 
@@ -227,6 +230,7 @@ export function BountyCreationForm() {
         form={form}
         onSubmit={onSubmit}
         loading={loading}
+        categoryOptions={categoryOptions}
       />
     </>
   )

@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import MultipleSelector from '@/components/ui/multiple-selector';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
 import {
   Popover,
   PopoverContent,
@@ -25,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { CATEGORY_OPTIONS } from "@/const/categories"
 import { TAG_OPTIONS } from "@/const/tags"
 import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
 
@@ -57,12 +56,14 @@ interface IBountyForm {
     }[] | undefined;
   }>
   loading: boolean
+  categoryOptions: Option[]
 }
 
 export function BountyForm({
   form,
   onSubmit,
-  loading
+  loading,
+  categoryOptions
 }: IBountyForm) {
   return (
     <Form {...form}>
@@ -244,7 +245,7 @@ export function BountyForm({
                 </FormControl>
                 <SelectContent>
                   {
-                    CATEGORY_OPTIONS.map(c => (
+                    categoryOptions.map(c => (
                       <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
                     ))
                   }

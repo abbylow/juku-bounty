@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter as FontSans } from 'next/font/google'
+import { CategoryProvider } from '@/contexts/categories'
 import TanStackProvider from '@/contexts/tanstack'
 import { TwebProvider } from '@/contexts/thirdweb'
 import { ViewerProvider } from '@/contexts/viewer'
@@ -36,6 +37,7 @@ export default function RootLayout({
         <TanStackProvider>
           <TwebProvider>
             <ViewerProvider>
+              <CategoryProvider>
                 <div className="relative min-h-screen flex flex-col bg-background">
                   <Header />
                   <main className="flex-1 container">
@@ -44,6 +46,7 @@ export default function RootLayout({
                   <Footer />
                   <Toaster />
                 </div>
+              </CategoryProvider>
             </ViewerProvider>
           </TwebProvider>
         </TanStackProvider>
