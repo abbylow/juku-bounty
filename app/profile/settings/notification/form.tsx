@@ -1,10 +1,9 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link";
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -22,18 +21,9 @@ import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useEffect, useState } from "react";
 import { INotificationSettings } from "@/components/ceramic/types";
 import { useViewerContext } from "@/contexts/viewer";
-
-const notificationFormSchema = z.object({
-  platformNewFeature: z.boolean(),
-  platformNewQuest: z.boolean(),
-  newContributionToInvolvedQuest: z.boolean(),
-  newLikesToInvolvedQuest: z.boolean(),
-  newRepliesToInvolvedQuest: z.boolean(),
-  statusChangeToInvolvedQuest: z.boolean(),
-  beMentioned: z.boolean()
-})
-
-type NotificationFormValues = z.infer<typeof notificationFormSchema>
+import { NotificationFormValues, notificationFormSchema } from "@/app/profile/settings/notification/form-schema";
+import { getNotificationSettings } from "@/actions/notificationSettings/getNotificationSettings";
+import { upsertNotificationSettings } from "@/actions/notificationSettings/upsertNotificationSettings";
 
 const defaultValues: Partial<NotificationFormValues> = {
   platformNewFeature: true,
@@ -46,25 +36,37 @@ const defaultValues: Partial<NotificationFormValues> = {
 }
 
 export function ProfileNotificationForm() {
-  const { composeClient, viewerProfile } = useCeramicContext();
-  // console.log('notifi:: viewerProfile notificationSettings = ', viewerProfile?.notificationSettings)
+  const { viewerProfile } = useCeramicContext();
 
-  const queryClient = useQueryClient();
 
-  const [settingsClone, setSettingsClone] = useState<INotificationSettings | undefined>();
+  const { viewer } = useViewerContext()
+  const { data: notificationSettings, isPending } = useQuery({
+    queryKey: ['fetchNotificationSettings', viewer?.id],
+    queryFn: async () => await getNotificationSettings({ profile_id: viewer?.id }),
+    enabled: !!(viewer?.id)
+  })
+
+  const [settingsClone, setSettingsClone] = useState<NotificationFormValues>();
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // pre-populate form fields with current data
-    if (viewerProfile?.notificationSettings && !settingsClone) {
-      // console.log('notifi:: pre populating ', { ...viewerProfile.notificationSettings })
-      setSettingsClone({ ...viewerProfile.notificationSettings })
+    if (notificationSettings && !settingsClone) {
+      setSettingsClone({
+        platformNewFeature: notificationSettings.platform_new_feature,
+        platformNewQuest: notificationSettings.platform_new_quest,
+        newContributionToInvolvedQuest: notificationSettings.new_contribution_to_involved_quest,
+        newLikesToInvolvedQuest: notificationSettings.new_likes_to_involved_quest,
+        newRepliesToInvolvedQuest: notificationSettings.new_replies_to_involved_quest,
+        statusChangeToInvolvedQuest: notificationSettings.status_change_to_involved_quest,
+        beMentioned: notificationSettings.be_mentioned
+      })
     }
-    // set loading to true when it's still getting viewer profile
-    if (viewerProfile !== undefined) {
+    // set loading to true when it's still getting notification settings
+    if (isPending) {
       setLoading(false)
     }
-  }, [viewerProfile, settingsClone])
+  }, [notificationSettings, isPending, settingsClone])
 
   const form = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationFormSchema),
@@ -77,54 +79,27 @@ export function ProfileNotificationForm() {
     console.log('notifi:: onSubmit data = ', { data })
     setLoading(true);
 
-    const update = await composeClient.executeQuery(`
-      mutation {
-        updateProfile(
-          input: {
-            id: "${viewerProfile?.id}",
-            content: {
-              editedAt: "${new Date().toISOString()}",
-              notificationSettings: {
-                platformNewFeature: ${data.platformNewFeature},
-                platformNewQuest: ${data.platformNewQuest},
-                newContributionToInvolvedQuest: ${data.newContributionToInvolvedQuest},
-                newLikesToInvolvedQuest: ${data.newLikesToInvolvedQuest},
-                newRepliesToInvolvedQuest: ${data.newRepliesToInvolvedQuest},
-                statusChangeToInvolvedQuest: ${data.statusChangeToInvolvedQuest},
-                beMentioned: ${data.beMentioned}
-              }
-            }
-          }
-        ) {
-          document {
-            id
-            notificationSettings {
-              platformNewFeature
-              platformNewQuest
-              newContributionToInvolvedQuest
-              newLikesToInvolvedQuest
-              newRepliesToInvolvedQuest
-              statusChangeToInvolvedQuest
-              beMentioned
-            }
-          }
-        }
-      }
-    `);
-    console.log("profile/settings/notification/form ", { update })
-    
-    if (update?.errors) {
-      console.log('notifi:: graphql error', update.errors)
-      toast({ title: `Something went wrong: ${update.errors}` })
-    } else {
+    try {
+      const updatedNotificationSettings = await upsertNotificationSettings({
+        walletAddress: viewer?.wallet_address!,
+        profileId: viewer?.id!,
+        platformNewFeature: data.platformNewFeature,
+        platformNewQuest: data.platformNewQuest,
+        newContributionToInvolvedQuest: data.newContributionToInvolvedQuest,
+        newLikesToInvolvedQuest: data.newLikesToInvolvedQuest,
+        newRepliesToInvolvedQuest: data.newRepliesToInvolvedQuest,
+        statusChangeToInvolvedQuest: data.statusChangeToInvolvedQuest,
+        beMentioned: data.beMentioned,
+      })
+      console.log({ updatedNotificationSettings })
       toast({ title: "Updated notification settings" })
-      setLoading(true);
-      queryClient.invalidateQueries({ queryKey: ['retrieveViewerProfile'] })
+    } catch (error) {
+      toast({ title: `Something went wrong: ${error}` })
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  const { viewer } = useViewerContext()
   // prompt user to create profile first 
   if (viewer === null) {
     return (

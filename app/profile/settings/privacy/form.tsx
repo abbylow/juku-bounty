@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import Link from "next/link";
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -32,9 +32,7 @@ import { getPrivacySettings } from "@/actions/privacySettings/getPrivacySettings
 import { PrivacyFormValues, privacyFormSchema } from '@/app/profile/settings/privacy/form-schema';
 
 // TODO: when allow no one to refer, turn off both switches of the quests (?)
-export function ProfilePrivacyForm() {
-  const queryClient = useQueryClient()
-  
+export function ProfilePrivacyForm() {  
   const { viewer } = useViewerContext()
   const { data: privacySettings, isPending } = useQuery({
     queryKey: ['fetchPrivacySettings', viewer?.id],
@@ -58,7 +56,7 @@ export function ProfilePrivacyForm() {
         allowViewPeerRecommendation: privacySettings.allow_view_peer_recommendation
       })
     }
-    // set loading to true when it's still getting privacy sertings
+    // set loading to true when it's still getting privacy settings
     if (!isPending) {
       setLoading(false)
     }
@@ -98,7 +96,6 @@ export function ProfilePrivacyForm() {
       })
       console.log({ updatedPrivacySettings })
       toast({ title: "Updated privacy settings" })
-      queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
     } catch (error) {
       toast({ title: `Something went wrong: ${error}` })
     } finally {
