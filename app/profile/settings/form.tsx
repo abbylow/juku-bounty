@@ -13,7 +13,7 @@ import { profileFormSchema } from "@/app/profile/settings/form-schema"
 import { ProfileFormValues, ProfileUpdateResponse, ProfileCategoriesIndexResponse, FoundProfileResponse } from "@/app/profile/settings/types"
 import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
 import { ProfileFormComponent } from "@/components/profile/form"
-import { findProfileByUsername } from "@/queries/find-profile-by-username"
+import { getProfile } from "@/actions/profile/getProfile"
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -264,13 +264,17 @@ export function ProfileForm() {
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    await updateProfile(data)
+    console.log("on submit ", data)
+    // await updateProfile(data)
   }
 
   const checkDuplication = async (e: any) => {
-    const foundProfile = await findProfileByUsername(composeClient, e.target.value);
+    const foundProfile = await getProfile({
+      username: e.target.value
+    });
+
     if (foundProfile) {
-      if (profileClone && profileClone.id === foundProfile?.id) {
+      if (activeAccount?.address === foundProfile?.wallet_address) {
         console.log('the found profile is exactly this current profile')
       } else {
         form.setError('username', { type: 'custom', message: 'This username is already taken.' })
