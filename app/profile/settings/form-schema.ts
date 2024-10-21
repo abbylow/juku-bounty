@@ -35,3 +35,5 @@ export const profileFormSchema = z.object({
       message: "Only allow maximum 3 categories"
     }),
 })
+
+export type ProfileFormValues = z.infer<typeof profileFormSchema>

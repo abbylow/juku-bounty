@@ -7,8 +7,6 @@ import { decodeJWT } from "thirdweb/utils";
 import { IUpsertProfileParams, Profile, ProfileOrNull } from "@/actions/profile/type";
 import { JWT_COOKIE_NAME } from "@/const/jwt";
 
-// TODO: test if username is duplicated, will this sql revert
-// TODO: test if wallet_address is duplicated, will this sql revert
 export async function createOrUpdateProfile(params: IUpsertProfileParams): Promise<ProfileOrNull> {
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
@@ -19,16 +17,15 @@ export async function createOrUpdateProfile(params: IUpsertProfileParams): Promi
   if (!jwt?.value) {
     throw new Error("Error creating or updating profile due to invalid JWT");
   }
-  const decoded = decodeJWT(jwt.value)
+  const decoded = decodeJWT(jwt.value);
   const userAddressInJwt = decoded.payload.sub;
 
   if (userAddressInJwt !== params.walletAddress) {
     throw new Error("Error creating or updating profile due to unauthorized identity");
   }
 
-  console.log({params})
   try {
-    const profileUpsertQuery = `
+    const profileUpsertResult = await sql`
       INSERT INTO Profile (
         display_name, 
         username, 
@@ -40,12 +37,12 @@ export async function createOrUpdateProfile(params: IUpsertProfileParams): Promi
         edited_at
       ) 
       VALUES (
-        $1, 
-        $2, 
-        $3, 
-        $4, 
-        $5, 
-        $6, 
+        ${params?.displayName}, 
+        ${params?.username}, 
+        ${params?.bio}, 
+        ${params?.pfp}, 
+        ${params?.walletAddress}, 
+        ${params?.loginMethod}, 
         NOW(), 
         NOW()
       )
@@ -59,27 +56,67 @@ export async function createOrUpdateProfile(params: IUpsertProfileParams): Promi
         login_method = EXCLUDED.login_method,
         edited_at = NOW()
       RETURNING *;
-  `;
+    `;
 
-    const profileUpsertValues = [
-      params?.displayName,
-      params?.username,
-      params?.bio,
-      params?.pfp,
-      params?.walletAddress,
-      params?.loginMethod
-    ];
+    // Execute profile upsert query and get the profile id
+    const profile = profileUpsertResult.length > 0 ? profileUpsertResult[0] as Profile : null;
 
-    console.log({ profileUpsertQuery, profileUpsertValues })
-
-    const result = await sql(profileUpsertQuery, profileUpsertValues);
-    console.log({ result })
-
-    if (result.length > 0) {
-      return result[0] as Profile
+    if (!profile) {
+      throw new Error('Profile could not be created or updated');
     }
 
-    return null;
+    const profileId = profile.id;
+
+    let categoryQueries = [];
+
+    // Retrieve existing ProfileCategory relationships
+    const existingCategories = await sql`
+      SELECT category_id, active FROM ProfileCategory 
+      WHERE profile_id = ${profileId}
+    `;
+
+    // Create a Set of category_ids from params.categories (the categories that should be active)
+    const activeCategoryIds = new Set(params?.categories?.map(category => category.value));
+
+    // Loop through the existing categories
+    for (const { category_id } of existingCategories) {
+      if (!activeCategoryIds.has(category_id)) {
+        // If the category is not in the activeCategoryIds, set it to inactive (active = false)
+        categoryQueries.push(sql`
+          UPDATE ProfileCategory
+          SET active = false, edited_at = NOW()
+          WHERE profile_id = ${profileId}
+          AND category_id = ${category_id};
+        `);
+      }
+    }
+
+    // If categories are provided, handle ProfileCategory operations
+    if (params.categories && params.categories.length > 0) {
+      // Loop through the params.categories to insert or update
+      for (const category of params.categories) {
+        const categoryId = category.value;
+
+        // Check if the category relationship exists and if we need to insert/update
+        categoryQueries.push(sql`
+         INSERT INTO ProfileCategory (profile_id, category_id, active, created_at, edited_at)
+         VALUES (
+           ${profileId},
+           ${categoryId},
+           true, NOW(), NOW()
+         )
+         ON CONFLICT (profile_id, category_id) 
+         DO UPDATE SET active = true, edited_at = NOW();
+       `);
+      }
+    }
+
+    // Execute all category queries in a transaction
+    if (categoryQueries.length > 0) {
+      await sql.transaction([...categoryQueries]);
+    }
+
+    return profile;
   } catch (error) {
     console.log("Error creating or updating profile ", error)
     throw new Error("Error creating or updating profile");
