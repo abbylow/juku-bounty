@@ -4,7 +4,7 @@ import { neon } from "@neondatabase/serverless";
 import { cookies } from "next/headers";
 import { decodeJWT } from "thirdweb/utils";
 
-import { IUpsertPrivacySettingsParams, PrivacySettings, PrivacySettingsOrNull } from "@/actions/profile/type";
+import { IUpsertPrivacySettingsParams, PrivacySettings, PrivacySettingsOrNull } from "@/actions/privacySettings/type";
 import { JWT_COOKIE_NAME } from "@/const/jwt";
 
 export async function upsertPrivacySettings(params: IUpsertPrivacySettingsParams): Promise<PrivacySettingsOrNull> {
