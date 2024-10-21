@@ -22,13 +22,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import MultipleSelector from '@/components/ui/multiple-selector'
 import { toast } from "@/components/ui/use-toast"
-import { profileFormSchema, ProfileFormValues } from "@/app/profile/settings/form-schema"
+import { ExtendedProfileFormValues, profileFormSchema, ProfileFormValues } from "@/app/profile/settings/form-schema"
 import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
+import { createOrUpdateProfile } from "@/actions/profile/createOrUpdateProfile"
 import { getProfile } from "@/actions/profile/getProfile"
 import { useViewerContext } from "@/contexts/viewer"
-import { Profile } from "@/actions/profile/type"
 import { useCategoryContext } from "@/contexts/categories"
-import { createOrUpdateProfile } from "@/actions/profile/createOrUpdateProfile"
 
 export function ProfileForm() {
   const queryClient = useQueryClient();
@@ -72,13 +71,22 @@ export function ProfileForm() {
   }, [isCategoriesPending]);
 
   const { viewer } = useViewerContext()
-  const [profileClone, setProfileClone] = useState<Profile>();
-  console.log({viewer})
-  console.log({profileClone})
+  const [profileClone, setProfileClone] = useState<ExtendedProfileFormValues>();
+
   useEffect(() => {
     // pre-populate form fields with current data
     if (viewer && !profileClone) {
-      setProfileClone({ ...viewer })
+      setProfileClone({
+        displayName: viewer.display_name,
+        username: viewer.username,
+        bio: viewer.bio,
+        pfp: viewer.pfp,
+        walletAddress: viewer.wallet_address,
+        loginMethod: viewer.login_method,
+        categories: categoryOptions.filter(option =>
+          viewer?.category_ids?.includes(+(option.value))
+        )
+      })
 
       if (viewer?.pfp) {
         setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewer?.pfp.split('://')[1]}`)
@@ -86,14 +94,13 @@ export function ProfileForm() {
     }
   }, [viewer, profileClone])
 
-  // TODO: define type of form
-  // TODO: data prepopulation
   const defaultValues: Partial<ProfileFormValues> = {
     displayName: viewer?.display_name || "",
     username: viewer?.username || "",
     bio: viewer?.bio || "",
-    // categories: viewer?.categories || [], //TODO: get viewer's current categories here
-    categories: [],
+    categories: categoryOptions.filter(option =>
+      viewer?.category_ids?.includes(+(option.value))
+    ) || []
   }
 
   const form = useForm<ProfileFormValues>({
@@ -130,7 +137,7 @@ export function ProfileForm() {
         bio: data?.bio?.replace(/\n/g, "\\n") || "",
         pfp: media ? uploadedPfp : (profileClone?.pfp || ""),
         walletAddress: activeAccount?.address || "",
-        loginMethod: profileClone?.login_method || wallet?.id || "",
+        loginMethod: profileClone?.loginMethod || wallet?.id || "",
         categories: data?.categories
       })
       console.log({ updatedProfile })

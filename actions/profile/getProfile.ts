@@ -34,12 +34,24 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
     `
     const result = await sql(query, values);
 
-    // If the profile exists, return it
-    if (result.length > 0) {
-      return result[0] as Profile
+    // If no profile is found, return null
+    if (result.length === 0) {
+      return null;
     }
 
-    return null;
+    const profile = result[0] as Profile;
+    
+    // Query to get active categories for the profile
+    const categoriesResult = await sql`
+      SELECT category_id
+      FROM ProfileCategory 
+      WHERE profile_id = ${profile.id} AND active = true;
+    `;
+
+    // Add active categories to the profile
+    profile.category_ids = categoriesResult.map(row => row.category_id) || [];
+
+    return profile;
   } catch (error) {
     console.log("Error retrieving profile ", error)
     throw new Error("Error retrieving profile");

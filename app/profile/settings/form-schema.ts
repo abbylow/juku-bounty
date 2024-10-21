@@ -37,3 +37,9 @@ export const profileFormSchema = z.object({
 })
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
+
+export type ExtendedProfileFormValues = ProfileFormValues & {
+  walletAddress: string;
+  loginMethod: string;
+  pfp?: string;
+};
