@@ -21,6 +21,7 @@ import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useEffect, useState } from "react";
 import { INotificationSettings } from "@/components/ceramic/types";
+import { useViewerContext } from "@/contexts/viewer";
 
 const notificationFormSchema = z.object({
   platformNewFeature: z.boolean(),
@@ -123,8 +124,9 @@ export function ProfileNotificationForm() {
     setLoading(false);
   }
 
+  const { viewer } = useViewerContext()
   // prompt user to create profile first 
-  if (viewerProfile === null) {
+  if (viewer === null) {
     return (
       <section>
         <div className="space-y-6">

@@ -29,6 +29,7 @@ import { Switch } from "@/components/ui/switch"
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { IPrivacySettings } from "@/components/ceramic/types";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
+import { useViewerContext } from "@/contexts/viewer";
 
 // TODO: extract enum
 // TODO: when allow no one to refer, turn off both switches of the quests (?)
@@ -137,8 +138,10 @@ export function ProfilePrivacyForm() {
     setLoading(false);
   }
 
+  const { viewer } = useViewerContext()
+  
   // prompt user to create profile first 
-  if (viewerProfile === null) {
+  if (viewer === null) {
     return (
       <section>
         <div className="space-y-6">

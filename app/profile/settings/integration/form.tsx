@@ -13,6 +13,7 @@ import { coinbaseIndexerContract, easContract } from "@/const/contracts";
 import { verifiedAccountSchema } from "@/const/eas";
 import { COINBASE_VERIFICATION_URL } from "@/const/links";
 import { client } from "@/lib/thirdweb-client";
+import { useViewerContext } from "@/contexts/viewer";
 
 export function ProfileIntegrationForm() {
   const activeAccount = useActiveAccount();
@@ -121,8 +122,10 @@ export function ProfileIntegrationForm() {
     }
   }, [attestationValid, viewerProfile, attestationStatus])
 
+  const { viewer } = useViewerContext()
+
   // prompt user to create profile first 
-  if (viewerProfile === null) {
+  if (viewer === null) {
     return (
       <section>
         <div className="space-y-6">
