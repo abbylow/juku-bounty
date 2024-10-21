@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from 'next/navigation'
-import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useContext, useEffect } from "react";
 import { useActiveAccount } from "thirdweb/react";
 
 import { PROFILE_SETTINGS_URL } from "@/const/links";
@@ -20,37 +20,29 @@ const ViewerContext = createContext<IViewerContext>({
 export const ViewerProvider = ({ children }: { children: ReactNode }) => {
   const activeAccount = useActiveAccount();
 
-  const [viewer, setViewer] = useState<ProfileOrNull>(null);
-
-  const { data } = useQuery({
+  const { data: viewer, isPending } = useQuery({
     queryKey: ['fetchViewerProfile', activeAccount?.address],
     queryFn: async () => await fetchViewerProfile(activeAccount?.address!),
   })
-  console.log("tanstack ", data)
 
   async function fetchViewerProfile(walletAddress: string) {
-    if (!walletAddress) {
-      setViewer(null);
-      return null;
-    }
     const profile = await getProfile({
       wallet_address: walletAddress
     });
-    setViewer(profile);
     return profile
   };
 
   const router = useRouter();
   useEffect(() => {
     // if viewer is logged in and hasn't setup the profile, redirect to setup now
-    if (activeAccount?.address && viewer === null) {
+    if (activeAccount?.address && !isPending && viewer === null) {
       console.log("viewer hasn't setup the profile, redirect to setup now");
       router.push(PROFILE_SETTINGS_URL);
     }
-  }, [viewer, activeAccount, router]);
+  }, [viewer, isPending, activeAccount, router]);
 
   return (
-    <ViewerContext.Provider value={{ viewer }}>
+    <ViewerContext.Provider value={{ viewer: viewer || null }}>
       {children}
     </ViewerContext.Provider>
   );
@@ -61,5 +53,4 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
  * @example const { viewer } = useViewerContext()
  * @returns viewer data
  */
-
 export const useViewerContext = () => useContext(ViewerContext);
