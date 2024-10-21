@@ -14,7 +14,7 @@ export async function getCategories(): Promise<Category[]> {
 
     return result as Category[]
   } catch (error) {
-    console.log("Error retrieving categories ", error)
-    throw new Error("Error retrieving categories")
+    console.log("Error retrieving all categories ", error)
+    throw new Error("Error retrieving all categories")
   }
 }

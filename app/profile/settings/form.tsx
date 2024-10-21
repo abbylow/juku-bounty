@@ -29,8 +29,8 @@ import { PINATA_GATEWAY } from "@/lib/pinata-gateway"
 import { getProfile } from "@/actions/profile/getProfile"
 import { useViewerContext } from "@/contexts/viewer"
 import { Profile } from "@/actions/profile/type"
-import { updateProfile } from "@/actions/profile/updateProfile"
 import { useCategoryContext } from "@/contexts/categories"
+import { createOrUpdateProfile } from "@/actions/profile/createOrUpdateProfile"
 
 export function ProfileForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -125,187 +125,151 @@ export function ProfileForm() {
       }
     }
 
-    // TODO: check if there is existing profile, if yes then update, else create
-    // if (viewer) {
-    //   const createdProfile = await updateProfile({
-    //     displayName: data?.displayName,
-    //     username: string;
-    //     bio?: string;
-    //     pfp?: string;
-    //     walletAddress: string;
-    //     loginMethod: string;
-    //   });
+    const updatedProfile = await createOrUpdateProfile({
+      displayName: data?.displayName || "",
+      username: data?.username || "",
+      bio: data?.bio?.replace(/\n/g, "\\n") || "",
+      pfp: media ? uploadedPfp : (profileClone?.pfp || ""),
+      walletAddress: activeAccount?.address || "",
+      loginMethod: profileClone?.login_method || wallet?.id || ""
+    })
+    console.log({ updatedProfile })
+
+    // TODO: profile category relation
+    // if (!update.errors) {
+    //   // Find items in viewerProfile.categories that are not in data.categories (to be removed)
+    //   const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
+
+    //   toRemove.map(async (c) => {
+    //     const removeRelation = await composeClient.executeQuery(`
+    //     mutation {
+    //       updateProfileCategory(
+    //         input: {
+    //           id: "${c.id}",
+    //           content: {
+    //             active: false,
+    //             editedAt: "${new Date().toISOString()}"
+    //           }
+    //         }
+    //       ) {
+    //         document {
+    //           active
+    //           id
+    //           profileId
+    //           categoryId
+    //         }
+    //       }
+    //     }
+    //   `)
+    //     console.log("profile/settings/form", { removeRelation })
+    //     if (!removeRelation.errors) {
+    //       queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+    //     }
+    //   })
+
+    //   // Find items in data.categories that are not in viewerProfile.categories (to be added)
+    //   const toAdd = data?.categories?.map(el => el.value)?.filter(category => !viewerProfile?.categories?.map(el => el.value)?.includes(category)) || [];
+
+    //   toAdd.map(async (c) => {
+    //     const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
+    //     // find existing relation, if found then update, else create new relation
+    //     const toAddRelation = await composeClient.executeQuery(`
+    //     query {
+    //       profileCategoryIndex(
+    //         filters: {
+    //           where: {
+    //             profileId: {
+    //               equalTo: "${profileClone?.id || profileUpdateRes?.document?.id}"
+    //             }, 
+    //             categoryId: {
+    //               equalTo: "${c}"
+    //             }
+    //           }
+    //         }
+    //         first: 1
+    //       ) {
+    //         edges {
+    //           node {
+    //             id
+    //             profileId
+    //             categoryId
+    //             active
+    //           }
+    //         }
+    //       }
+    //     }
+    //   `)
+    //     console.log("profile/settings/form", { toAddRelation })
+
+    //     const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
+
+    //     if (profileCategoryIndexRes?.edges?.length) {
+    //       // update existing relation to be active 
+    //       const updatedRelation = await composeClient.executeQuery(`
+    //       mutation {
+    //         updateProfileCategory(
+    //           input: {
+    //             id: "${profileCategoryIndexRes?.edges[0]?.node?.id}",
+    //             content: {
+    //               active: true,
+    //               editedAt: "${new Date().toISOString()}"
+    //             }
+    //           }
+    //         ) {
+    //           document {
+    //             active
+    //             id
+    //           }
+    //         }
+    //       }
+    //     `)
+    //       console.log("profile/settings/form", { updatedRelation })
+
+    //       if (!updatedRelation.errors) {
+    //         queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+    //       }
+    //     } else {
+    //       // TODO: first time setup profile, after creation, the new created is not shown
+    //       // create new relation
+    //       const createdRelation = await composeClient.executeQuery(`
+    //       mutation {
+    //         createProfileCategory(
+    //           input: {
+    //             content: {
+    //               active: true,
+    //               profileId: "${profileClone?.id || profileUpdateRes?.document?.id}",
+    //               categoryId: "${c}", 
+    //               createdAt: "${new Date().toISOString()}",
+    //               editedAt: "${new Date().toISOString()}"
+    //             }
+    //           }
+    //         ) {
+    //           document {
+    //             active
+    //             id
+    //           }
+    //         }
+    //       }
+    //     `)
+    //       console.log("profile/settings/form", { createdRelation })
+    //       if (!createdRelation.errors) {
+    //         queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+    //       }
+    //     }
+    //   })
+
+    //   toast({ title: "Updated profile" })
+    //   setLoading(true);
+    //   queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
     // } else {
-
+    //   toast({ title: `Something went wrong: ${update.errors}` })
     // }
-
-
-    const update = await composeClient.executeQuery(`
-        mutation {
-          setProfile(input: {
-            content: {
-              displayName: "${data?.displayName || ""}"
-              username: "${data?.username || ""}"
-              bio: "${data?.bio?.replace(/\n/g, "\\n") || ""}"
-              pfp: "${media ? uploadedPfp : (profileClone?.pfp || "")}"
-              walletAddress: "${profileClone?.walletAddress || activeAccount?.address}"
-              loginMethod: "${profileClone?.loginMethod || wallet?.id}"
-              createdAt: "${profileClone?.createdAt || new Date().toISOString()}"
-              editedAt: "${new Date().toISOString()}"
-              context: "${profileClone?.context || process.env.NEXT_PUBLIC_CONTEXT_ID}"
-            }
-          }) 
-          {
-            document {
-              id
-              displayName
-              username
-              bio
-              pfp
-              walletAddress
-              loginMethod
-              createdAt
-              editedAt
-            }
-          }
-        }
-      `);
-    console.log("profile/settings/form", { update })
-
-    if (!update.errors) {
-      // Find items in viewerProfile.categories that are not in data.categories (to be removed)
-      const toRemove = viewerProfile?.categories?.filter(category => !data?.categories?.map(el => el.value)?.includes(category.value)) || [];
-
-      toRemove.map(async (c) => {
-        const removeRelation = await composeClient.executeQuery(`
-        mutation {
-          updateProfileCategory(
-            input: {
-              id: "${c.id}",
-              content: {
-                active: false,
-                editedAt: "${new Date().toISOString()}"
-              }
-            }
-          ) {
-            document {
-              active
-              id
-              profileId
-              categoryId
-            }
-          }
-        }
-      `)
-        console.log("profile/settings/form", { removeRelation })
-        if (!removeRelation.errors) {
-          queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
-        }
-      })
-
-      // Find items in data.categories that are not in viewerProfile.categories (to be added)
-      const toAdd = data?.categories?.map(el => el.value)?.filter(category => !viewerProfile?.categories?.map(el => el.value)?.includes(category)) || [];
-
-      toAdd.map(async (c) => {
-        const profileUpdateRes = update?.data?.setProfile as ProfileUpdateResponse;
-        // find existing relation, if found then update, else create new relation
-        const toAddRelation = await composeClient.executeQuery(`
-        query {
-          profileCategoryIndex(
-            filters: {
-              where: {
-                profileId: {
-                  equalTo: "${profileClone?.id || profileUpdateRes?.document?.id}"
-                }, 
-                categoryId: {
-                  equalTo: "${c}"
-                }
-              }
-            }
-            first: 1
-          ) {
-            edges {
-              node {
-                id
-                profileId
-                categoryId
-                active
-              }
-            }
-          }
-        }
-      `)
-        console.log("profile/settings/form", { toAddRelation })
-
-        const profileCategoryIndexRes = toAddRelation?.data?.profileCategoryIndex as ProfileCategoriesIndexResponse
-
-        if (profileCategoryIndexRes?.edges?.length) {
-          // update existing relation to be active 
-          const updatedRelation = await composeClient.executeQuery(`
-          mutation {
-            updateProfileCategory(
-              input: {
-                id: "${profileCategoryIndexRes?.edges[0]?.node?.id}",
-                content: {
-                  active: true,
-                  editedAt: "${new Date().toISOString()}"
-                }
-              }
-            ) {
-              document {
-                active
-                id
-              }
-            }
-          }
-        `)
-          console.log("profile/settings/form", { updatedRelation })
-
-          if (!updatedRelation.errors) {
-            queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
-          }
-        } else {
-          // TODO: first time setup profile, after creation, the new created is not shown
-          // create new relation
-          const createdRelation = await composeClient.executeQuery(`
-          mutation {
-            createProfileCategory(
-              input: {
-                content: {
-                  active: true,
-                  profileId: "${profileClone?.id || profileUpdateRes?.document?.id}",
-                  categoryId: "${c}", 
-                  createdAt: "${new Date().toISOString()}",
-                  editedAt: "${new Date().toISOString()}"
-                }
-              }
-            ) {
-              document {
-                active
-                id
-              }
-            }
-          }
-        `)
-          console.log("profile/settings/form", { createdRelation })
-          if (!createdRelation.errors) {
-            queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
-          }
-        }
-      })
-
-      toast({ title: "Updated profile" })
-      setLoading(true);
-      queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
-    } else {
-      toast({ title: `Something went wrong: ${update.errors}` })
-    }
     setLoading(false);
   };
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
     console.log("on submit ", data)
-    // await submitHandler(data)
+    await submitHandler(data)
   }
 
   const checkDuplication = async (e: any) => {

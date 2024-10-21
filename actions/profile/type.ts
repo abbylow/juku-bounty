@@ -1,3 +1,5 @@
+import { Option } from '@/components/ui/multiple-selector';
+
 export interface Profile {
   id: string;
   display_name: string;
@@ -18,11 +20,12 @@ export interface IGetProfileParams {
   username?: string;
 }
 
-export interface ICreateProfileParams {
+export interface IUpsertProfileParams {
   displayName: string;
   username: string;
   bio?: string;
   pfp?: string;
   walletAddress: string;
   loginMethod: string;
+  categories?: Option[];
 }

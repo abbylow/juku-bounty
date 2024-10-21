@@ -3,10 +3,9 @@ import { VerifyLoginPayloadParams, createAuth } from "thirdweb/auth";
 import { privateKeyToAccount } from "thirdweb/wallets";
 import { client } from "@/lib/thirdweb-client";
 import { cookies } from "next/headers";
+import { JWT_COOKIE_NAME } from "@/const/jwt";
 
 const privateKey = process.env.THIRDWEB_ADMIN_PRIVATE_KEY || "";
-
-const JWT_COOKIE_NAME = "jwt";
 
 if (!privateKey) {
   throw new Error("Missing THIRDWEB_ADMIN_PRIVATE_KEY in .env file.");
