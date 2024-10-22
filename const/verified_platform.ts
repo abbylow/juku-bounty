@@ -1,0 +1,1 @@
+export const coinbaseVerifiedAccount = "coinbase_verified_account";
