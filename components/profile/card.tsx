@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { ReactNode, useEffect, useState } from "react";
 
 import WalletAddress from "@/components/copyable-address/address";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Option } from "@/components/ui/multiple-selector";
 import UserAvatar from "@/components/user/avatar";
-import { PROFILE_SETTINGS_URL } from "@/const/links";
-import { IPlatform } from "@/components/ceramic/types";
 import { Icons } from "@/components/icons";
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
-import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { PROFILE_SETTINGS_URL } from "@/const/links";
+import { VerifiedPlatform } from "@/actions/verifiedPlatform/type";
 
 interface IProfileCard {
   id: string;
@@ -22,13 +22,13 @@ interface IProfileCard {
   username: string;
   bio: string;
   categories?: Option[];
-  integrations?: IPlatform[];
+  integrations?: VerifiedPlatform[];
   allowEdit?: boolean;
   allowFollow?: boolean;
 }
 
-const PLATFORM_BADGES = {
-  "coinbase_verified_account": <Icons.coinbase className="h-6 w-6" />
+const PLATFORM_BADGES: Record<string, ReactNode> = {
+  "coinbase_verified_account": <Icons.coinbase key={"coinbase_verified_account"} className="h-6 w-6" />
 }
 
 export default function ProfileCard({
@@ -205,7 +205,7 @@ export default function ProfileCard({
           }
         </div>
         <div className="flex gap-2">
-          {integrations?.filter(el => el.verified).map(c => (PLATFORM_BADGES[c.name]))}
+          {integrations?.filter(el => el.verified).map(c => (PLATFORM_BADGES[c.type]))}
         </div>
 
       </div>
