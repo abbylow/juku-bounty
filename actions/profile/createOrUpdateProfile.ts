@@ -67,53 +67,50 @@ export async function createOrUpdateProfile(params: IUpsertProfileParams): Promi
 
     const profileId = profile.id;
 
-    let categoryQueries = [];
-
     // Retrieve existing ProfileCategory relationships
     const existingCategories = await sql`
       SELECT category_id, active FROM ProfileCategory 
       WHERE profile_id = ${profileId}
     `;
 
-    // Create a Set of category_ids from params.categories (the categories that should be active)
+    // Create a Set of active category_ids from params.categories
     const activeCategoryIds = new Set(params?.categories?.map(category => category.value));
+    // Collect categories to update as inactive
+    const inactiveCategoryIds = existingCategories
+      .filter(({ category_id }) => !activeCategoryIds.has(category_id))
+      .map(({ category_id }) => category_id);
 
-    // Loop through the existing categories
-    for (const { category_id } of existingCategories) {
-      if (!activeCategoryIds.has(category_id)) {
-        // If the category is not in the activeCategoryIds, set it to inactive (active = false)
-        categoryQueries.push(sql`
-          UPDATE ProfileCategory
-          SET active = false, edited_at = NOW()
-          WHERE profile_id = ${profileId}
-          AND category_id = ${category_id};
-        `);
-      }
+    // Set inactive status for categories not included in params.categories
+    if (inactiveCategoryIds.length > 0) {
+      await sql`
+       UPDATE ProfileCategory
+       SET active = false, edited_at = NOW()
+       WHERE profile_id = ${profileId} AND category_id = ANY(${inactiveCategoryIds});
+     `;
     }
 
-    // If categories are provided, handle ProfileCategory operations
+    // Insert or update active categories in a single query
     if (params.categories && params.categories.length > 0) {
-      // Loop through the params.categories to insert or update
-      for (const category of params.categories) {
-        const categoryId = category.value;
+      const valuesClause = params.categories
+        .map((category, index) => `($${index * 5 + 1}, $${index * 5 + 2}, $${index * 5 + 3}, $${index * 5 + 4}, $${index * 5 + 5})`)
+        .join(", ");
 
-        // Check if the category relationship exists and if we need to insert/update
-        categoryQueries.push(sql`
-         INSERT INTO ProfileCategory (profile_id, category_id, active, created_at, edited_at)
-         VALUES (
-           ${profileId},
-           ${categoryId},
-           true, NOW(), NOW()
-         )
-         ON CONFLICT (profile_id, category_id) 
-         DO UPDATE SET active = true, edited_at = NOW();
-       `);
-      }
-    }
+      const values = params.categories.flatMap(category => [
+        profileId,
+        category.value,
+        true,
+        new Date(),
+        new Date()
+      ]);
 
-    // Execute all category queries in a transaction
-    if (categoryQueries.length > 0) {
-      await sql.transaction([...categoryQueries]);
+      const query = `
+        INSERT INTO ProfileCategory (profile_id, category_id, active, created_at, edited_at)
+        VALUES ${valuesClause}
+        ON CONFLICT (profile_id, category_id) 
+        DO UPDATE SET active = true, edited_at = NOW();
+      `;
+
+      await sql(query, values);
     }
 
     return profile;
