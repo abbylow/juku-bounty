@@ -10,11 +10,13 @@ import { getProfile } from "@/actions/profile/getProfile";
 import { ProfileOrNull } from "@/actions/profile/type";
 
 interface IViewerContext {
-  viewer: ProfileOrNull
+  viewer: ProfileOrNull,
+  isViewerPending: boolean,
 }
 
 const ViewerContext = createContext<IViewerContext>({
-  viewer: null
+  viewer: null,
+  isViewerPending: false
 });
 
 export const ViewerProvider = ({ children }: { children: ReactNode }) => {
@@ -42,7 +44,10 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
   }, [viewer, isPending, activeAccount, router]);
 
   return (
-    <ViewerContext.Provider value={{ viewer: viewer || null }}>
+    <ViewerContext.Provider value={{ 
+      viewer: viewer || null,
+      isViewerPending: isPending
+       }}>
       {children}
     </ViewerContext.Provider>
   );
@@ -50,7 +55,7 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
 
 /**
  * Provide access to viewer related data
- * @example const { viewer } = useViewerContext()
+ * @example const { viewer, isViewerPending } = useViewerContext()
  * @returns viewer data
  */
 export const useViewerContext = () => useContext(ViewerContext);

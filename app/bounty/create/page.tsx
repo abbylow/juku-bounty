@@ -3,14 +3,14 @@
 import Link from "next/link";
 
 import { BountyCreationForm } from "@/app/bounty/create/form";
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { ConnectBtn } from "@/components/thirdweb/connect-btn";
 import { buttonVariants } from "@/components/ui/button";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useTwebContext } from "@/contexts/thirdweb";
+import { useViewerContext } from "@/contexts/viewer";
 
 export default function BountyCreation() {
-  const { viewerProfile } = useCeramicContext();
+  const { viewer, isViewerPending } = useViewerContext();
   const { loggedIn } = useTwebContext();
 
   if (!loggedIn) {
@@ -27,7 +27,7 @@ export default function BountyCreation() {
   }
 
   // prompt user to create profile first 
-  if (viewerProfile === null) {
+  if (!isViewerPending && viewer === null) {
     return (
       <section>
         <div className="space-y-6">
