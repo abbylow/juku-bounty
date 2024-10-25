@@ -1,5 +1,9 @@
 import { Option } from '@/components/ui/multiple-selector';
 
+export interface GetBountyParams {
+  bountyId: string
+}
+
 export interface CreateBountyParams {
   title: string;
   description?: string;
