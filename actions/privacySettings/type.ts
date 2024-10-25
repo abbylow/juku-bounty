@@ -1,7 +1,6 @@
 import { ReferGroupOptionType, ViewPortfolioGroupOptionType } from '@/app/profile/settings/privacy/form-schema';
 
 export interface IUpsertPrivacySettingsParams {
-  walletAddress: string;
   profileId: string; // UUID of the profile
   allowReferGroup?: string;
   allowReferKnowledgeBounty?: boolean;

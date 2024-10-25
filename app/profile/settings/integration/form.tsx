@@ -61,7 +61,6 @@ export function ProfileIntegrationForm() {
 
   const upsertRecord = async (isValid: boolean) => {
     const result = await upsertVerifiedPlatform({
-      walletAddress: viewer?.wallet_address!,
       profileId: viewer?.id!,
       type: coinbaseVerifiedAccount,
       verified: isValid,

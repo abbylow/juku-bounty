@@ -84,7 +84,6 @@ export function ProfilePrivacyForm() {
     setLoading(true);
     try {
       const updatedPrivacySettings = await upsertPrivacySettings({
-        walletAddress: viewer?.wallet_address!,
         profileId: viewer?.id!,
         allowReferGroup: data.allowReferGroup,
         allowReferKnowledgeBounty: data.allowReferKnowledgeBounty,

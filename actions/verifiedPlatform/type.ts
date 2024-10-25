@@ -4,7 +4,6 @@ export interface IGetVerifiedPlatformParams {
 }
 
 export interface IUpsertVerifiedPlatformParams {
-  walletAddress: string;                         // Wallet address for ownership validation
   profileId: string;                             // Profile ID for which platform verification is being added
   type: string;                                  // Platform type (e.g., Coinbase, LinkedIn)
   verified: boolean;                             // Whether the platform is verified

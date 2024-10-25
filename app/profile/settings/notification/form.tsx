@@ -81,7 +81,6 @@ export function ProfileNotificationForm() {
 
     try {
       const updatedNotificationSettings = await upsertNotificationSettings({
-        walletAddress: viewer?.wallet_address!,
         profileId: viewer?.id!,
         platformNewFeature: data.platformNewFeature,
         platformNewQuest: data.platformNewQuest,

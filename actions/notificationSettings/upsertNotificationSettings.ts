@@ -12,16 +12,33 @@ export async function upsertNotificationSettings(params: IUpsertNotificationSett
 
   const sql = neon(process.env.DATABASE_URL);
 
-  // check JWT before performing mutation
-  const jwt = cookies().get(JWT_COOKIE_NAME);
-  if (!jwt?.value) {
-    throw new Error("Error updating notification settings due to invalid JWT");
-  }
-  const decoded = decodeJWT(jwt.value);
-  const userAddressInJwt = decoded.payload.sub;
+  try {
+    // check JWT before performing mutation
+    const jwt = cookies().get(JWT_COOKIE_NAME);
+    if (!jwt?.value) {
+      throw new Error("Error updating verified platform due to invalid JWT");
+    }
+    const decoded = decodeJWT(jwt.value);
+    const userAddressInJwt = decoded.payload.sub;
 
-  if (userAddressInJwt !== params.walletAddress) {
-    throw new Error("Unauthorized access to notification settings");
+    // Query the profile based on the wallet address from JWT
+    const profileQuery = await sql`
+      SELECT id FROM Profile WHERE wallet_address = ${userAddressInJwt};
+    `;
+
+    // If no profile is found, throw an error
+    if (profileQuery.length === 0) {
+      throw new Error("Profile not found for the provided wallet address from JWT.");
+    }
+
+    const profileIdFromDb = profileQuery[0].id;
+
+    // Check if the profileId matches the one in params
+    if (profileIdFromDb !== params.profileId) {
+      throw new Error("Unauthorized access to verified platform. Profile ID does not match.");
+    }
+  } catch (error) {
+    console.log('Fail to verify profile from JWT and params', error)
   }
 
   try {

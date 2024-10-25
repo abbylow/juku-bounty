@@ -16,7 +16,6 @@ export interface NotificationSettings {
 export type NotificationSettingsOrNull = NotificationSettings | null;
 
 export interface IUpsertNotificationSettingsParams {
-  walletAddress: string;                           // Wallet address for ownership validation
   profileId: string;                               // UUID of the profile
   platformNewFeature?: boolean;
   platformNewQuest?: boolean;
