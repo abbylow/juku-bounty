@@ -25,9 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { TAG_OPTIONS } from "@/const/tags"
 import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
-
 interface IBountyForm {
   form: UseFormReturn<{
     title: string;
@@ -57,13 +55,15 @@ interface IBountyForm {
   }>
   loading: boolean
   categoryOptions: Option[]
+  tagOptions: Option[] 
 }
 
 export function BountyForm({
   form,
   onSubmit,
   loading,
-  categoryOptions
+  categoryOptions,
+  tagOptions
 }: IBountyForm) {
   return (
     <Form {...form}>
@@ -273,7 +273,7 @@ export function BountyForm({
                       title: `You have reached max selected: ${maxLimit}`,
                     });
                   }}
-                  defaultOptions={TAG_OPTIONS}
+                  defaultOptions={tagOptions}
                   placeholder="Add tags for discovery..."
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">

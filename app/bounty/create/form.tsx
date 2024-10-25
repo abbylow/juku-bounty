@@ -1,32 +1,52 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useQuery } from "@tanstack/react-query"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
+
 import { toast } from "@/components/ui/use-toast"
 import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
+import { Option } from '@/components/ui/multiple-selector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { QUEST_TEMPLATES } from "@/const/quest-templates"
 import { Label } from "@/components/ui/label"
-import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
+import { bountyFormSchema, BountyFormValues, defaultValues, ExtendedBountyFormValues } from "@/app/bounty/create/form-schema";
 import { BountyForm } from "@/components/bounty/form"
 import { useCategoryContext } from "@/contexts/categories"
+import { useViewerContext } from "@/contexts/viewer"
+import { escrowContract } from "@/const/contracts"
+import { currentChain } from "@/const/chains"
+import { getTags } from "@/actions/tag/getTags"
 
 export function BountyCreationForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
+  const { viewer, isViewerPending } = useViewerContext();
+  const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
   const router = useRouter();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const { isCategoriesPending, categoryOptions } = useCategoryContext()
-  
+  const [ready, setReady] = useState<boolean>(false);
+
+  const { data: tags, isPending: isTagsPending } = useQuery({
+    queryKey: ['fetchAllTags'],
+    queryFn: async () => await getTags(),
+  })
+
+  // Transform tags into options
+  const tagOptions: Option[] = tags?.map(tag => ({
+    value: String(tag.id),
+    label: tag.name,
+  })) || [];
+
   useEffect(() => {
-    if (viewerProfile !== undefined && !isCategoriesPending) {
-      setLoading(false)
+    if (!isCategoriesPending && !isTagsPending) {
+      setReady(true);
     }
-  }, [viewerProfile, isCategoriesPending])
+  }, [isCategoriesPending, isTagsPending])
 
   const [formValues, setFormValues] = useState({ ...defaultValues });
 
@@ -37,164 +57,35 @@ export function BountyCreationForm() {
     mode: "onBlur",
   })
 
-  const createBounty = async (data: Partial<BountyFormValues>) => {
-    // console.log("before submission ", { viewerProfile, data })
-
+  const createBounty = async (data: Partial<ExtendedBountyFormValues>) => {
     setLoading(true);
 
-    // TODO: set context according to the environment
-    const creation = await composeClient.executeQuery(`
-      mutation {
-        createBounty(input: {
-          content: {
-            title: "${data?.title || ""}"
-            description: "${data?.description?.replace(/\n/g, "\\n") || ""}"
-            expiry: "${data?.expiry?.toISOString() || ""}"
-            createdAt: "${new Date().toISOString()}"
-            editedAt: "${new Date().toISOString()}"
-            profileId: "${viewerProfile?.id}"
-            context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
-          }
-        }) 
-        {
-          document {
-            id
-            title
-            description
-            expiry
-          }
-        }
-      }
-    `);
-    console.log("bounty/create/form createBounty", { creation })
+    try {
+      // TODO: create bounty on smart contract first
+      const createdBounty = await createBounty({
+        title: data?.title,
+        description: data?.description?.replace(/\n/g, "\\n"),
+        expiry: data?.expiry,
+        escrowContractAddress: escrowContract,
+        escrowContractChainId: String(currentChain.id),
+        bountyIdOnEscrow: 1, //TODO: replace this with real bounty ID
+        creatorProfileId: viewer?.id,
+        category: data?.category // TODO: check if pass as string, will it throw
+      })
+      console.log({ createdBounty })
 
-    if (creation.errors) {
-      toast({ title: `Something went wrong: ${creation.errors}` })
-    } else {
-      const createdBounty: any = creation?.data?.createBounty
-      // console.log({ createdBounty })
-
-      if (createdBounty?.document?.id) {
-        // create bounty and category relationship
-        const bountyCategory = await composeClient.executeQuery(`
-          mutation {
-            createBountyCategory(
-              input: {
-                content: {
-                  active: true, 
-                  categoryId: "${data.category}", 
-                  bountyId: "${createdBounty.document.id}", 
-                  createdAt: "${new Date().toISOString()}",
-                  editedAt: "${new Date().toISOString()}"
-                }
-              }
-            ) {
-              document {
-                active
-                bountyId
-                id
-                categoryId
-                createdAt
-                editedAt
-              }
-            }
-          }
-        `);
-        console.log("bounty/create/form createBountyCategory ", { bountyCategory })
-
-        data?.tags?.map(async (t) => {
-          // find existing tag with the slug, if not found create tag 
-          const findTag = await composeClient.executeQuery(`
-            query {
-              tagIndex(
-                filters: {
-                  where: {
-                    slug: {
-                      equalTo: "${t.value}"
-                    }
-                  }
-                }, first: 1) {
-                edges {
-                  node {
-                    id
-                    name
-                    slug
-                  }
-                }
-              }
-            }
-          `);
-          console.log("bounty/create/form findTag ", { findTag })
-
-          let tagId: string;
-          if (findTag?.data?.tagIndex?.edges.length === 0) {
-            // create the tag first 
-            // TODO: set context according to the environment
-            const createdTag = await composeClient.executeQuery(`
-              mutation {
-                createTag(
-                  input: {
-                    content: {
-                      name: "${t.label}", 
-                      slug: "${t.value}", 
-                      createdAt: "${new Date().toISOString()}",
-                      editedAt: "${new Date().toISOString()}",
-                      context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
-                    }
-                  }
-                ) {
-                  document {
-                    id
-                    name
-                    slug
-                  }
-                }
-              }
-            `);
-            console.log("bounty/create/form createdTag", { createdTag })
-            tagId = createdTag?.data?.createTag?.document?.id
-          } else {
-            tagId = findTag?.data?.tagIndex?.edges[0]?.node?.id
-          }
-
-          // create bounty and tag relationships
-          const createdBountyTag = await composeClient.executeQuery(`
-              mutation {
-                createBountyTag(
-                  input: {
-                    content: {
-                      tagId: "${tagId}", 
-                      active: true, 
-                      bountyId: "${createdBounty.document.id}", 
-                      createdAt: "${new Date().toISOString()}",
-                      editedAt: "${new Date().toISOString()}",
-                    }
-                  }
-                ) {
-                  document {
-                    active
-                    bountyId
-                    createdAt
-                    editedAt
-                    id
-                    tagId
-                  }
-                }
-              }
-            `);
-          console.log("bounty/create/form createdBountyTag", { createdBountyTag })
-        })
-
-        toast({ title: "Created bounty" })
-        router.push(`/bounty/${createdBounty.document.id}`)
-      }
+      // queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+      toast({ title: "Created Bounty" })
+    } catch (error) {
+      toast({ title: `Something went wrong: ${error}` })
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    // console.log("Submitting form with data:", { data });
-    await createBounty(data)
+    console.log("Submitting form with data:", { data });
+    // await createBounty(data)
   }
 
   const selectTemplate = (templateId: string) => {
@@ -226,12 +117,15 @@ export function BountyCreationForm() {
           </SelectContent>
         </Select>
       </div>
-      <BountyForm
-        form={form}
-        onSubmit={onSubmit}
-        loading={loading}
-        categoryOptions={categoryOptions}
-      />
+      {
+        ready && <BountyForm
+          form={form}
+          onSubmit={onSubmit}
+          loading={loading}
+          categoryOptions={categoryOptions}
+          tagOptions={tagOptions}
+        />
+      }
     </>
   )
 }
