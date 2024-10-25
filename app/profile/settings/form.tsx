@@ -92,7 +92,7 @@ export function ProfileForm() {
         setDataUrl(`${PINATA_GATEWAY}/ipfs/${viewer?.pfp.split('://')[1]}`)
       }
     }
-  }, [viewer, profileClone])
+  }, [viewer, profileClone, categoryOptions])
 
   const defaultValues: Partial<ProfileFormValues> = {
     displayName: viewer?.display_name || "",
