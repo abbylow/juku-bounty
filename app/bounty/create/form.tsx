@@ -19,6 +19,7 @@ import { useViewerContext } from "@/contexts/viewer"
 import { escrowContract } from "@/const/contracts"
 import { currentChain } from "@/const/chains"
 import { getTags } from "@/actions/tag/getTags"
+import { createBounty } from "@/actions/bounty/createBounty"
 
 export function BountyCreationForm() {
   const { composeClient, viewerProfile } = useCeramicContext();
@@ -38,7 +39,7 @@ export function BountyCreationForm() {
 
   // Transform tags into options
   const tagOptions: Option[] = tags?.map(tag => ({
-    value: String(tag.id),
+    value: tag.slug,
     label: tag.name,
   })) || [];
 
@@ -57,25 +58,30 @@ export function BountyCreationForm() {
     mode: "onBlur",
   })
 
-  const createBounty = async (data: Partial<ExtendedBountyFormValues>) => {
+  const handleSubmit = async (data: Partial<ExtendedBountyFormValues>) => {
     setLoading(true);
 
     try {
-      // TODO: create bounty on smart contract first
+      // TODO: 1.create bounty on smart contract first
       const createdBounty = await createBounty({
-        title: data?.title,
+        title: data?.title!,
         description: data?.description?.replace(/\n/g, "\\n"),
-        expiry: data?.expiry,
+        expiry: data?.expiry?.toISOString()!,
         escrowContractAddress: escrowContract,
         escrowContractChainId: String(currentChain.id),
-        bountyIdOnEscrow: 1, //TODO: replace this with real bounty ID
-        creatorProfileId: viewer?.id,
-        category: data?.category // TODO: check if pass as string, will it throw
+        bountyIdOnEscrow: 1, //TODO: 2. replace this with real bounty ID
+        creatorProfileId: viewer?.id!,
+        category: +data?.category!,
+        tags: data.tags
       })
       console.log({ createdBounty })
 
-      // queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
       toast({ title: "Created Bounty" })
+      if (createdBounty) {
+        router.push(`/bounty/${createdBounty.id}`)
+      } else {
+        throw new Error('Fail to create bounty')
+      }
     } catch (error) {
       toast({ title: `Something went wrong: ${error}` })
     } finally {
@@ -83,9 +89,16 @@ export function BountyCreationForm() {
     }
   };
 
+  const transformTags = (tags: Option[]): Option[] => {
+    return tags.map(tag => ({
+      ...tag,
+      value: tag.label.toLowerCase().replace(/\s+/g, "_")
+    }));
+  }
+
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    console.log("Submitting form with data:", { data });
-    // await createBounty(data)
+    console.log("Submitting form with data:", { data }, {...data, tags: transformTags(data.tags || [])});
+    await handleSubmit(data)
   }
 
   const selectTemplate = (templateId: string) => {

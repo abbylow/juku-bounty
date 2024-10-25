@@ -45,10 +45,16 @@ export const bountyFormSchema = z.object({
     })
 })
 
-
 export type BountyFormValues = z.infer<typeof bountyFormSchema>
 
-export const defaultValues: Partial<BountyFormValues> = {
+export type ExtendedBountyFormValues = BountyFormValues & {
+  escrowContractAddress: string;
+  escrowContractChainId: string;
+  bountyIdOnEscrow: number;
+  creatorProfileId: string;
+};
+
+export const defaultValues: Partial<ExtendedBountyFormValues> = {
   title: "",
   description: "",
   rewardCurrency: ACCEPTABLE_CURRENCIES.USDC,
