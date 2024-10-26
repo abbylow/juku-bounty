@@ -18,35 +18,37 @@ import { useViewerContext } from "@/contexts/viewer";
 import { upsertVerifiedPlatform } from "@/actions/verifiedPlatform/upsertVerifiedPlatform";
 import { getVerifiedPlatform } from "@/actions/verifiedPlatform/getVerifiedPlatform";
 
+// use coinbase indexer to find if the wallet has any corresponding attestation with the schema
+const indexerContract = getContract({
+  client,
+  chain: currentChain,
+  address: coinbaseIndexerContract
+});
+console.log({ indexerContract })
+
+// use the responded attestation uid to check if it's valid in EAS contract
+const eas = getContract({
+  client,
+  chain: currentChain,
+  address: easContract
+});
+console.log({ eas })
+
 export function ProfileIntegrationForm() {
   const activeAccount = useActiveAccount();
   const { viewer } = useViewerContext();
-  
+
   const { data: verifiedCoinbase, isPending: isVerifiedCoinbasePending } = useQuery({
     queryKey: ['fetchVerifiedCoinbaseAcc', viewer?.id],
     queryFn: async () => await getVerifiedPlatform({ profileId: viewer?.id!, type: coinbaseVerifiedAccount }),
     enabled: !!(viewer?.id)
   })
-  
-  // use coinbase indexer to find if the wallet has any corresponding attestation with the schema
-  const indexerContract = getContract({
-    client,
-    chain: currentChain,
-    address: coinbaseIndexerContract
-  });
 
   const { data: attestationUid } = useReadContract({
     contract: indexerContract,
     method: "function getAttestationUid(address recipient, bytes32 schemaUid) external view returns (bytes32)",
     params: [(activeAccount?.address || "0x"), verifiedAccountSchema],
     // params: ["0xB18e4C959bccc8EF86D78DC297fb5efA99550d85", verifiedAccountSchema] // hardcoded valid address
-  });
-
-  // use the responded attestation uid to check if it's valid in EAS contract
-  const eas = getContract({
-    client,
-    chain: currentChain,
-    address: easContract
   });
 
   const { data: attestationValid, status: attestationStatus } = useReadContract({
