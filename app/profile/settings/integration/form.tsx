@@ -24,7 +24,6 @@ const indexerContract = getContract({
   chain: currentChain,
   address: coinbaseIndexerContract
 });
-console.log({ indexerContract })
 
 // use the responded attestation uid to check if it's valid in EAS contract
 const eas = getContract({
@@ -32,7 +31,6 @@ const eas = getContract({
   chain: currentChain,
   address: easContract
 });
-console.log({ eas })
 
 export function ProfileIntegrationForm() {
   const activeAccount = useActiveAccount();
