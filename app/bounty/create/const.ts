@@ -1,3 +1,5 @@
+import { usdc, usdt } from "@/const/contracts";
+
 export const tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -16,10 +18,11 @@ export const EXPIRY_PRESET: Record<string, Date> = {
   "In 1 month": oneMonthFromNow,
 }
 
-export const ACCEPTABLE_CURRENCIES = {
-  USDC: "usdc",
-  USDT: "usdt"
+export const ACCEPTABLE_CURRENCIES: Record<string, string> = {
+  "USDC": usdc,
+  "USDT": usdt
 } as const;
-export type ACCEPTABLE_CURRENCIES = typeof ACCEPTABLE_CURRENCIES[keyof typeof ACCEPTABLE_CURRENCIES];
+
+export type ACCEPTABLE_CURRENCIES_ADDRESS_TYPE = typeof ACCEPTABLE_CURRENCIES[keyof typeof ACCEPTABLE_CURRENCIES];
 
 export const MAX_NUM_OF_TAGS = 5;

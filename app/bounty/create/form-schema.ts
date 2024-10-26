@@ -2,6 +2,8 @@ import { z } from "zod"
 import { optionSchema } from '@/components/ui/multiple-selector';
 import { ACCEPTABLE_CURRENCIES, MAX_NUM_OF_TAGS, oneMonthFromNow, tomorrow } from "@/app/bounty/create/const"
 
+const currencyAddresses = Object.values(ACCEPTABLE_CURRENCIES) as [string, string];
+
 export const bountyFormSchema = z.object({
   title: z
     .string()
@@ -19,7 +21,7 @@ export const bountyFormSchema = z.object({
     .max(1000, {
       message: "Name must not be longer than 1000 characters.",
     }),
-  rewardCurrency: z.enum(Object.values(ACCEPTABLE_CURRENCIES) as [ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES], {
+  rewardCurrency: z.enum(currencyAddresses, {
     invalid_type_error: "Select a currency",
     required_error: "Please select a currency.",
   }),

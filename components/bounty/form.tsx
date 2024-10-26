@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
+import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES_ADDRESS_TYPE } from "@/app/bounty/create/const";
 interface IBountyForm {
   form: UseFormReturn<{
     title: string;
@@ -33,7 +33,7 @@ interface IBountyForm {
     numberOfRewarders: number;
     expiry: Date;
     category: string;
-    rewardCurrency: ACCEPTABLE_CURRENCIES;
+    rewardCurrency: ACCEPTABLE_CURRENCIES_ADDRESS_TYPE;
     amountPerRewarder: number;
     tags?: {
       label: string,
@@ -46,7 +46,7 @@ interface IBountyForm {
     numberOfRewarders: number;
     expiry: Date;
     category: string;
-    rewardCurrency: ACCEPTABLE_CURRENCIES;
+    rewardCurrency: ACCEPTABLE_CURRENCIES_ADDRESS_TYPE;
     amountPerRewarder: number;
     tags?: {
       label: string,
@@ -142,8 +142,8 @@ export function BountyForm({
                   </FormControl>
                   <SelectContent>
                     {
-                      Object.values(ACCEPTABLE_CURRENCIES).map(c => (
-                        <SelectItem value={c} key={c}>{c.toUpperCase()}</SelectItem>
+                      Object.keys(ACCEPTABLE_CURRENCIES).map(c => (
+                        <SelectItem value={ACCEPTABLE_CURRENCIES[c]} key={c}>{c}</SelectItem>
                       ))
                     }
                   </SelectContent>
