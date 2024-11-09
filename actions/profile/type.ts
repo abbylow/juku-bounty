@@ -28,6 +28,7 @@ export type ProfileOrNull = Profile | null;
 export interface IGetProfileParams {
   wallet_address?: string;
   username?: string;
+  id?: string;
 }
 
 export interface IUpsertProfileParams {

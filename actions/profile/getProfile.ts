@@ -23,6 +23,11 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
       values.push(params.username);
     }
 
+    if (params?.id) {
+      whereClauses.push(`id = $${whereClauses.length + 1}`);
+      values.push(params.id);
+    }
+
     const whereClause = whereClauses.length > 0
       ? `WHERE ${whereClauses.join(' OR ')}`
       : '';
@@ -40,7 +45,7 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
     }
 
     const profile = result[0] as Profile;
-    
+
     // Query to get active categories for the profile
     const categoriesResult = await sql`
       SELECT category_id
