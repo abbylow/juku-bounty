@@ -1,10 +1,16 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
+import { formatUnits } from "ethers/lib/utils"
 import { Award, CalendarClock, MessageSquare, ThumbsUp, Share, Lightbulb } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { getContract } from "thirdweb"
+import { decimals } from "thirdweb/extensions/erc20"
 
+import { handleLikeDislike } from "@/actions/bountyLike/likeBounty"
+import { getCurrentLikeStatus } from "@/actions/bountyLike/getBountyLike"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import { Badge } from "@/components/ui/badge"
@@ -24,12 +30,8 @@ import getURL from "@/lib/get-url";
 import { escrowContractInstance } from "@/lib/contract-instances"
 import { useReadContract } from "thirdweb/react"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
-import { getContract } from "thirdweb"
 import { client } from "@/lib/thirdweb-client"
 import { currentChain } from "@/const/chains"
-import { decimals } from "thirdweb/extensions/erc20"
-import { useEffect, useState } from "react"
-import { formatUnits } from "ethers/lib/utils"
 
 enum BountyStatus {
   OPEN = "Open",
@@ -39,7 +41,7 @@ enum BountyStatus {
 }
 
 export default function BountyCard({ details }: { details: any }) {
-  console.log({ details })
+  // console.log({ details })
 
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
@@ -117,7 +119,24 @@ export default function BountyCard({ details }: { details: any }) {
     copy(bountyUrl, "Successfully copied bounty link.");
   }
 
-  if (isCreatorProfilePending || isBountyDataPending) {
+  // Get current like 
+  const queryClient = useQueryClient();
+  
+  const { data: isLiked, isPending: isLikedPending } = useQuery({
+    queryKey: ['fetchBountyLikeStatus', details.id],
+    queryFn: async () => await getCurrentLikeStatus({ bountyId: details.id })
+  })
+
+  // Handle "like / dislike bounty" feature
+  const toggleLike = async () => {
+    await handleLikeDislike({
+      bountyId: details.id,
+      like: !isLiked
+    })
+    queryClient.invalidateQueries({ queryKey: ['fetchBountyLikeStatus'] })
+  }
+
+  if (isCreatorProfilePending || isBountyDataPending || isLikedPending) {
     return <Skeleton className="h-56" />
   }
 
@@ -172,10 +191,10 @@ export default function BountyCard({ details }: { details: any }) {
       </CardContent>
       <CardFooter>
         <div className="w-full flex justify-between items-center">
-          {/* TODO: handle reactions */}
           <div className="flex gap-3">
-            <Button variant="ghost" size="icon">
-              <ThumbsUp className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={toggleLike}>
+              {/* TODO: import color code from theme */}
+              <ThumbsUp fill={isLiked ? "#0F172A" : "#FFFFFF"} className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon">
               <MessageSquare className="h-5 w-5" />
