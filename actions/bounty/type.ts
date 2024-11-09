@@ -1,4 +1,5 @@
 import { Option } from '@/components/ui/multiple-selector';
+import { Tag } from '@/actions/tag/type';
 
 export interface GetBountyParams {
   bountyId: string
@@ -29,6 +30,8 @@ export interface Bounty {
   created_at: Date;                     // Timestamp when bounty was created (TIMESTAMP)
   edited_at: Date;                      // Timestamp when bounty was last edited (TIMESTAMP)
   deleted_at?: Date | null;             // Soft delete timestamp (optional, can be null)
+  category_id?: number;
+  tags?: Tag[];
 }
 
 export type BountyOrNull = Bounty | null;
