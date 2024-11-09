@@ -21,9 +21,59 @@ import UserAvatar from "@/components/user/avatar"
 import { PROFILE_URL } from "@/const/links"
 import { useClipboard } from "@/hooks/useClipboard";
 import getURL from "@/lib/get-url";
+import { escrowContractInstance } from "@/lib/contract-instances"
+import { useReadContract } from "thirdweb/react"
+import { tokenAddressToTokenNameMapping } from "@/const/contracts"
+import { getContract } from "thirdweb"
+import { client } from "@/lib/thirdweb-client"
+import { currentChain } from "@/const/chains"
+import { decimals } from "thirdweb/extensions/erc20"
+import { useEffect, useState } from "react"
+import { formatUnits } from "ethers/lib/utils"
 
 export default function BountyCard({ details }: { details: any }) {
-  // console.log({ details })
+  console.log({ details })
+
+  // Get bounty's reward details from escrow contract
+  const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
+    contract: escrowContractInstance,
+    method: "bounties",
+    params: [details.bounty_id_on_escrow],
+  });
+
+  console.log({ bountyData, isBountyDataPending })
+
+  const [totalReward, setTotalReward] = useState<string>('');
+
+  const getRewardTokenDecimals = async () => {
+    if (!bountyData) {
+      return 0
+    }
+
+    // Get reward token contract
+    const rewardTokenInstance = getContract({
+      client: client,
+      chain: currentChain,
+      address: bountyData?.[1] || "",
+    });
+
+    // get the decimals of the reward token 
+    const rewardTokenDecimals = await decimals({
+      contract: rewardTokenInstance
+    })
+
+    console.log({ rewardTokenDecimals })
+
+    const totalRewardInDecimals = formatUnits((bountyData[2] * bountyData[3]).toString(), rewardTokenDecimals);
+    // setTotalReward(Number.parseFloat(totalRewardInDecimals).toFixed(2))
+    setTotalReward(totalRewardInDecimals);
+  }
+
+  useEffect(() => {
+    if (!isBountyDataPending && bountyData) {
+      getRewardTokenDecimals()
+    }
+  }, [isBountyDataPending, bountyData]);
 
   // Fetch bounty's creator
   const { data: creatorProfile, isPending: isCreatorProfilePending } = useQuery({
@@ -44,7 +94,7 @@ export default function BountyCard({ details }: { details: any }) {
     copy(bountyUrl, "Successfully copied bounty link.");
   }
 
-  if (isCreatorProfilePending) {
+  if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
 
@@ -83,10 +133,8 @@ export default function BountyCard({ details }: { details: any }) {
         <div className="flex gap-4 flex-wrap">
           <div className="flex gap-2">
             <Award className="h-5 w-5 text-muted-foreground" />
-            {/* TODO: math safety check for the calculation below */}
-            {/* TODO: get data from smart contract */}
             <p className="text-sm text-muted-foreground">
-              {details?.amountPerRewarder * details?.numberOfRewarders} {details?.rewardCurrency?.toUpperCase()}{details?.numberOfRewarders > 1 ? ` for ${details?.numberOfRewarders}` : ""}
+              {totalReward} {tokenAddressToTokenNameMapping[bountyData?.[1] || '']} {bountyData && bountyData[3] > 1 ? ` for ${bountyData?.[3]} persons` : ""}
             </p>
           </div>
           <div className="flex gap-2">

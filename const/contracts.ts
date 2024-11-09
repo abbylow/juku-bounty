@@ -20,3 +20,8 @@ export const usdc = process.env.NODE_ENV === "production" ? usdcBase : usdcBaseS
 export const usdtBaseSepolia = "0x984F01ADdE46264164F6151597c6F14c148bd8CA";
 export const usdtBase = "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2";
 export const usdt = process.env.NODE_ENV === "production" ? usdtBase : usdtBaseSepolia
+
+export const tokenAddressToTokenNameMapping = {
+  [usdc]: "USDC",
+  [usdt]: "USDT"
+}
