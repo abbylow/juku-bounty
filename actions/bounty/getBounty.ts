@@ -1,7 +1,7 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
-import { Bounty, BountyOrNull, GetBountyParams } from "@/actions/bounty/type"; // Assuming Bounty types are defined
+import { Bounty, BountyOrNull, BountyWinningContribution, GetBountyParams } from "@/actions/bounty/type"; // Assuming Bounty types are defined
 import { Tag } from "@/actions/tag/type";
 
 export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> {
@@ -39,6 +39,13 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
       WHERE bt.bounty_id = ${bounty.id} AND bt.active = true;
     `;
     bounty.tags = tagsResult as Tag[];
+
+    const winningContributionResult = await sql`
+      SELECT * 
+      FROM BountyWinningContribution
+      WHERE bounty_id = ${bounty.id} AND deleted_at IS NULL;
+    `;
+    bounty.winningContributions = winningContributionResult as BountyWinningContribution[];
 
     return bounty;
   } catch (error) {

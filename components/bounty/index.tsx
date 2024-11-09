@@ -31,6 +31,13 @@ import { decimals } from "thirdweb/extensions/erc20"
 import { useEffect, useState } from "react"
 import { formatUnits } from "ethers/lib/utils"
 
+enum BountyStatus {
+  OPEN = "Open",
+  ENDED = "Ended",
+  COMPLETED = "Completed",
+  UNKNOWN = "Unknown"
+}
+
 export default function BountyCard({ details }: { details: any }) {
   console.log({ details })
 
@@ -41,11 +48,29 @@ export default function BountyCard({ details }: { details: any }) {
     params: [details.bounty_id_on_escrow],
   });
 
-  console.log({ bountyData, isBountyDataPending })
+  // Get bounty's status
+  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN);
 
+  useEffect(() => {
+    if (details && bountyData) {
+      const isClosed = bountyData[7];
+      const isExpired = details.expiry <= new Date();
+      const hasWinner = details.winningContributions > 0;
+
+      if (hasWinner) {
+        setStatus(BountyStatus.COMPLETED);
+      } else if (isExpired || isClosed) {
+        setStatus(BountyStatus.ENDED);
+      } else {
+        setStatus(BountyStatus.OPEN);
+      }
+    }
+  }, [details, bountyData])
+
+  // Calculate total rewards of this bounty
   const [totalReward, setTotalReward] = useState<string>('');
 
-  const getRewardTokenDecimals = async () => {
+  const calcTotalRewards = async () => {
     if (!bountyData) {
       return 0
     }
@@ -62,8 +87,6 @@ export default function BountyCard({ details }: { details: any }) {
       contract: rewardTokenInstance
     })
 
-    console.log({ rewardTokenDecimals })
-
     const totalRewardInDecimals = formatUnits((bountyData[2] * bountyData[3]).toString(), rewardTokenDecimals);
     // setTotalReward(Number.parseFloat(totalRewardInDecimals).toFixed(2))
     setTotalReward(totalRewardInDecimals);
@@ -71,7 +94,7 @@ export default function BountyCard({ details }: { details: any }) {
 
   useEffect(() => {
     if (!isBountyDataPending && bountyData) {
-      getRewardTokenDecimals()
+      calcTotalRewards()
     }
   }, [isBountyDataPending, bountyData]);
 
@@ -118,9 +141,7 @@ export default function BountyCard({ details }: { details: any }) {
             <div className="text-xs text-muted-foreground">
               {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
             </div>
-            {/* TODO: get status from query data */}
-            {/* TODO: assign different colors to different statuses */}
-            <Badge>Open</Badge>
+            <Badge variant="outline">{status}</Badge>
           </div>
         </div>
       </CardHeader>

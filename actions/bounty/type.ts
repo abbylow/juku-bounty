@@ -32,6 +32,16 @@ export interface Bounty {
   deleted_at?: Date | null;             // Soft delete timestamp (optional, can be null)
   category_id?: number;
   tags?: Tag[];
+  winningContributions?: BountyWinningContribution[];
 }
 
 export type BountyOrNull = Bounty | null;
+
+export interface BountyWinningContribution {
+  id: number;
+  bounty_id: string;
+  contribution_id: number;
+  created_at: Date;
+  edited_at: Date;
+  deleted_at?: Date | null;
+}
