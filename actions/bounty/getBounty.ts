@@ -1,7 +1,7 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
-import { Bounty, BountyOrNull, BountyWinningContribution, GetBountyParams } from "@/actions/bounty/type"; // Assuming Bounty types are defined
+import { Bounty, BountyOrNull, BountyWinningContribution, GetBountyParams } from "@/actions/bounty/type";
 import { Tag } from "@/actions/tag/type";
 
 export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> {
