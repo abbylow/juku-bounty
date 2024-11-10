@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import Link from "next/link";
 import { useForm } from "react-hook-form"
 
@@ -16,10 +16,8 @@ import {
 } from "@/components/ui/form"
 import { toast } from "@/components/ui/use-toast"
 import { Switch } from "@/components/ui/switch"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { useEffect, useState } from "react";
-import { INotificationSettings } from "@/components/ceramic/types";
 import { useViewerContext } from "@/contexts/viewer";
 import { NotificationFormValues, notificationFormSchema } from "@/app/profile/settings/notification/form-schema";
 import { getNotificationSettings } from "@/actions/notificationSettings/getNotificationSettings";
@@ -36,9 +34,6 @@ const defaultValues: Partial<NotificationFormValues> = {
 }
 
 export function ProfileNotificationForm() {
-  const { viewerProfile } = useCeramicContext();
-
-
   const { viewer } = useViewerContext()
   const { data: notificationSettings, isPending } = useQuery({
     queryKey: ['fetchNotificationSettings', viewer?.id],
