@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Search } from "lucide-react"
 
 import BountyCard from "@/components/bounty"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import {
   Card,
   CardContent,
@@ -12,6 +11,15 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import {
   Select,
   SelectContent,
@@ -25,45 +33,18 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 // TODO: handle the error when bounty not found
 export default function BountyList() {
-  const { composeClient } = useCeramicContext()
 
   const [bountyList, setBountyList] = useState<any>([])
   const [loading, setLoading] = useState<boolean>(true)
 
   const getBountyList = async () => {
-    const list = await composeClient.executeQuery(`
-      query {
-        bountyIndex(last: 20) {
-          edges {
-            node {
-              id
-              title
-              description
-              expiry
-              createdAt
-              author {
-                profile {
-                  id
-                  username
-                  displayName
-                  pfp
-                }
-              }
-            }
-          }
-        }
-      }
-    `)
-    console.log("bounty/list/index", { list })
 
-    const queryRes: any = list?.data?.bountyIndex;
-    setBountyList(queryRes?.edges?.map((e: { node: any }) => e.node))
     setLoading(false)
   }
 
   useEffect(() => {
-    getBountyList()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // getBountyList()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -141,6 +122,23 @@ export default function BountyList() {
             <Skeleton className="h-56" />
             <Skeleton className="h-56" />
           </div>}
+
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious href="#" />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#">1</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext href="#" />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
 
         </CardContent>
       </Card>

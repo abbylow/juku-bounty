@@ -45,3 +45,11 @@ export interface BountyWinningContribution {
   edited_at: Date;
   deleted_at?: Date | null;
 }
+
+export interface GetBountiesParams {
+  limit: number;
+  offset: number;
+  categoryId?: string; // Optional filter by category ID
+  title?: string; // Optional fuzzy search on title
+  description?: string; // Optional fuzzy search on description
+}
