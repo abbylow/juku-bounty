@@ -11,9 +11,23 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
 
   try {
     const result = await sql`
-      SELECT * 
-      FROM Bounty
-      WHERE id = ${params.bountyId};
+      SELECT 
+        b.*, 
+        bc.category_id AS category_id,
+        t.id AS tag_id,
+        t.name AS tag_name,
+        t.slug AS tag_slug,
+        bwc.id AS winning_contribution_id,
+        bwc.contribution_id AS winning_contribution_contribution_id,
+        bwc.created_at AS winning_contribution_created_at,
+        bwc.edited_at AS winning_contribution_edited_at,
+        bwc.deleted_at AS winning_contribution_deleted_at
+      FROM Bounty b
+      LEFT JOIN BountyCategory bc ON b.id = bc.bounty_id AND bc.active = true
+      LEFT JOIN BountyTag bt ON b.id = bt.bounty_id AND bt.active = true
+      LEFT JOIN Tag t ON bt.tag_id = t.id
+      LEFT JOIN BountyWinningContribution bwc ON b.id = bwc.bounty_id AND bwc.deleted_at IS NULL
+      WHERE b.id = ${params.bountyId};
     `;
 
     // If no bounty is found, return null
@@ -21,33 +35,37 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
       return null;
     }
 
-    const bounty = result[0] as Bounty;
+    // Process the result to structure it in the desired format
+    const bounty = {
+      ...result[0],
+      category_id: result[0].category_id,
+      tags: [] as Tag[],
+      winningContributions: [] as BountyWinningContribution[]
+    };
 
-    // Query to get active category for the bounty
-    const categoryResult = await sql`
-      SELECT category_id
-      FROM BountyCategory 
-      WHERE bounty_id = ${bounty.id} AND active = true;
-    `;
-    bounty.category_id = categoryResult[0].category_id;
+    result.forEach(row => {
+      if (row.tag_id) {
+        bounty.tags.push({
+          id: row.tag_id,
+          name: row.tag_name,
+          slug: row.tag_slug
+        } as Tag);
+      }
 
-    // Query to get active tags for the bounty, including the tag names
-    const tagsResult = await sql`
-      SELECT t.id AS id, t.name AS name, t.slug AS slug
-      FROM BountyTag bt
-      JOIN Tag t ON bt.tag_id = t.id
-      WHERE bt.bounty_id = ${bounty.id} AND bt.active = true;
-    `;
-    bounty.tags = tagsResult as Tag[];
+      // Add winning contributions
+      if (row.winning_contribution_id) {
+        bounty.winningContributions.push({
+          id: row.winning_contribution_id,
+          bounty_id: params.bountyId,
+          contribution_id: row.winning_contribution_contribution_id,
+          created_at: row.winning_contribution_created_at,
+          edited_at: row.winning_contribution_edited_at,
+          deleted_at: row.winning_contribution_deleted_at
+        } as BountyWinningContribution);
+      }
+    });
 
-    const winningContributionResult = await sql`
-      SELECT * 
-      FROM BountyWinningContribution
-      WHERE bounty_id = ${bounty.id} AND deleted_at IS NULL;
-    `;
-    bounty.winningContributions = winningContributionResult as BountyWinningContribution[];
-
-    return bounty;
+    return bounty as Bounty;
   } catch (error) {
     console.log("Error retrieving bounty by ID", error);
     throw new Error("Error retrieving bounty by ID");
