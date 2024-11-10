@@ -18,10 +18,7 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         t.name AS tag_name,
         t.slug AS tag_slug,
         bwc.id AS winning_contribution_id,
-        bwc.contribution_id AS winning_contribution_contribution_id,
-        bwc.created_at AS winning_contribution_created_at,
-        bwc.edited_at AS winning_contribution_edited_at,
-        bwc.deleted_at AS winning_contribution_deleted_at
+        bwc.contribution_id AS winning_contribution_contribution_id
       FROM Bounty b
       LEFT JOIN BountyCategory bc ON b.id = bc.bounty_id AND bc.active = true
       LEFT JOIN BountyTag bt ON b.id = bt.bounty_id AND bt.active = true
@@ -57,10 +54,7 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         bounty.winningContributions.push({
           id: row.winning_contribution_id,
           bounty_id: params.bountyId,
-          contribution_id: row.winning_contribution_contribution_id,
-          created_at: row.winning_contribution_created_at,
-          edited_at: row.winning_contribution_edited_at,
-          deleted_at: row.winning_contribution_deleted_at
+          contribution_id: row.winning_contribution_contribution_id
         } as BountyWinningContribution);
       }
     });

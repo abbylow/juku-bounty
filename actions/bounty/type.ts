@@ -41,8 +41,8 @@ export interface BountyWinningContribution {
   id: number;
   bounty_id: string;
   contribution_id: number;
-  created_at: Date;
-  edited_at: Date;
+  created_at?: Date;
+  edited_at?: Date;
   deleted_at?: Date | null;
 }
 
