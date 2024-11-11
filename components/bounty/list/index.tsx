@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Search } from "lucide-react"
+import { useState } from "react"
 
 import BountyCard from "@/components/bounty"
 import {
@@ -14,9 +15,7 @@ import { Input } from "@/components/ui/input"
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
@@ -30,22 +29,54 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useCategoryContext } from "@/contexts/categories"
+import { getBounties } from "@/actions/bounty/getBounties"
+import { getBountyCount } from "@/actions/bounty/getBountyCount"
 
-// TODO: handle the error when bounty not found
+const itemsPerPage = 1;
+
 export default function BountyList() {
+  const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
-  const [bountyList, setBountyList] = useState<any>([])
-  const [loading, setLoading] = useState<boolean>(true)
+  // Handle pagination
+  // Get the total numbers of rows (with filter)
+  const { data: bountyCount, isPending: isBountyCountPending } = useQuery({
+    queryKey: ['fetchBountyCount'], // TODO: change this query key with filter states
+    queryFn: async () => await getBountyCount({
+      // categoryId?: string;
+      // title?: string;
+      // description?: string;
+    })
+  })
 
-  const getBountyList = async () => {
+  console.log({ bountyCount, isBountyCountPending })
 
-    setLoading(false)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const prevPage = () => {
+    setCurrentPage(prevState => prevState - 1)
+  }
+  const nextPage = () => {
+    setCurrentPage(prevState => prevState + 1)
   }
 
-  useEffect(() => {
-    // getBountyList()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
+    queryKey: ['fetchBounties', currentPage, itemsPerPage],
+    queryFn: async () => await getBounties({
+      limit: itemsPerPage,
+      offset: (currentPage - 1) * itemsPerPage
+      // categoryId?: string; // Optional filter by category ID
+      // title?: string; // Optional fuzzy search on title
+      // description?: string; // Optional fuzzy search on description
+      // orderBy?: string;
+      // orderDirection?: string;
+    })
+  })
+
+  console.log({ bounties, isBountiesPending })
+
+  if (isBountiesError) {
+    return <div>Error: Bounties not found!</div>
+  }
 
   return (
     <>
@@ -55,23 +86,22 @@ export default function BountyList() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* category filter */}
-            <Select>
+            {!isCategoriesPending && <Select
+            // onValueChange={field.onChange} 
+            // defaultValue={field.value} 
+            // disabled={loading}
+            >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Categories</SelectLabel>
-                  <SelectItem value="art">Art</SelectItem>
-                  <SelectItem value="data">Data</SelectItem>
-                  <SelectItem value="engineering">Engineering</SelectItem>
-                  <SelectItem value="recommendation">Recommendation</SelectItem>
-                  <SelectItem value="referral">Referral</SelectItem>
-                </SelectGroup>
+                {
+                  categoryOptions.map(c => (
+                    <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
+                  ))
+                }
               </SelectContent>
-            </Select>
-            {/* status filter */}
+            </Select>}
             <Select>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
@@ -95,9 +125,9 @@ export default function BountyList() {
                 <SelectGroup>
                   <SelectLabel>Sort By</SelectLabel>
                   <SelectItem value="most-recent">Most recent</SelectItem>
-                  <SelectItem value="highest-reward">Highest Reward</SelectItem>
+                  {/* <SelectItem value="highest-reward">Highest Reward</SelectItem> */}
                   <SelectItem value="due-soon">Due Soon</SelectItem>
-                  <SelectItem value="most-replies">Most Replies</SelectItem>
+                  {/* <SelectItem value="most-replies">Most Replies</SelectItem> */}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -114,31 +144,27 @@ export default function BountyList() {
             </div>
           </div>
 
-          {bountyList?.map((b: any) => (
+          {bounties?.map((b: any) => (
             <BountyCard key={b?.id} details={b} />
           ))}
 
-          {loading && <div className="space-y-2">
+          {isBountiesPending && <div className="space-y-2">
             <Skeleton className="h-56" />
             <Skeleton className="h-56" />
           </div>}
 
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious href="#" />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">1</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext href="#" />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          {!isBountiesPending && !isBountyCountPending && (
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (<PaginationItem>
+                  <PaginationPrevious onClick={prevPage} />
+                </PaginationItem>)}
+                {((bountyCount || 0) / itemsPerPage) > currentPage && (<PaginationItem>
+                  <PaginationNext onClick={nextPage} />
+                </PaginationItem>)}
+              </PaginationContent>
+            </Pagination>
+          )}
 
         </CardContent>
       </Card>
