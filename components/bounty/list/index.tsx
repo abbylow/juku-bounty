@@ -40,19 +40,20 @@ const itemsPerPage = 10; // TODO: change this
 export default function BountyList() {
   const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
-  // State for pagination and sorting
+  // State for pagination, sorting, and filtering by category
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Default: no category selected
 
   // Handle pagination
-  const prevPage = () => setCurrentPage((prevState) => prevState - 1);
+  const prevPage = () => setCurrentPage((prevState) => Math.max(prevState - 1, 1));
   const nextPage = () => setCurrentPage((prevState) => prevState + 1);
 
-  // Get the total numbers of rows (with filter)
+  // Get the total numbers of rows (with filters)
   const { data: bountyCount, isPending: isBountyCountPending } = useQuery({
-    queryKey: ['fetchBountyCount'], // TODO: change this query key with filter states
+    queryKey: ['fetchBountyCount', selectedCategory], // TODO: change this query key with filter states
     queryFn: async () => await getBountyCount({
-      // categoryId?: string;
+      categoryId: selectedCategory,
       // title?: string;
       // description?: string;
     })
@@ -69,13 +70,13 @@ export default function BountyList() {
 
   // Fetch bounties with pagination, filters, and sorting
   const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
-    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection],
+    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory],
     queryFn: async () => await getBounties({
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
       orderBy,
       orderDirection,
-      // categoryId?: string; // Optional filter by category ID
+      categoryId: selectedCategory, // Filter by selected category
       // title?: string; // Optional fuzzy search on title
       // description?: string; // Optional fuzzy search on description
     })
@@ -96,35 +97,20 @@ export default function BountyList() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            {!isCategoriesPending && <Select
-            // onValueChange={field.onChange} 
-            // defaultValue={field.value} 
-            // disabled={loading}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((c) => (
-                  <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>}
-            {/* TODO: uncomment this status filter - hard to get SC's isClosed from server action" */}
-            {/* <Select>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Status</SelectLabel>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="ended">Ended</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select> */}
+            {!isCategoriesPending && (
+              <Select onValueChange={(value) => setSelectedCategory(value === "*" ? null : value)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={"*"}>All Categories</SelectItem>
+                  {categoryOptions.map((c) => (
+                    <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
             {/* Sort by */}
             <Select onValueChange={(value: SortOptions) => setSortBy(value)}>
               <SelectTrigger className="w-[200px]">
@@ -135,10 +121,10 @@ export default function BountyList() {
                   <SelectLabel>Sort By</SelectLabel>
                   <SelectItem value="most-recent">Most recent</SelectItem>
                   <SelectItem value="due-soon">Due Soon</SelectItem>
-                  {/* TODO: add most replies and highest rewards (SC) */}
                 </SelectGroup>
               </SelectContent>
             </Select>
+
             {/* Search bar */}
             <div className="flex-1 min-w-[200px]">
               <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

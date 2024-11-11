@@ -49,7 +49,7 @@ export interface BountyWinningContribution {
 export interface GetBountiesParams {
   limit: number;
   offset: number;
-  categoryId?: string; // Optional filter by category ID
+  categoryId?: string | null; // Optional filter by category ID
   title?: string; // Optional fuzzy search on title
   description?: string; // Optional fuzzy search on description
   orderBy?: string;
@@ -57,7 +57,7 @@ export interface GetBountiesParams {
 }
 
 export interface GetBountyCountParams {
-  categoryId?: string;
+  categoryId?: string | null;
   title?: string;
   description?: string;
 }
