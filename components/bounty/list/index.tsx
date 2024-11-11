@@ -33,12 +33,21 @@ import { useCategoryContext } from "@/contexts/categories"
 import { getBounties } from "@/actions/bounty/getBounties"
 import { getBountyCount } from "@/actions/bounty/getBountyCount"
 
-const itemsPerPage = 1;
+type SortOptions = "most-recent" | "due-soon";
+
+const itemsPerPage = 10; // TODO: change this 
 
 export default function BountyList() {
   const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
+  // State for pagination and sorting
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
+
   // Handle pagination
+  const prevPage = () => setCurrentPage((prevState) => prevState - 1);
+  const nextPage = () => setCurrentPage((prevState) => prevState + 1);
+
   // Get the total numbers of rows (with filter)
   const { data: bountyCount, isPending: isBountyCountPending } = useQuery({
     queryKey: ['fetchBountyCount'], // TODO: change this query key with filter states
@@ -47,35 +56,36 @@ export default function BountyList() {
       // title?: string;
       // description?: string;
     })
-  })
+  });
 
-  console.log({ bountyCount, isBountyCountPending })
+  // Map `sortBy` value to `orderBy` and `orderDirection`
+  const sortMapping: Record<SortOptions, { orderBy: string; orderDirection: string }>  = {
+    "most-recent": { orderBy: "created_at", orderDirection: "DESC" },
+    "due-soon": { orderBy: "expiry", orderDirection: "ASC" }
+  };
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const prevPage = () => {
-    setCurrentPage(prevState => prevState - 1)
-  }
-  const nextPage = () => {
-    setCurrentPage(prevState => prevState + 1)
-  }
+  const { orderBy, orderDirection } = sortMapping[sortBy];
+  console.log({ orderBy, orderDirection })
 
+  // Fetch bounties with pagination, filters, and sorting
   const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
-    queryKey: ['fetchBounties', currentPage, itemsPerPage],
+    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection],
     queryFn: async () => await getBounties({
       limit: itemsPerPage,
-      offset: (currentPage - 1) * itemsPerPage
+      offset: (currentPage - 1) * itemsPerPage,
+      orderBy,
+      orderDirection,
       // categoryId?: string; // Optional filter by category ID
       // title?: string; // Optional fuzzy search on title
       // description?: string; // Optional fuzzy search on description
-      // orderBy?: string;
-      // orderDirection?: string;
     })
-  })
+  });
 
-  console.log({ bounties, isBountiesPending })
+  console.log({ bountyCount, isBountyCountPending });
+  console.log({ bounties, isBountiesPending });
 
   if (isBountiesError) {
-    return <div>Error: Bounties not found!</div>
+    return <div>Error: Bounties not found!</div>;
   }
 
   return (
@@ -95,14 +105,13 @@ export default function BountyList() {
                 <SelectValue placeholder="Categories" />
               </SelectTrigger>
               <SelectContent>
-                {
-                  categoryOptions.map(c => (
-                    <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
-                  ))
-                }
+                {categoryOptions.map((c) => (
+                  <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>}
-            <Select>
+            {/* TODO: uncomment this status filter - hard to get SC's isClosed from server action" */}
+            {/* <Select>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -115,9 +124,9 @@ export default function BountyList() {
                   <SelectItem value="expired">Expired</SelectItem>
                 </SelectGroup>
               </SelectContent>
-            </Select>
-            {/* sort */}
-            <Select>
+            </Select> */}
+            {/* Sort by */}
+            <Select onValueChange={(value: SortOptions) => setSortBy(value)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
@@ -125,13 +134,12 @@ export default function BountyList() {
                 <SelectGroup>
                   <SelectLabel>Sort By</SelectLabel>
                   <SelectItem value="most-recent">Most recent</SelectItem>
-                  {/* <SelectItem value="highest-reward">Highest Reward</SelectItem> */}
                   <SelectItem value="due-soon">Due Soon</SelectItem>
-                  {/* <SelectItem value="most-replies">Most Replies</SelectItem> */}
+                  {/* TODO: add most replies and highest rewards (SC) */}
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {/* search bar */}
+            {/* Search bar */}
             <div className="flex-1 min-w-[200px]">
               <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <form>
@@ -156,18 +164,21 @@ export default function BountyList() {
           {!isBountiesPending && !isBountyCountPending && (
             <Pagination>
               <PaginationContent>
-                {currentPage > 1 && (<PaginationItem>
-                  <PaginationPrevious onClick={prevPage} />
-                </PaginationItem>)}
-                {((bountyCount || 0) / itemsPerPage) > currentPage && (<PaginationItem>
-                  <PaginationNext onClick={nextPage} />
-                </PaginationItem>)}
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious onClick={prevPage} />
+                  </PaginationItem>
+                )}
+                {((bountyCount || 0) / itemsPerPage) > currentPage && (
+                  <PaginationItem>
+                    <PaginationNext onClick={nextPage} />
+                  </PaginationItem>
+                )}
               </PaginationContent>
             </Pagination>
           )}
-
         </CardContent>
       </Card>
     </>
-  )
+  );
 }

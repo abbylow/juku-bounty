@@ -55,8 +55,8 @@ export async function getBounties(params: GetBountiesParams): Promise<Bounty[]> 
     `;
 
     // Apply sorting again
-    query += ` ORDER BY ${params?.orderBy || "created_at"} ${params?.orderDirection || "DESC"}`;
-
+    query += ` ORDER BY b.${params?.orderBy || "created_at"} ${params?.orderDirection || "DESC"}`;
+// console.log({query})
     // Execute the query
     const result = await sql(query);
 
