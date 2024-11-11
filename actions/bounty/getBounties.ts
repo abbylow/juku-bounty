@@ -20,29 +20,42 @@ export async function getBounties(params: GetBountiesParams): Promise<Bounty[]> 
         t.slug AS tag_slug,
         bwc.id AS winning_contribution_id,
         bwc.contribution_id AS winning_contribution_contribution_id
-      FROM Bounty b
+      FROM (
+        SELECT * FROM Bounty
+        WHERE 1 = 1
+    `;
+
+    // Adding optional filters inside the subquery to affect only the primary Bounty records
+    if (params.categoryId) {
+      query += ` AND EXISTS (
+        SELECT 1 FROM BountyCategory bc WHERE bc.bounty_id = Bounty.id AND bc.category_id = ${params.categoryId} AND bc.active = true
+      )`;
+    }
+
+    if (params.title) {
+      query += ` AND title ILIKE '%${params.title}%'`;
+    }
+
+    if (params.description) {
+      query += ` AND description ILIKE '%${params.description}%'`;
+    }
+
+
+    // Apply sorting and pagination to the main `Bounty` records
+    query += ` ORDER BY ${params?.orderBy || "created_at"} ${params?.orderDirection || "DESC"} LIMIT ${params.limit} OFFSET ${params.offset}
+      ) AS b
+    `;
+
+    // Join with other tables outside the subquery
+    query += `
       LEFT JOIN BountyCategory bc ON b.id = bc.bounty_id AND bc.active = true
       LEFT JOIN BountyTag bt ON b.id = bt.bounty_id AND bt.active = true
       LEFT JOIN Tag t ON bt.tag_id = t.id
       LEFT JOIN BountyWinningContribution bwc ON b.id = bwc.bounty_id AND bwc.deleted_at IS NULL
-      WHERE 1 = 1
     `;
 
-    // Adding optional filters
-    if (params.categoryId) {
-      query += ` AND bc.category_id = ${params.categoryId}`;
-    }
-
-    if (params.title) {
-      query += ` AND b.title ILIKE '%${params.title}%'`;
-    }
-
-    if (params.description) {
-      query += ` AND b.description ILIKE '%${params.description}%'`;
-    }
-
-    // Add pagination
-    query += ` LIMIT ${params.limit} OFFSET ${params.offset}`;
+    // Apply sorting again
+    query += ` ORDER BY ${params?.orderBy || "created_at"} ${params?.orderDirection || "DESC"}`;
 
     // Execute the query
     const result = await sql(query);

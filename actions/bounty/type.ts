@@ -52,4 +52,12 @@ export interface GetBountiesParams {
   categoryId?: string; // Optional filter by category ID
   title?: string; // Optional fuzzy search on title
   description?: string; // Optional fuzzy search on description
+  orderBy?: string;
+  orderDirection?: string;
+}
+
+export interface GetBountyCountParams {
+  categoryId?: string;
+  title?: string;
+  description?: string;
 }
