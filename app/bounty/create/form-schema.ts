@@ -1,7 +1,8 @@
 import { z } from "zod"
 import { optionSchema } from '@/components/ui/multiple-selector';
 import { ACCEPTABLE_CURRENCIES, MAX_NUM_OF_TAGS, oneMonthFromNow, tomorrow } from "@/app/bounty/create/const"
-import { CATEGORY_OPTIONS } from "@/const/categories"
+
+const currencyAddresses = Object.values(ACCEPTABLE_CURRENCIES) as [string, string];
 
 export const bountyFormSchema = z.object({
   title: z
@@ -20,7 +21,7 @@ export const bountyFormSchema = z.object({
     .max(1000, {
       message: "Name must not be longer than 1000 characters.",
     }),
-  rewardCurrency: z.enum(Object.values(ACCEPTABLE_CURRENCIES) as [ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES], {
+  rewardCurrency: z.enum(currencyAddresses, {
     invalid_type_error: "Select a currency",
     required_error: "Please select a currency.",
   }),
@@ -37,10 +38,7 @@ export const bountyFormSchema = z.object({
     .refine(date => date <= oneMonthFromNow, { // Checks if the date is within one month
       message: "Expiry date must be within one month from now",
     }),
-  category: z.enum(CATEGORY_OPTIONS.map(option => option.value) as [string, ...string[]], {
-    invalid_type_error: "Select a category",
-    required_error: "Please select a category.",
-  }),
+  category: z.string(),
   tags: z.array(optionSchema)
     .max(MAX_NUM_OF_TAGS, { message: " Only allow maximum 5 tags" })
     .optional()
@@ -49,10 +47,16 @@ export const bountyFormSchema = z.object({
     })
 })
 
-
 export type BountyFormValues = z.infer<typeof bountyFormSchema>
 
-export const defaultValues: Partial<BountyFormValues> = {
+export type ExtendedBountyFormValues = BountyFormValues & {
+  escrowContractAddress: string;
+  escrowContractChainId: string;
+  bountyIdOnEscrow: number;
+  creatorProfileId: string;
+};
+
+export const defaultValues: Partial<ExtendedBountyFormValues> = {
   title: "",
   description: "",
   rewardCurrency: ACCEPTABLE_CURRENCIES.USDC,

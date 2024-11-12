@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PINATA_GATEWAY } from '@/lib/pinata-gateway';
 
 interface UserAvatarProps extends ComponentPropsWithoutRef<'div'> {
-  pfp: string;
+  pfp?: string;
 }
 
 export default function UserAvatar({ pfp, ...props }: UserAvatarProps) {
@@ -17,6 +17,13 @@ export default function UserAvatar({ pfp, ...props }: UserAvatarProps) {
       setDataUrl(`${PINATA_GATEWAY}/ipfs/${pfp.split('://')[1]}`)
   }, [pfp]);
 
+  if (!pfp) {
+    return (
+      <Avatar {...props}>
+        <AvatarFallback><UserRound /></AvatarFallback>
+      </Avatar>
+    )
+  }
   return (
     <Avatar {...props}>
       <AvatarImage src={dataUrl} />

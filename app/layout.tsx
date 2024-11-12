@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter as FontSans } from 'next/font/google'
-import { CeramicProvider } from '@/components/ceramic/ceramic-provider'
-import TanStackProvider from '@/components/tanstack-query/tanstack-provider'
-import { TwebProvider } from '@/components/thirdweb/thirdweb-provider'
+import { CategoryProvider } from '@/contexts/categories'
+import TanStackProvider from '@/contexts/tanstack'
+import { TwebProvider } from '@/contexts/thirdweb'
+import { ViewerProvider } from '@/contexts/viewer'
 import { Footer } from '@/components/site-footer'
 import { Header } from '@/components/site-header'
 import { Toaster } from '@/components/ui/toaster'
@@ -35,16 +36,18 @@ export default function RootLayout({
       )}>
         <TanStackProvider>
           <TwebProvider>
-            <CeramicProvider>
-              <div className="relative min-h-screen flex flex-col bg-background">
-                <Header />
-                <main className="flex-1 container">
-                  {children}
-                </main>
-                <Footer />
-                <Toaster />
-              </div>
-            </CeramicProvider>
+            <ViewerProvider>
+              <CategoryProvider>
+                <div className="relative min-h-screen flex flex-col bg-background">
+                  <Header />
+                  <main className="flex-1 container">
+                    {children}
+                  </main>
+                  <Footer />
+                  <Toaster />
+                </div>
+              </CategoryProvider>
+            </ViewerProvider>
           </TwebProvider>
         </TanStackProvider>
       </body>

@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Search } from "lucide-react"
+import { useState, useMemo } from "react"
+import debounce from "lodash.debounce"
 
 import BountyCard from "@/components/bounty"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
 import {
   Card,
   CardContent,
@@ -12,6 +13,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import {
   Select,
   SelectContent,
@@ -22,49 +30,74 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useCategoryContext } from "@/contexts/categories"
+import { getBounties } from "@/actions/bounty/getBounties"
+import { getBountyCount } from "@/actions/bounty/getBountyCount"
 
-// TODO: handle the error when bounty not found
+type SortOptions = "most-recent" | "due-soon";
+
+const itemsPerPage = 1; // TODO: change this 
+
 export default function BountyList() {
-  const { composeClient } = useCeramicContext()
+  const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
-  const [bountyList, setBountyList] = useState<any>([])
-  const [loading, setLoading] = useState<boolean>(true)
+  // State for pagination, sorting, filtering by category, and search term
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Default: no category selected
+  const [searchTerm, setSearchTerm] = useState<string>(""); // search input state
 
-  const getBountyList = async () => {
-    const list = await composeClient.executeQuery(`
-      query {
-        bountyIndex(last: 20) {
-          edges {
-            node {
-              id
-              title
-              description
-              expiry
-              createdAt
-              author {
-                profile {
-                  id
-                  username
-                  displayName
-                  pfp
-                }
-              }
-            }
-          }
-        }
-      }
-    `)
-    console.log("bounty/list/index", { list })
+  // Memoized debounced function for handling search input changes
+  const handleSearchChange = useMemo(
+    () => debounce((value: string) => setSearchTerm(value), 500), // 500ms debounce delay
+    []
+  );
 
-    const queryRes: any = list?.data?.bountyIndex;
-    setBountyList(queryRes?.edges?.map((e: { node: any }) => e.node))
-    setLoading(false)
+  // Handle search input updates and debounce the search term
+  const onSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange(e.target.value);
+  };
+
+  // Handle pagination
+  const prevPage = () => setCurrentPage((prevState) => Math.max(prevState - 1, 1));
+  const nextPage = () => setCurrentPage((prevState) => prevState + 1);
+
+  // Get the total numbers of rows (with filters)
+  const { data: bountyCount, isPending: isBountyCountPending } = useQuery({
+    queryKey: ['fetchBountyCount', selectedCategory, searchTerm], // Include category and search term in query key for caching
+    queryFn: async () => await getBountyCount({
+      categoryId: selectedCategory,
+      searchTerm,
+    })
+  });
+
+  // Map `sortBy` value to `orderBy` and `orderDirection`
+  const sortMapping: Record<SortOptions, { orderBy: string; orderDirection: string }>  = {
+    "most-recent": { orderBy: "created_at", orderDirection: "DESC" },
+    "due-soon": { orderBy: "expiry", orderDirection: "ASC" }
+  };
+
+  const { orderBy, orderDirection } = sortMapping[sortBy];
+
+  // Fetch bounties with pagination, filters, sorting, and search term
+  const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
+    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory, searchTerm],
+    queryFn: async () => await getBounties({
+      limit: itemsPerPage,
+      offset: (currentPage - 1) * itemsPerPage,
+      orderBy,
+      orderDirection,
+      categoryId: selectedCategory, // Filter by selected category
+      searchTerm, // Fuzzy search on title or description
+    })
+  });
+
+  console.log({ bountyCount, isBountyCountPending });
+  console.log({ bounties, isBountiesPending });
+
+  if (isBountiesError) {
+    return <div>Error: Bounties not found!</div>;
   }
-
-  useEffect(() => {
-    getBountyList()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <>
@@ -74,39 +107,22 @@ export default function BountyList() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* category filter */}
-            <Select>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Categories</SelectLabel>
-                  <SelectItem value="art">Art</SelectItem>
-                  <SelectItem value="data">Data</SelectItem>
-                  <SelectItem value="engineering">Engineering</SelectItem>
-                  <SelectItem value="recommendation">Recommendation</SelectItem>
-                  <SelectItem value="referral">Referral</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {/* status filter */}
-            <Select>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Status</SelectLabel>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="ended">Ended</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {/* sort */}
-            <Select>
+            {!isCategoriesPending && (
+              <Select onValueChange={(value) => setSelectedCategory(value === "*" ? null : value)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={"*"}>All Categories</SelectItem>
+                  {categoryOptions.map((c) => (
+                    <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {/* Sort by */}
+            <Select onValueChange={(value: SortOptions) => setSortBy(value)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
@@ -114,36 +130,55 @@ export default function BountyList() {
                 <SelectGroup>
                   <SelectLabel>Sort By</SelectLabel>
                   <SelectItem value="most-recent">Most recent</SelectItem>
-                  <SelectItem value="highest-reward">Highest Reward</SelectItem>
                   <SelectItem value="due-soon">Due Soon</SelectItem>
-                  <SelectItem value="most-replies">Most Replies</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {/* search bar */}
+
+            {/* Search bar */}
             <div className="flex-1 min-w-[200px]">
               <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <form>
                   <div className="relative">
                     <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search" className="pl-8" />
+                    <Input
+                      placeholder="Search"
+                      className="pl-8"
+                      onChange={onSearchInputChange} // Debounced search
+                    />
                   </div>
                 </form>
               </div>
             </div>
           </div>
 
-          {bountyList?.map((b: any) => (
+          {bounties?.map((b: any) => (
             <BountyCard key={b?.id} details={b} />
           ))}
 
-          {loading && <div className="space-y-2">
+          {isBountiesPending && <div className="space-y-2">
             <Skeleton className="h-56" />
             <Skeleton className="h-56" />
           </div>}
 
+          {!isBountiesPending && !isBountyCountPending && (
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious onClick={prevPage} />
+                  </PaginationItem>
+                )}
+                {((bountyCount || 0) / itemsPerPage) > currentPage && (
+                  <PaginationItem>
+                    <PaginationNext onClick={nextPage} />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          )}
         </CardContent>
       </Card>
     </>
-  )
+  );
 }

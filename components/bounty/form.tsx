@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import MultipleSelector from '@/components/ui/multiple-selector';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
 import {
   Popover,
   PopoverContent,
@@ -25,10 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { CATEGORY_OPTIONS } from "@/const/categories"
-import { TAG_OPTIONS } from "@/const/tags"
-import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES } from "@/app/bounty/create/const";
-
+import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES_ADDRESS_TYPE } from "@/app/bounty/create/const";
 interface IBountyForm {
   form: UseFormReturn<{
     title: string;
@@ -36,7 +33,7 @@ interface IBountyForm {
     numberOfRewarders: number;
     expiry: Date;
     category: string;
-    rewardCurrency: ACCEPTABLE_CURRENCIES;
+    rewardCurrency: ACCEPTABLE_CURRENCIES_ADDRESS_TYPE;
     amountPerRewarder: number;
     tags?: {
       label: string,
@@ -49,7 +46,7 @@ interface IBountyForm {
     numberOfRewarders: number;
     expiry: Date;
     category: string;
-    rewardCurrency: ACCEPTABLE_CURRENCIES;
+    rewardCurrency: ACCEPTABLE_CURRENCIES_ADDRESS_TYPE;
     amountPerRewarder: number;
     tags?: {
       label: string,
@@ -57,12 +54,16 @@ interface IBountyForm {
     }[] | undefined;
   }>
   loading: boolean
+  categoryOptions: Option[]
+  tagOptions: Option[] 
 }
 
 export function BountyForm({
   form,
   onSubmit,
-  loading
+  loading,
+  categoryOptions,
+  tagOptions
 }: IBountyForm) {
   return (
     <Form {...form}>
@@ -141,8 +142,8 @@ export function BountyForm({
                   </FormControl>
                   <SelectContent>
                     {
-                      Object.values(ACCEPTABLE_CURRENCIES).map(c => (
-                        <SelectItem value={c} key={c}>{c.toUpperCase()}</SelectItem>
+                      Object.keys(ACCEPTABLE_CURRENCIES).map(c => (
+                        <SelectItem value={ACCEPTABLE_CURRENCIES[c]} key={c}>{c}</SelectItem>
                       ))
                     }
                   </SelectContent>
@@ -244,7 +245,7 @@ export function BountyForm({
                 </FormControl>
                 <SelectContent>
                   {
-                    CATEGORY_OPTIONS.map(c => (
+                    categoryOptions.map(c => (
                       <SelectItem value={c.value} key={c.value}>{c.label}</SelectItem>
                     ))
                   }
@@ -272,7 +273,7 @@ export function BountyForm({
                       title: `You have reached max selected: ${maxLimit}`,
                     });
                   }}
-                  defaultOptions={TAG_OPTIONS}
+                  defaultOptions={tagOptions}
                   placeholder="Add tags for discovery..."
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">

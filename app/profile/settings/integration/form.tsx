@@ -1,43 +1,52 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect } from "react"
 import { getContract } from "thirdweb";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { currentChain } from "@/const/chains";
 import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { coinbaseIndexerContract, easContract } from "@/const/contracts";
 import { verifiedAccountSchema } from "@/const/eas";
 import { COINBASE_VERIFICATION_URL } from "@/const/links";
+import { coinbaseVerifiedAccount } from "@/const/verified_platform";
 import { client } from "@/lib/thirdweb-client";
+import { useViewerContext } from "@/contexts/viewer";
+import { upsertVerifiedPlatform } from "@/actions/verifiedPlatform/upsertVerifiedPlatform";
+import { getVerifiedPlatform } from "@/actions/verifiedPlatform/getVerifiedPlatform";
+
+// use coinbase indexer to find if the wallet has any corresponding attestation with the schema
+const indexerContract = getContract({
+  client,
+  chain: currentChain,
+  address: coinbaseIndexerContract
+});
+
+// use the responded attestation uid to check if it's valid in EAS contract
+const eas = getContract({
+  client,
+  chain: currentChain,
+  address: easContract
+});
 
 export function ProfileIntegrationForm() {
   const activeAccount = useActiveAccount();
-  const { composeClient, viewerProfile } = useCeramicContext();
-  // console.log('platform:: viewerProfile integrations = ', viewerProfile?.integrations)
+  const { viewer } = useViewerContext();
 
-  // use coinbase indexer to find if the wallet has any corresponding attestation with the schema
-  const indexerContract = getContract({
-    client,
-    chain: currentChain,
-    address: coinbaseIndexerContract
-  });
+  const { data: verifiedCoinbase, isPending: isVerifiedCoinbasePending } = useQuery({
+    queryKey: ['fetchVerifiedCoinbaseAcc', viewer?.id],
+    queryFn: async () => await getVerifiedPlatform({ profileId: viewer?.id!, type: coinbaseVerifiedAccount }),
+    enabled: !!(viewer?.id)
+  })
 
   const { data: attestationUid } = useReadContract({
     contract: indexerContract,
     method: "function getAttestationUid(address recipient, bytes32 schemaUid) external view returns (bytes32)",
     params: [(activeAccount?.address || "0x"), verifiedAccountSchema],
     // params: ["0xB18e4C959bccc8EF86D78DC297fb5efA99550d85", verifiedAccountSchema] // hardcoded valid address
-  });
-
-  // use the responded attestation uid to check if it's valid in EAS contract
-  const eas = getContract({
-    client,
-    chain: currentChain,
-    address: easContract
   });
 
   const { data: attestationValid, status: attestationStatus } = useReadContract({
@@ -50,79 +59,29 @@ export function ProfileIntegrationForm() {
     window.open(COINBASE_VERIFICATION_URL, '_blank', 'noreferrer noopener')
   }
 
-  const createCbRecord = async (verified: boolean) => {
-    const creation = await composeClient.executeQuery(`
-      mutation {
-        createCoinbaseIntegration(
-          input: {
-            content: {
-              name: "coinbase_verified_account", 
-              createdAt: "${new Date().toISOString()}",
-              editedAt: "${new Date().toISOString()}",
-              verified: ${verified}, 
-              profileId: "${viewerProfile?.id}",
-              context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
-            }
-          }
-        ) {
-          document {
-            id
-            name
-            profileId
-            verified
-          }
-        }
-      }
-    `);
-    console.log("profile/settings/integration/form", { creation })
+  const upsertRecord = async (isValid: boolean) => {
+    const result = await upsertVerifiedPlatform({
+      profileId: viewer?.id!,
+      type: coinbaseVerifiedAccount,
+      verified: isValid,
+    });
+    console.log("upsertRecord ", { result })
   }
 
-  const updateCbRecord = async (id: string, verified: boolean) => {
-    const update = await composeClient.executeQuery(`
-      mutation {
-        updateCoinbaseIntegration(
-          input: {
-            content: {
-              verified: ${verified}, 
-              profileId: "${viewerProfile?.id}",
-              editedAt: "${new Date().toISOString()}",
-            },
-            id: "${id}"
-          }
-        ) {
-          document {
-            id
-            name
-            profileId
-            verified
-          }
-        }
-      }
-    `);
-    console.log("profile/settings/integration/form", { update })
-  }
-
-  // sync the latest coinbase verification result to ceramic
   useEffect(() => {
-    console.log("platform:: ", { attestationValid, viewerProfile, attestationStatus })
-    console.log(viewerProfile?.integrations?.find(el => el.name === 'coinbase_verified_account'))
     // only perform this when attestation is loaded successfully 
-    if (attestationStatus === 'success') {
-      // create new record if there is no existing coinbase record 
-      if (!viewerProfile?.integrations || viewerProfile?.integrations.filter(el => el.name === 'coinbase_verified_account').length < 1) {
-        createCbRecord(attestationValid)
-      } else {
-        // update existing record if the attestation is updated
-        const existingRecord = viewerProfile?.integrations.find(el => el.name === 'coinbase_verified_account')
-        if (existingRecord?.verified !== attestationValid) {
-          updateCbRecord(existingRecord?.id, attestationValid)
-        }
+    if (attestationStatus === 'success' && viewer) {
+      if (!isVerifiedCoinbasePending && !verifiedCoinbase) {
+        upsertRecord(attestationValid);
+      }
+      if (!isVerifiedCoinbasePending && verifiedCoinbase?.verified !== attestationValid) {
+        upsertRecord(attestationValid);
       }
     }
-  }, [attestationValid, viewerProfile, attestationStatus])
+  }, [attestationValid, attestationStatus, viewer, verifiedCoinbase, isVerifiedCoinbasePending])
 
   // prompt user to create profile first 
-  if (viewerProfile === null) {
+  if (viewer === null) {
     return (
       <section>
         <div className="space-y-6">

@@ -1,9 +1,10 @@
 "use client"
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ConnectButton,
 } from "thirdweb/react";
 
-import { useTwebContext } from '@/components/thirdweb/thirdweb-provider'
+import { useTwebContext } from '@/contexts/thirdweb'
 import { SHORT_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
 // import { lightThirdwebTheme } from './customized-themes'
 import {
@@ -12,26 +13,15 @@ import {
   login,
   logout,
 } from "@/actions/auth";
-import { CERAMIC_SESSION_KEY } from "@/components/ceramic/utils";
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { currentChain } from "@/const/chains";
 
 export function ConnectBtn() {
   const { client, wallets, setLoggedIn } = useTwebContext()
-  const { setProfile, ceramic, composeClient } = useCeramicContext()
 
+  const queryClient = useQueryClient();
+  
   const reset = () => {
-    // reset viewer profile after logout
-    setProfile(undefined); 
-    // reset ceramic session
-    localStorage.removeItem(CERAMIC_SESSION_KEY);
-    // TODO: check whether we need to remove DID from ceramic and composedb
-    // reset DID in ceramic client
-    // @ts-ignore
-    ceramic.did = undefined;
-    // reset DID in composedb client 
-    // @ts-ignore
-    composeClient.setDID(undefined);
+    queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
   }
 
   return (

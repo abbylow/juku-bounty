@@ -1,29 +1,69 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useQuery } from "@tanstack/react-query"
+import { parseUnits, id } from "ethers/lib/utils"
+import { BigNumber } from "ethers"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { toast } from "@/components/ui/use-toast"
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { QUEST_TEMPLATES } from "@/const/quest-templates"
-import { Label } from "@/components/ui/label"
+import { getContract, prepareContractCall, sendAndConfirmTransaction } from "thirdweb"
+import { decimals } from "thirdweb/extensions/erc20";
+import { useActiveAccount, useReadContract } from "thirdweb/react"
+
+import { getTags } from "@/actions/tag/getTags"
+import { createBounty } from "@/actions/bounty/createBounty"
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
 import { BountyForm } from "@/components/bounty/form"
+import { Label } from "@/components/ui/label"
+import { toast } from "@/components/ui/use-toast"
+import { Option } from '@/components/ui/multiple-selector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { QUEST_TEMPLATES } from "@/const/quest-templates"
+import { useCategoryContext } from "@/contexts/categories"
+import { useViewerContext } from "@/contexts/viewer"
+import { currentChain } from "@/const/chains"
+import { escrowContract } from "@/const/contracts"
+import { client } from "@/lib/thirdweb-client"
+import { escrowContractInstance } from "@/lib/contract-instances"
+
+// Define the event signature (topic) for the BountyCreated event
+const bountyCreatedEventSignature = id(
+  "BountyCreated(uint256,address,address)"
+);
 
 export function BountyCreationForm() {
-  const { composeClient, viewerProfile } = useCeramicContext();
+  const { viewer } = useViewerContext();
+  const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
   const router = useRouter();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const activeAccount = useActiveAccount();
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [ready, setReady] = useState<boolean>(false);
+
+  const { data: tags, isPending: isTagsPending } = useQuery({
+    queryKey: ['fetchAllTags'],
+    queryFn: async () => await getTags(),
+  })
+
+  const tagOptions: Option[] = tags?.map(tag => ({
+    value: tag.slug,
+    label: tag.name,
+  })) || [];
+
+  const { data: platformRate, isLoading: isPlatformRateLoading } = useReadContract({
+    contract: escrowContractInstance,
+    method: "platformRate",
+  });
 
   useEffect(() => {
-    if (viewerProfile !== undefined) {
-      setLoading(false)
+    if (!isCategoriesPending && !isTagsPending && !isPlatformRateLoading) {
+      setReady(true);
     }
-  }, [viewerProfile])
+  }, [isCategoriesPending, isTagsPending, isPlatformRateLoading])
 
   const [formValues, setFormValues] = useState({ ...defaultValues });
 
@@ -34,164 +74,109 @@ export function BountyCreationForm() {
     mode: "onBlur",
   })
 
-  const createBounty = async (data: Partial<BountyFormValues>) => {
-    // console.log("before submission ", { viewerProfile, data })
-
+  const handleSubmit = async (data: BountyFormValues) => {
     setLoading(true);
 
-    // TODO: set context according to the environment
-    const creation = await composeClient.executeQuery(`
-      mutation {
-        createBounty(input: {
-          content: {
-            title: "${data?.title || ""}"
-            description: "${data?.description?.replace(/\n/g, "\\n") || ""}"
-            expiry: "${data?.expiry?.toISOString() || ""}"
-            createdAt: "${new Date().toISOString()}"
-            editedAt: "${new Date().toISOString()}"
-            profileId: "${viewerProfile?.id}"
-            context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
-          }
-        }) 
-        {
-          document {
-            id
-            title
-            description
-            expiry
-          }
-        }
+    try {
+      if (!activeAccount) {
+        throw new Error('no active account')
       }
-    `);
-    console.log("bounty/create/form createBounty", { creation })
 
-    if (creation.errors) {
-      toast({ title: `Something went wrong: ${creation.errors}` })
-    } else {
-      const createdBounty: any = creation?.data?.createBounty
-      // console.log({ createdBounty })
+      // get reward token contract
+      const rewardTokenInstance = getContract({
+        client: client,
+        chain: currentChain,
+        address: data.rewardCurrency,
+      });
 
-      if (createdBounty?.document?.id) {
-        // create bounty and category relationship
-        const bountyCategory = await composeClient.executeQuery(`
-          mutation {
-            createBountyCategory(
-              input: {
-                content: {
-                  active: true, 
-                  categoryId: "${data.category}", 
-                  bountyId: "${createdBounty.document.id}", 
-                  createdAt: "${new Date().toISOString()}",
-                  editedAt: "${new Date().toISOString()}"
-                }
-              }
-            ) {
-              document {
-                active
-                bountyId
-                id
-                categoryId
-                createdAt
-                editedAt
-              }
-            }
-          }
-        `);
-        console.log("bounty/create/form createBountyCategory ", { bountyCategory })
+      // get the decimals of the reward token 
+      const rewardTokenDecimals = await decimals({
+        contract: rewardTokenInstance
+      })
 
-        data?.tags?.map(async (t) => {
-          // find existing tag with the slug, if not found create tag 
-          const findTag = await composeClient.executeQuery(`
-            query {
-              tagIndex(
-                filters: {
-                  where: {
-                    slug: {
-                      equalTo: "${t.value}"
-                    }
-                  }
-                }, first: 1) {
-                edges {
-                  node {
-                    id
-                    name
-                    slug
-                  }
-                }
-              }
-            }
-          `);
-          console.log("bounty/create/form findTag ", { findTag })
+      // transform to Bigint and calculate total reward, platform fee and total token amount to be approved by bounty creator
+      const numberOfRewardersBigInt = BigInt(data.numberOfRewarders);
+      const amountPerRewarderInDecimals = parseUnits(data.amountPerRewarder.toString(), rewardTokenDecimals).toBigInt();
+      const totalReward = amountPerRewarderInDecimals * numberOfRewardersBigInt;
+      const platformFee = platformRate ? (totalReward * platformRate) / BigInt(10000) : BigInt(0) // in basis points
+      const sumToBeApproved = totalReward + platformFee;
 
-          let tagId: string;
-          if (findTag?.data?.tagIndex?.edges.length === 0) {
-            // create the tag first 
-            // TODO: set context according to the environment
-            const createdTag = await composeClient.executeQuery(`
-              mutation {
-                createTag(
-                  input: {
-                    content: {
-                      name: "${t.label}", 
-                      slug: "${t.value}", 
-                      createdAt: "${new Date().toISOString()}",
-                      editedAt: "${new Date().toISOString()}",
-                      context: "${process.env.NEXT_PUBLIC_CONTEXT_ID}"
-                    }
-                  }
-                ) {
-                  document {
-                    id
-                    name
-                    slug
-                  }
-                }
-              }
-            `);
-            console.log("bounty/create/form createdTag", { createdTag })
-            tagId = createdTag?.data?.createTag?.document?.id
-          } else {
-            tagId = findTag?.data?.tagIndex?.edges[0]?.node?.id
-          }
+      // prepare `approve` transaction
+      const preparedApproveTx = prepareContractCall({
+        contract: rewardTokenInstance,
+        method: "function approve(address spender, uint256 value)",
+        params: [escrowContract, sumToBeApproved],
+      });
 
-          // create bounty and tag relationships
-          const createdBountyTag = await composeClient.executeQuery(`
-              mutation {
-                createBountyTag(
-                  input: {
-                    content: {
-                      tagId: "${tagId}", 
-                      active: true, 
-                      bountyId: "${createdBounty.document.id}", 
-                      createdAt: "${new Date().toISOString()}",
-                      editedAt: "${new Date().toISOString()}",
-                    }
-                  }
-                ) {
-                  document {
-                    active
-                    bountyId
-                    createdAt
-                    editedAt
-                    id
-                    tagId
-                  }
-                }
-              }
-            `);
-          console.log("bounty/create/form createdBountyTag", { createdBountyTag })
-        })
+      // prompt bounty creator to approve the token (total reward + platform fee)
+      const approveTxReceipt = await sendAndConfirmTransaction({
+        transaction: preparedApproveTx,
+        account: activeAccount,
+      });
 
-        toast({ title: "Created bounty" })
-        router.push(`/bounty/${createdBounty.document.id}`)
+      // prepare `createBounty` transaction
+      const preparedCreationTx = prepareContractCall({
+        contract: escrowContractInstance,
+        method: "createBounty",
+        params: [data.rewardCurrency, numberOfRewardersBigInt, amountPerRewarderInDecimals],
+      });
+
+      // prompt bounty creator to send `createBounty` transaction
+      const creationTxReceipt = await sendAndConfirmTransaction({
+        transaction: preparedCreationTx,
+        account: activeAccount,
+      });
+
+      if (creationTxReceipt.status !== "success") {
+        throw new Error("Fail to create bounty on smart contract");
       }
+
+      const logs = creationTxReceipt.logs;
+
+      const creationLog = logs.find(log => log.topics[0] === bountyCreatedEventSignature);
+      if (!creationLog) {
+        throw new Error("Fail to get BountyCreated event log");
+      }
+
+      const bountyId = BigNumber.from(creationLog.topics[1]).toString();
+
+      const createdBounty = await createBounty({
+        title: data?.title!,
+        description: data?.description?.replace(/\n/g, "\\n"),
+        expiry: data?.expiry?.toISOString()!,
+        escrowContractAddress: escrowContract,
+        escrowContractChainId: String(currentChain.id),
+        bountyIdOnEscrow: +bountyId,
+        creatorProfileId: viewer?.id!,
+        category: +data?.category!,
+        tags: data.tags
+      })
+      console.log({ createdBounty })
+
+      toast({ title: "Created Bounty" })
+      if (createdBounty) {
+        router.push(`/bounty/${createdBounty.id}`)
+      } else {
+        throw new Error('Fail to create bounty')
+      }
+    } catch (error) {
+      console.log({ error })
+      toast({ title: 'Something went wrong' })
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+  const transformTags = (tags: Option[]): Option[] => {
+    return tags.map(tag => ({
+      ...tag,
+      value: tag.label.toLowerCase().replace(/\s+/g, "_")
+    }));
+  }
+
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    // console.log("Submitting form with data:", { data });
-    await createBounty(data)
+    // console.log("Submitting form with data:", { data }, { ...data, tags: transformTags(data.tags || []) });
+    await handleSubmit(data)
   }
 
   const selectTemplate = (templateId: string) => {
@@ -223,11 +208,15 @@ export function BountyCreationForm() {
           </SelectContent>
         </Select>
       </div>
-      <BountyForm
-        form={form}
-        onSubmit={onSubmit}
-        loading={loading}
-      />
+      {
+        ready && <BountyForm
+          form={form}
+          onSubmit={onSubmit}
+          loading={loading}
+          categoryOptions={categoryOptions}
+          tagOptions={tagOptions}
+        />
+      }
     </>
   )
 }

@@ -2,13 +2,13 @@
 
 import { Terminal } from "lucide-react"
 
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useViewerContext } from "@/contexts/viewer";
 
 export default function ProfileSetupPrompt() {
-  const { viewerProfile } = useCeramicContext();
+  const { viewer } = useViewerContext();
 
-  if (viewerProfile === null) {
+  if (viewer === null) {
     return (
       <Alert>
         <Terminal className="h-4 w-4" />

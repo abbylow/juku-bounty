@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Bell, Menu, CircleUserRound, Sprout, Settings } from 'lucide-react'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
-import { useTwebContext } from "@/components/thirdweb/thirdweb-provider";
+import { useTwebContext } from "@/contexts/thirdweb";
 import { Icons } from '@/components/icons'
 import { ConnectBtn } from '@/components/thirdweb/connect-btn'
 import { APP_HOMEPAGE_URL, BOUNTY_CREATION_URL, CONSULTATION_CREATION_URL, LANDING_PAGE_URL, PLATFROM_QUEST_URL, PROFILE_SETTINGS_URL, PROFILE_URL } from '@/const/links'

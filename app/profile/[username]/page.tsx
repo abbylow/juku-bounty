@@ -2,130 +2,65 @@
 
 import { useEffect, useState } from "react";
 
-import { useCeramicContext } from "@/components/ceramic/ceramic-provider";
-import { FoundProfileResponse } from "@/app/profile/settings/types";
 import ProfileCard from "@/components/profile/card";
-import { IPlatform } from "@/components/ceramic/types";
+import { Option } from "@/components/ui/multiple-selector";
+import { coinbaseVerifiedAccount } from "@/const/verified_platform";
+import { useCategoryContext } from "@/contexts/categories";
+import { useViewerContext } from "@/contexts/viewer";
+import { getProfile } from "@/actions/profile/getProfile";
+import { ProfileOrNull } from "@/actions/profile/type";
+import { getVerifiedPlatform } from "@/actions/verifiedPlatform/getVerifiedPlatform";
+import { VerifiedPlatform } from "@/actions/verifiedPlatform/type";
 
 export default function ProfilePage({ params }: { params: { username: string } }) {
-  console.log("params.username ", params.username)
+  const { viewer } = useViewerContext()
 
-  const { composeClient } = useCeramicContext();
+  const { isCategoriesPending, categoryOptions } = useCategoryContext()
 
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [hasError, setHasError] = useState<boolean>(false);
 
-  // TODO: fix the type
-  const [userData, setUserData] = useState<any>();
+  const [userData, setUserData] = useState<ProfileOrNull>(null);
 
-  const [userCategories, setUserCategories] = useState<any>();
-  const [platformIntegrations, setPlatformIntegrations] = useState<IPlatform[]>();
+  const [userCategories, setUserCategories] = useState<Option[]>([]);
+  
+  const [platformIntegrations, setPlatformIntegrations] = useState<VerifiedPlatform[]>();
 
-  // TODO: change query below to get profileCategoryList by active = true after schema update
-  const getProfile = async () => {
-    const findProfile = await composeClient.executeQuery(`
-      query {
-        profileIndex(
-          filters: {
-            where: {
-              username: {
-                equalTo: "${params.username}",
-              }
-            }
-          }, 
-          first: 1
-      ) {
-          edges {
-            node {
-              id
-              username
-              displayName
-              pfp
-              bio
-              walletAddress
-              loginMethod
-              createdAt
-              author {
-                id
-                profileCategoryListCount
-                profileCategoryList(
-                  filters: {
-                    where: {
-                      active: {
-                        equalTo: true,
-                      }
-                    }
-                  }, 
-                  first: 10
-                ) {
-                  edges {
-                    node {
-                      id
-                      profileId
-                      categoryId
-                      active
-                      createdAt
-                      category {
-                        name
-                        slug
-                      }
-                    }
-                  }
-                }
-                platformListCount
-                platformList(first: 5) {
-                  edges {
-                    node {
-                      id
-                      name
-                      verified
-                      profileId
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+  const retrieveProfile = async () => {
+    try {
+      const profile = await getProfile({
+        username: params.username
+      });
+      setUserData(profile);
+
+      const categories = categoryOptions.filter((option: { value: any; }) =>
+        profile?.category_ids?.includes(+(option.value))
+      ) || []
+      setUserCategories(categories);
+
+      const verifiedCoinbase = await getVerifiedPlatform({
+        profileId: profile?.id!,
+        type: coinbaseVerifiedAccount
+      })
+      if (verifiedCoinbase) {
+        setPlatformIntegrations([verifiedCoinbase]);
       }
-    `)
 
-    const foundProfileRes = findProfile?.data?.profileIndex as FoundProfileResponse
-    console.log("profile/[username]", { foundProfileRes })
-
-    if (findProfile.errors || foundProfileRes.edges.length < 1) {
-      console.log('display error said this user is not found')
-      setErrorMsg('Profile not found');
-    }
-
-    if (foundProfileRes?.edges[0]?.node) {
-      console.log(foundProfileRes?.edges[0]?.node)
-      const foundProfile = foundProfileRes.edges[0].node;
-      setUserData(foundProfile)
-
-      if (foundProfileRes?.edges[0]?.node?.author?.profileCategoryListCount) {
-        const categories = foundProfileRes?.edges[0]?.node?.author?.profileCategoryList.edges.filter((el: { node: { active: any; }; }) => el.node.active).map((el: { node: any; }) => {
-          return {
-            ...el.node,
-            value: el.node.categoryId,
-            label: el.node.category.name
-          }
-        })
-        setUserCategories(categories);
+      if (!profile) {
+        setHasError(true);
       }
-      if (foundProfileRes?.edges[0]?.node?.author?.platformListCount) {
-        const integrations = foundProfileRes?.edges[0]?.node?.author?.platformList.edges.map((el: { node: any; }) => el.node)
-        setPlatformIntegrations(integrations);
-      }
+    } catch (error) {
+      console.log({ error })
+      setHasError(true);
     }
   }
 
   useEffect(() => {
-    if (params.username) {
-      getProfile()
+    if (params.username && !isCategoriesPending) {
+      retrieveProfile()
     }
-  }, [params])
+  }, [params, isCategoriesPending])
 
-  if (errorMsg) {
+  if (hasError) {
     return (
       <section>
         <h3 className="text-xl font-medium mt-4">Oops! Profile not found</h3>
@@ -139,14 +74,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
         <ProfileCard
           id={userData?.id || ''}
           pfp={userData?.pfp || ''}
-          displayName={userData?.displayName || ''}
-          address={userData?.walletAddress || ''}
+          displayName={userData?.display_name || ''}
+          address={userData?.wallet_address || ''}
           username={userData?.username || ''}
           bio={userData?.bio || ''}
           categories={userCategories || []}
           integrations={platformIntegrations || []}
           allowEdit={false}
-          // allowFollow={userData?.id !== viewerProfile?.id} // comment follow feature first
+          allowFollow={userData?.id !== viewer?.id}
         />
       </section>
     </div >
