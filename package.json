@@ -38,6 +38,7 @@
     "date-fns": "^3.6.0",
     "did-session": "^3.1.0",
     "ethers": "^5.7.2",
+    "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.303.0",
     "next": "14.0.4",
     "react": "^18.2.0",
@@ -50,6 +51,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
