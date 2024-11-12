@@ -32,14 +32,10 @@ export async function getBounties(params: GetBountiesParams): Promise<Bounty[]> 
       )`;
     }
 
-    if (params.title) {
-      query += ` AND title ILIKE '%${params.title}%'`;
+    // Adding fuzzy search with OR condition for title and description
+    if (params.searchTerm) {
+      query += ` AND (title ILIKE '%${params.searchTerm}%' OR description ILIKE '%${params.searchTerm}%')`;
     }
-
-    if (params.description) {
-      query += ` AND description ILIKE '%${params.description}%'`;
-    }
-
 
     // Apply sorting and pagination to the main `Bounty` records
     query += ` ORDER BY ${params?.orderBy || "created_at"} ${params?.orderDirection || "DESC"} LIMIT ${params.limit} OFFSET ${params.offset}

@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { Search } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import debounce from "lodash.debounce"
 
 import BountyCard from "@/components/bounty"
 import {
@@ -35,15 +36,27 @@ import { getBountyCount } from "@/actions/bounty/getBountyCount"
 
 type SortOptions = "most-recent" | "due-soon";
 
-const itemsPerPage = 10; // TODO: change this 
+const itemsPerPage = 1; // TODO: change this 
 
 export default function BountyList() {
   const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
-  // State for pagination, sorting, and filtering by category
+  // State for pagination, sorting, filtering by category, and search term
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Default: no category selected
+  const [searchTerm, setSearchTerm] = useState<string>(""); // search input state
+
+  // Memoized debounced function for handling search input changes
+  const handleSearchChange = useMemo(
+    () => debounce((value: string) => setSearchTerm(value), 500), // 500ms debounce delay
+    []
+  );
+
+  // Handle search input updates and debounce the search term
+  const onSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange(e.target.value);
+  };
 
   // Handle pagination
   const prevPage = () => setCurrentPage((prevState) => Math.max(prevState - 1, 1));
@@ -51,11 +64,10 @@ export default function BountyList() {
 
   // Get the total numbers of rows (with filters)
   const { data: bountyCount, isPending: isBountyCountPending } = useQuery({
-    queryKey: ['fetchBountyCount', selectedCategory], // TODO: change this query key with filter states
+    queryKey: ['fetchBountyCount', selectedCategory, searchTerm], // Include category and search term in query key for caching
     queryFn: async () => await getBountyCount({
       categoryId: selectedCategory,
-      // title?: string;
-      // description?: string;
+      searchTerm,
     })
   });
 
@@ -66,19 +78,17 @@ export default function BountyList() {
   };
 
   const { orderBy, orderDirection } = sortMapping[sortBy];
-  console.log({ orderBy, orderDirection })
 
-  // Fetch bounties with pagination, filters, and sorting
+  // Fetch bounties with pagination, filters, sorting, and search term
   const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
-    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory],
+    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory, searchTerm],
     queryFn: async () => await getBounties({
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
       orderBy,
       orderDirection,
       categoryId: selectedCategory, // Filter by selected category
-      // title?: string; // Optional fuzzy search on title
-      // description?: string; // Optional fuzzy search on description
+      searchTerm, // Fuzzy search on title or description
     })
   });
 
@@ -131,7 +141,11 @@ export default function BountyList() {
                 <form>
                   <div className="relative">
                     <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search" className="pl-8" />
+                    <Input
+                      placeholder="Search"
+                      className="pl-8"
+                      onChange={onSearchInputChange} // Debounced search
+                    />
                   </div>
                 </form>
               </div>

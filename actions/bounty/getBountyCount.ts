@@ -23,12 +23,9 @@ export async function getBountyCount(params: GetBountyCountParams): Promise<numb
       )`;
     }
 
-    if (params.title) {
-      countQuery += ` AND b.title ILIKE '%${params.title}%'`;
-    }
-
-    if (params.description) {
-      countQuery += ` AND b.description ILIKE '%${params.description}%'`;
+    // Adding fuzzy search with OR condition for title and description
+    if (params.searchTerm) {
+      countQuery += ` AND (title ILIKE '%${params.searchTerm}%' OR description ILIKE '%${params.searchTerm}%')`;
     }
 
     // Execute the count query

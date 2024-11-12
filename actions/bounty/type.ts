@@ -50,14 +50,12 @@ export interface GetBountiesParams {
   limit: number;
   offset: number;
   categoryId?: string | null; // Optional filter by category ID
-  title?: string; // Optional fuzzy search on title
-  description?: string; // Optional fuzzy search on description
+  searchTerm?: string; // Optional fuzzy search on title / description
   orderBy?: string;
   orderDirection?: string;
 }
 
 export interface GetBountyCountParams {
   categoryId?: string | null;
-  title?: string;
-  description?: string;
+  searchTerm?: string; // Optional fuzzy search on title / description
 }
