@@ -3,11 +3,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import { Award, CalendarClock, MessageSquare, ThumbsUp, Share, Lightbulb } from "lucide-react"
+import { Award, CalendarClock, MessageSquare, ThumbsUp, Link as LinkIcon, Lightbulb } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
+import { useActiveAccount } from "thirdweb/react";
 
 import { handleLikeDislike } from "@/actions/bountyLike/likeBounty"
 import { getCurrentLikeStatus } from "@/actions/bountyLike/getBountyLike"
@@ -21,6 +22,9 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import UserAvatar from "@/components/user/avatar"
@@ -40,8 +44,10 @@ enum BountyStatus {
   UNKNOWN = "Unknown"
 }
 
+// TODO: extract like button and logic to another component? 
 export default function BountyCard({ details }: { details: any }) {
   // console.log({ details })
+  const activeAccount = useActiveAccount();
 
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
@@ -121,10 +127,11 @@ export default function BountyCard({ details }: { details: any }) {
 
   // Get current like 
   const queryClient = useQueryClient();
-  
-  const { data: isLiked, isPending: isLikedPending } = useQuery({
-    queryKey: ['fetchBountyLikeStatus', details.id],
-    queryFn: async () => await getCurrentLikeStatus({ bountyId: details.id })
+
+  const { data: isLiked } = useQuery({
+    queryKey: ['fetchBountyLikeStatus', details.id, activeAccount?.address],
+    queryFn: async () => await getCurrentLikeStatus({ bountyId: details.id }),
+    enabled: !!(activeAccount?.address) // only get liked status if logged in
   })
 
   // Handle "like / dislike bounty" feature
@@ -136,7 +143,12 @@ export default function BountyCard({ details }: { details: any }) {
     queryClient.invalidateQueries({ queryKey: ['fetchBountyLikeStatus'] })
   }
 
-  if (isCreatorProfilePending || isBountyDataPending || isLikedPending) {
+  // Handle "contribute" / "refer" feature
+  const makeContribution = async () => {
+    console.log('di dalam makeContribution')
+  }
+
+  if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
 
@@ -192,26 +204,58 @@ export default function BountyCard({ details }: { details: any }) {
       <CardFooter>
         <div className="w-full flex justify-between items-center">
           <div className="flex gap-3">
-            <Button variant="ghost" size="icon" onClick={toggleLike}>
+            {!!(activeAccount?.address) && <Button variant="ghost" size="icon" onClick={toggleLike}>
               {/* TODO: import color code from theme */}
               <ThumbsUp fill={isLiked ? "#0F172A" : "#FFFFFF"} className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <MessageSquare className="h-5 w-5" />
-            </Button>
-            {/* <Button variant="ghost" size="icon">
-                <Lightbulb className="h-5 w-5" />
-              </Button> */}
+            </Button>}
             <Button variant="ghost" size="icon" onClick={shareBounty}>
-              <Share className="h-5 w-5" />
+              <LinkIcon className="h-5 w-5" />
             </Button>
           </div>
-          {/* TODO: handle dynamic CTA */}
-          {/* <div className="">
-            <Button>
-              <Lightbulb className="mr-2 h-5 w-5" /> Contribute
-            </Button>
-          </div> */}
+          {/* TODO: handle dynamic CTA - contribute / end quest / edit quest?  */}
+          {/* TODO: the form here is sample code only */}
+          <div className="">
+            {!!(activeAccount?.address) && <Dialog>
+              <DialogTrigger asChild>
+                <Button onClick={makeContribution}>
+                  <Lightbulb className="mr-2 h-5 w-5" /> Contribute
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit profile</DialogTitle>
+                  <DialogDescription>
+                    Make changes to your profile here. Click save when you're done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      defaultValue="Pedro Duarte"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="username" className="text-right">
+                      Username
+                    </Label>
+                    <Input
+                      id="username"
+                      defaultValue="@peduarte"
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Save changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>}
+          </div>
         </div>
       </CardFooter>
     </Card>
