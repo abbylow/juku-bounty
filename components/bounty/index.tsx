@@ -1,9 +1,9 @@
 "use client"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import { Award, CalendarClock, ThumbsUp, Link as LinkIcon, Lightbulb, ChevronRight, Info } from "lucide-react"
+import { Award, CalendarClock, Link as LinkIcon, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -11,8 +11,6 @@ import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount } from "thirdweb/react";
 
-import { handleLikeDislike } from "@/actions/bountyLike/likeBounty"
-import { getCurrentLikeStatus } from "@/actions/bountyLike/getBountyLike"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import { Badge } from "@/components/ui/badge"
@@ -30,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import BountyLikeButton from "@/components/bounty/like-button"
 import UserAvatar from "@/components/user/avatar"
 import { PROFILE_URL } from "@/const/links"
 import { useClipboard } from "@/hooks/useClipboard";
@@ -40,11 +39,8 @@ import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { client } from "@/lib/thirdweb-client"
 import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
-import { empty, filled } from "@/const/color"
 
-// TODO: extract like button and logic to another component? 
 export default function BountyCard({ details }: { details: any }) {
-  // console.log({ details })
   const pathname = usePathname();
 
   const activeAccount = useActiveAccount();
@@ -125,24 +121,6 @@ export default function BountyCard({ details }: { details: any }) {
     copy(bountyUrl, "Successfully copied bounty link.");
   }
 
-  // Get current like 
-  const queryClient = useQueryClient();
-
-  const { data: isLiked } = useQuery({
-    queryKey: ['fetchBountyLikeStatus', details.id, activeAccount?.address],
-    queryFn: async () => await getCurrentLikeStatus({ bountyId: details.id }),
-    enabled: !!(activeAccount?.address) // only get liked status if logged in
-  })
-
-  // Handle "like / dislike bounty" feature
-  const toggleLike = async () => {
-    await handleLikeDislike({
-      bountyId: details.id,
-      like: !isLiked
-    })
-    queryClient.invalidateQueries({ queryKey: ['fetchBountyLikeStatus'] })
-  }
-
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
@@ -207,9 +185,7 @@ export default function BountyCard({ details }: { details: any }) {
       {!!(activeAccount?.address) && <CardFooter>
         <div className="w-full flex justify-between items-center">
           <div className="flex gap-3">
-            <Button variant="ghost" size="icon" onClick={toggleLike}>
-              <ThumbsUp fill={isLiked ? filled : empty} className="h-5 w-5" />
-            </Button>
+            <BountyLikeButton bountyId={details.id} />
           </div>
           {/* TODO: handle dynamic CTA - contribute / end quest / edit quest?  */}
           <Dialog>
