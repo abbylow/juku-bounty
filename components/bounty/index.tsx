@@ -3,8 +3,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import { Award, CalendarClock, MessageSquare, ThumbsUp, Link as LinkIcon, Lightbulb } from "lucide-react"
+import { Award, CalendarClock, MessageSquare, ThumbsUp, Link as LinkIcon, Lightbulb, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
@@ -47,6 +48,8 @@ enum BountyStatus {
 // TODO: extract like button and logic to another component? 
 export default function BountyCard({ details }: { details: any }) {
   // console.log({ details })
+  const pathname = usePathname();
+
   const activeAccount = useActiveAccount();
 
   // Get bounty's reward details from escrow contract
@@ -143,11 +146,6 @@ export default function BountyCard({ details }: { details: any }) {
     queryClient.invalidateQueries({ queryKey: ['fetchBountyLikeStatus'] })
   }
 
-  // Handle "contribute" / "refer" feature
-  const makeContribution = async () => {
-    console.log('di dalam makeContribution')
-  }
-
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
@@ -160,25 +158,33 @@ export default function BountyCard({ details }: { details: any }) {
     <Card>
       <CardHeader>
         <div className="flex justify-between flex-wrap gap-2">
-          <Link href={`${PROFILE_URL}/${creatorProfile?.username}`} className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4">
             <UserAvatar pfp={creatorProfile?.pfp} />
             <div>
               <p className="text-sm font-medium leading-none">{creatorProfile?.display_name || ''}</p>
-              <p className="text-sm text-muted-foreground">{`@${creatorProfile?.username || ''}`}</p>
+              <Link href={`${PROFILE_URL}/${creatorProfile?.username}`}>
+                <p className="text-sm text-muted-foreground">{`@${creatorProfile?.username || ''}`}</p>
+              </Link>
             </div>
-          </Link>
+          </div>
 
           <div className="flex gap-3 items-center flex-wrap">
             <div className="text-xs text-muted-foreground">
               {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
             </div>
             <Badge variant="outline">{status}</Badge>
+            {pathname.includes("bounty") ?
+              <Button variant="ghost" size="icon" onClick={shareBounty}>
+                <LinkIcon className="h-5 w-5" />
+              </Button>
+              : <Link href={getURL(`/bounty/${details?.id}`)}>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </Link>}
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm font-medium">{details?.title}</div>
-        {/* TODO: when the description is too long -> line-clamp-10 and view more */}
         <div className="text-sm text-muted-foreground whitespace-pre-wrap">
           {details?.description}
         </div>
@@ -199,65 +205,60 @@ export default function BountyCard({ details }: { details: any }) {
         <div className="flex gap-2">
           {details.tags.map((tag: Tag) => (<Badge key={tag.id} variant="outline">{tag.name}</Badge>))}
         </div>
-        <Separator />
       </CardContent>
-      <CardFooter>
+      {!!(activeAccount?.address) && <Separator className="mb-4"/>}
+      {!!(activeAccount?.address) && <CardFooter>
         <div className="w-full flex justify-between items-center">
           <div className="flex gap-3">
-            {!!(activeAccount?.address) && <Button variant="ghost" size="icon" onClick={toggleLike}>
+            <Button variant="ghost" size="icon" onClick={toggleLike}>
               {/* TODO: import color code from theme */}
               <ThumbsUp fill={isLiked ? "#0F172A" : "#FFFFFF"} className="h-5 w-5" />
-            </Button>}
-            <Button variant="ghost" size="icon" onClick={shareBounty}>
-              <LinkIcon className="h-5 w-5" />
             </Button>
           </div>
           {/* TODO: handle dynamic CTA - contribute / end quest / edit quest?  */}
           {/* TODO: the form here is sample code only */}
-          <div className="">
-            {!!(activeAccount?.address) && <Dialog>
-              <DialogTrigger asChild>
-                <Button onClick={makeContribution}>
-                  <Lightbulb className="mr-2 h-5 w-5" /> Contribute
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Edit profile</DialogTitle>
-                  <DialogDescription>
-                    Make changes to your profile here. Click save when you're done.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      defaultValue="Pedro Duarte"
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="username" className="text-right">
-                      Username
-                    </Label>
-                    <Input
-                      id="username"
-                      defaultValue="@peduarte"
-                      className="col-span-3"
-                    />
-                  </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Lightbulb className="mr-2 h-5 w-5" /> Contribute
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit profile</DialogTitle>
+                <DialogDescription>
+                  Make changes to your profile here. Click save when you're done.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    defaultValue="Pedro Duarte"
+                    className="col-span-3"
+                  />
                 </div>
-                <DialogFooter>
-                  <Button type="submit">Save changes</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>}
-          </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="username" className="text-right">
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    defaultValue="@peduarte"
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit">Save changes</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-      </CardFooter>
+      </CardFooter>}
     </Card>
   )
 }
