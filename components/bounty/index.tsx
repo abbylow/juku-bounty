@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import { Award, CalendarClock, Link as LinkIcon, Lightbulb, ChevronRight, Info } from "lucide-react"
+import { Award, CalendarClock, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -29,9 +29,9 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import BountyLikeButton from "@/components/bounty/like-button"
+import BountyShareButton from "@/components/bounty/share-button"
 import UserAvatar from "@/components/user/avatar"
 import { PROFILE_URL } from "@/const/links"
-import { useClipboard } from "@/hooks/useClipboard";
 import getURL from "@/lib/get-url";
 import { escrowContractInstance } from "@/lib/contract-instances"
 import { useReadContract } from "thirdweb/react"
@@ -114,13 +114,6 @@ export default function BountyCard({ details }: { details: any }) {
     return profile
   };
 
-  // Handle "share this bounty" feature
-  const { copy } = useClipboard({ timeout: 1000 });
-  const shareBounty = () => {
-    const bountyUrl = getURL(`/bounty/${details?.id}`);
-    copy(bountyUrl, "Successfully copied bounty link.");
-  }
-
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
@@ -149,9 +142,7 @@ export default function BountyCard({ details }: { details: any }) {
             </div>
             <Badge variant="outline">{status}</Badge>
             {pathname.includes("bounty") ?
-              <Button variant="ghost" size="icon" onClick={shareBounty}>
-                <LinkIcon className="h-5 w-5" />
-              </Button>
+              <BountyShareButton bountyId={details.id} />
               : <Link href={getURL(`/bounty/${details?.id}`)}>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </Link>}
