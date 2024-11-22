@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,15 +38,9 @@ import { escrowContractInstance } from "@/lib/contract-instances"
 import { useReadContract } from "thirdweb/react"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { client } from "@/lib/thirdweb-client"
+import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
 import { empty, filled } from "@/const/color"
-
-enum BountyStatus {
-  OPEN = "Open",
-  ENDED = "Ended",
-  COMPLETED = "Completed",
-  UNKNOWN = "Unknown"
-}
 
 // TODO: extract like button and logic to another component? 
 export default function BountyCard({ details }: { details: any }) {
@@ -209,7 +203,7 @@ export default function BountyCard({ details }: { details: any }) {
           {details.tags.map((tag: Tag) => (<Badge key={tag.id} variant="outline">{tag.name}</Badge>))}
         </div>
       </CardContent>
-      {!!(activeAccount?.address) && <Separator className="mb-4"/>}
+      {!!(activeAccount?.address) && <Separator className="mb-4" />}
       {!!(activeAccount?.address) && <CardFooter>
         <div className="w-full flex justify-between items-center">
           <div className="flex gap-3">
@@ -227,9 +221,9 @@ export default function BountyCard({ details }: { details: any }) {
             <DialogContent className="sm:w-5/6">
               <DialogHeader>
                 <DialogTitle>Contribute to Bounty</DialogTitle>
-                <DialogDescription>
-                    By submitting your response or refer a connection to contribute, a publicly visible thread will be opened among quester, you (and referrer) for any follow-up discussion.
-                  </DialogDescription>
+                {/* <DialogDescription>
+                  By submitting your response or refer a connection to contribute, a publicly visible thread will be opened among quester, you (and referrer) for any follow-up discussion.
+                </DialogDescription> */}
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -254,7 +248,6 @@ export default function BountyCard({ details }: { details: any }) {
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-
                   </Label>
                   <Input
                     id="referree"
