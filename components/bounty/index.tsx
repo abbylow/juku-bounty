@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import { Award, CalendarClock, MessageSquare, ThumbsUp, Link as LinkIcon, Lightbulb, ChevronRight } from "lucide-react"
+import { Award, CalendarClock, ThumbsUp, Link as LinkIcon, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -28,6 +28,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import UserAvatar from "@/components/user/avatar"
 import { PROFILE_URL } from "@/const/links"
 import { useClipboard } from "@/hooks/useClipboard";
@@ -37,6 +39,7 @@ import { useReadContract } from "thirdweb/react"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { client } from "@/lib/thirdweb-client"
 import { currentChain } from "@/const/chains"
+import { empty, filled } from "@/const/color"
 
 enum BountyStatus {
   OPEN = "Open",
@@ -211,49 +214,58 @@ export default function BountyCard({ details }: { details: any }) {
         <div className="w-full flex justify-between items-center">
           <div className="flex gap-3">
             <Button variant="ghost" size="icon" onClick={toggleLike}>
-              {/* TODO: import color code from theme */}
-              <ThumbsUp fill={isLiked ? "#0F172A" : "#FFFFFF"} className="h-5 w-5" />
+              <ThumbsUp fill={isLiked ? filled : empty} className="h-5 w-5" />
             </Button>
           </div>
           {/* TODO: handle dynamic CTA - contribute / end quest / edit quest?  */}
-          {/* TODO: the form here is sample code only */}
           <Dialog>
             <DialogTrigger asChild>
               <Button>
                 <Lightbulb className="mr-2 h-5 w-5" /> Contribute
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:w-5/6">
               <DialogHeader>
-                <DialogTitle>Edit profile</DialogTitle>
+                <DialogTitle>Contribute to Bounty</DialogTitle>
                 <DialogDescription>
-                  Make changes to your profile here. Click save when you're done.
-                </DialogDescription>
+                    By submitting your response or refer a connection to contribute, a publicly visible thread will be opened among quester, you (and referrer) for any follow-up discussion.
+                  </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Name
+                <div className="grid gap-2">
+                  <Label htmlFor="response" className="">
+                    Enter your response or provide any relevant links
                   </Label>
-                  <Input
-                    id="name"
-                    defaultValue="Pedro Duarte"
-                    className="col-span-3"
+                  <Textarea
+                    id="response"
+                    className="resize-y h-40"
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="username" className="text-right">
-                    Username
+                <div className="grid gap-2">
+                  <Label htmlFor="referree" className="flex gap-1">
+                    Refer user to contribute (optional)
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>You will earn 20% of the rewards if your referral wins the bounty rewards</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
                   </Label>
                   <Input
-                    id="username"
-                    defaultValue="@peduarte"
-                    className="col-span-3"
+                    id="referree"
+                    placeholder="Search by display name or username"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Save changes</Button>
+                <div className="flex flex-col gap-4">
+                  <Button type="submit">Submit</Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
