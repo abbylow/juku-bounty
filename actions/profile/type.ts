@@ -29,6 +29,7 @@ export interface IGetProfileParams {
   wallet_address?: string;
   username?: string;
   id?: string;
+  display_name?: string;
 }
 
 export interface IUpsertProfileParams {
