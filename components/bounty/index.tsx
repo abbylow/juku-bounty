@@ -6,14 +6,16 @@ import { formatUnits } from "ethers/lib/utils"
 import { Award, CalendarClock, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
-import { useActiveAccount } from "thirdweb/react";
+import { useActiveAccount, useReadContract } from "thirdweb/react"
 
 import { getProfile } from "@/actions/profile/getProfile"
 import { getProfiles } from "@/actions/profile/getProfiles"
 import { Tag } from "@/actions/tag/type"
+import BountyLikeButton from "@/components/bounty/like-button"
+import BountyShareButton from "@/components/bounty/share-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,23 +26,20 @@ import {
 } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector'
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import MultipleSelector, { Option } from '@/components/ui/multiple-selector'
 import { toast } from "@/components/ui/use-toast"
-import BountyLikeButton from "@/components/bounty/like-button"
-import BountyShareButton from "@/components/bounty/share-button"
 import UserAvatar from "@/components/user/avatar"
-import { PROFILE_URL } from "@/const/links"
-import getURL from "@/lib/get-url";
-import { escrowContractInstance } from "@/lib/contract-instances"
-import { useReadContract } from "thirdweb/react"
-import { tokenAddressToTokenNameMapping } from "@/const/contracts"
-import { client } from "@/lib/thirdweb-client"
 import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
+import { tokenAddressToTokenNameMapping } from "@/const/contracts"
+import { PROFILE_URL } from "@/const/links"
+import { escrowContractInstance } from "@/lib/contract-instances"
+import getURL from "@/lib/get-url";
+import { client } from "@/lib/thirdweb-client"
 
 export default function BountyCard({ details }: { details: any }) {
   const pathname = usePathname();
@@ -76,7 +75,7 @@ export default function BountyCard({ details }: { details: any }) {
   // Calculate total rewards of this bounty
   const [totalReward, setTotalReward] = useState<string>('');
 
-  const calcTotalRewards = async () => {
+  const calcTotalRewards = useCallback(async () => {
     if (!bountyData) {
       return 0
     }
@@ -96,13 +95,13 @@ export default function BountyCard({ details }: { details: any }) {
     const totalRewardInDecimals = formatUnits((bountyData[2] * bountyData[3]).toString(), rewardTokenDecimals);
     // setTotalReward(Number.parseFloat(totalRewardInDecimals).toFixed(2))
     setTotalReward(totalRewardInDecimals);
-  }
+  }, [bountyData]);
 
   useEffect(() => {
     if (!isBountyDataPending && bountyData) {
       calcTotalRewards()
     }
-  }, [isBountyDataPending, bountyData]);
+  }, [isBountyDataPending, bountyData, calcTotalRewards]);
 
   // Fetch bounty's creator
   const { data: creatorProfile, isPending: isCreatorProfilePending } = useQuery({
@@ -252,6 +251,7 @@ export default function BountyCard({ details }: { details: any }) {
                         no user found.
                       </p>
                     }
+                    hideClearAllButton
                   />
                 </div>
               </div>
