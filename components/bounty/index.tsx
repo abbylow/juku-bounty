@@ -5,12 +5,13 @@ import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
 import { Award, CalendarClock, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from "react"
 import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount, useReadContract } from "thirdweb/react"
 
+import { createContribution } from "@/actions/contribution/createContribution"
 import { getProfile } from "@/actions/profile/getProfile"
 import { getProfiles } from "@/actions/profile/getProfiles"
 import { Tag } from "@/actions/tag/type"
@@ -33,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
 import UserAvatar from "@/components/user/avatar"
+import { useViewerContext } from "@/contexts/viewer"
 import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
@@ -43,8 +45,9 @@ import { client } from "@/lib/thirdweb-client"
 
 export default function BountyCard({ details }: { details: any }) {
   const pathname = usePathname();
-
+  const router = useRouter();
   const activeAccount = useActiveAccount();
+  const { viewer } = useViewerContext();
 
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
@@ -115,18 +118,58 @@ export default function BountyCard({ details }: { details: any }) {
     return profile
   };
 
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const [contributionDescDisabled, setContributionDescDisabled] = useState(false);
+
+  const [contributionDesc, setContributionDesc] = useState("");
+  const handleDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContributionDesc(e.target.value)
+  }
+
   const [referee, setReferee] = useState<Option[]>();
+
+  useEffect(() => {
+    if (referee?.length) {
+      setContributionDescDisabled(true);
+      setContributionDesc(`I refer ${referee[0].label} to contribute to this quest`);
+    } else {
+      setContributionDescDisabled(false);
+    }
+  }, [referee])
+
+
   const searchUsers = async (value: string): Promise<Option[]> => {
     const response = await getProfiles({
       username: value,
       display_name: value,
     });
+    // TODO: remove viewer itself
+    // TODO: for users that have disabled referral, user will not be able to choose and refer them and see the “Referral disabled” tag
     const options = response.map((profile) => ({
       value: profile.id,
       label: `${profile.display_name} @${profile.username}`, // Combine display name and username for the label
     }));
     return options;
   };
+
+  const handleSubmission = async () => {
+    try {
+      await createContribution({
+        bountyId: details.id,
+        creatorProfileId: viewer?.id!,
+        description: contributionDesc,
+        referreeId: referee ? referee[0].value : ''
+      })
+      setDialogOpen(false);
+      setContributionDesc("");
+      setReferee([]);
+      toast({ title: "Successfully created contribution." });
+      router.push(`/bounty/${details.id}`)
+    } catch (error) {
+      console.log("Something went wrong")
+    }
+  }
 
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
@@ -193,7 +236,7 @@ export default function BountyCard({ details }: { details: any }) {
             <BountyLikeButton bountyId={details.id} />
           </div>
           {/* TODO: handle dynamic CTA - contribute / end quest / edit quest?  */}
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Lightbulb className="mr-2 h-5 w-5" /> Contribute
@@ -214,6 +257,9 @@ export default function BountyCard({ details }: { details: any }) {
                   <Textarea
                     id="response"
                     className="resize-y h-40"
+                    value={contributionDesc}
+                    onChange={handleDescChange}
+                    disabled={contributionDescDisabled}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -238,9 +284,7 @@ export default function BountyCard({ details }: { details: any }) {
                       toast({ title: `You have reached max selected referee: ${maxLimit}` });
                     }}
                     onSearch={async (value) => {
-                      console.log("di dalam onSearch")
-                      const res = await searchUsers(value);
-                      return res;
+                      return await searchUsers(value);
                     }}
                     placeholder="Search by display name or username"
                     loadingIndicator={
@@ -257,7 +301,7 @@ export default function BountyCard({ details }: { details: any }) {
               </div>
               <DialogFooter>
                 <div className="flex flex-col gap-4">
-                  <Button type="submit">Submit</Button>
+                  <Button type="submit" onClick={handleSubmission}>Submit</Button>
                 </div>
               </DialogFooter>
             </DialogContent>
