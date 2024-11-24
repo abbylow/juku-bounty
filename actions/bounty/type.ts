@@ -33,6 +33,7 @@ export interface Bounty {
   category_id?: number;
   tags?: Tag[];
   winningContributions?: BountyWinningContribution[];
+  contributions?: Contribution[];
 }
 
 export type BountyOrNull = Bounty | null;
@@ -44,6 +45,25 @@ export interface BountyWinningContribution {
   created_at?: Date;
   edited_at?: Date;
   deleted_at?: Date | null;
+}
+
+export interface Contribution {
+  id: number; // SERIAL PRIMARY KEY
+  bounty_id: string; // UUID referencing the Bounty table
+  creator_profile_id: string; // UUID referencing the creator's Profile
+  referree_id?: string | null; // Nullable UUID referencing the referee's Profile
+  description: string; // TEXT field for the contribution's description
+  created_at: Date; // TIMESTAMP for when the contribution was created
+  edited_at: Date; // TIMESTAMP for when the contribution was last edited
+  deleted_at?: Date | null; // Nullable TIMESTAMP for soft deletion
+  creator?: {
+    display_name: string; // Enriched display name of the creator
+    username: string; // Enriched username of the creator
+  }; // Optional nested object for creator details
+  referee?: {
+    display_name: string; // Enriched display name of the referee
+    username: string; // Enriched username of the referee
+  }; // Optional nested object for referee details
 }
 
 export interface GetBountiesParams {
