@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
+import debounce from "lodash.debounce"
 import { Award, CalendarClock, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
@@ -21,7 +22,7 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,6 +40,10 @@ import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { client } from "@/lib/thirdweb-client"
 import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
+import { Select } from "@/components/ui/select"
+import { getProfiles } from "@/actions/profile/getProfiles"
+import MultipleSelector from "@/components/ui/multiple-selector"
+import { Profile } from "@/actions/profile/type"
 
 export default function BountyCard({ details }: { details: any }) {
   const pathname = usePathname();
@@ -112,6 +117,46 @@ export default function BountyCard({ details }: { details: any }) {
       id: profileId
     });
     return profile
+  };
+
+  // Find user by display name or username
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchedProfiles, setSearchedProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  console.log({loading, searchTerm, searchedProfiles})
+
+  // Debounced search function
+  const fetchProfiles = debounce(async (query) => {
+    // console.log('in fetchProfiles')
+    if (!query) {
+      console.log("empty query")
+      setSearchedProfiles([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await getProfiles({
+        username: query,
+        display_name: query,
+      });
+      console.log({ response })
+      setSearchedProfiles(response); // Expected to be an array of searchedProfiles
+    } catch (error) {
+      console.error("Error fetching searchedProfiles:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, 300);
+  // console.log({ searchTerm, searchedProfiles })
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    // console.log('in handleInputChange')
+    setSearchTerm(value);
+    fetchProfiles(value); // Trigger the debounced search
   };
 
   if (isCreatorProfilePending || isBountyDataPending) {
@@ -188,9 +233,9 @@ export default function BountyCard({ details }: { details: any }) {
             <DialogContent className="sm:w-5/6">
               <DialogHeader>
                 <DialogTitle>Contribute to Bounty</DialogTitle>
-                {/* <DialogDescription>
+                <DialogDescription>
                   By submitting your response or refer a connection to contribute, a publicly visible thread will be opened among quester, you (and referrer) for any follow-up discussion.
-                </DialogDescription> */}
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -219,7 +264,28 @@ export default function BountyCard({ details }: { details: any }) {
                   <Input
                     id="referree"
                     placeholder="Search by display name or username"
+                    value={searchTerm}
+                    onChange={handleInputChange}
+                    className="mb-2"
                   />
+                  {/* {loading && <p>Loading...</p>} */}
+                  {/* <Select id="referree-options" defaultValue="">
+                    <option value="" disabled>
+                      Select a user
+                    </option>
+                    {searchedProfiles.length > 0 ? (
+                      searchedProfiles.map((profile) => (
+                        <option key={profile.id} value={profile.id} disabled={profile.disabled}>
+                          {profile.display_name} @{profile.username}{" "}
+                          {profile.disabled && "(Referral disabled)"}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        No results found
+                      </option>
+                    )}
+                  </Select> */}
                 </div>
               </div>
               <DialogFooter>
