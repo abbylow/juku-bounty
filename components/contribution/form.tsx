@@ -45,9 +45,9 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
       username: value,
       display_name: value,
     });
-    // TODO: remove viewer itself
+
     // TODO: for users that have disabled referral, user will not be able to choose and refer them and see the “Referral disabled” tag
-    const options = response.map((profile) => ({
+    const options = response.filter(el => el.id !== viewer?.id).map((profile) => ({
       value: profile.id,
       label: `${profile.display_name} @${profile.username}`, // Combine display name and username for the label
     }));
