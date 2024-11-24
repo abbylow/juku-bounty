@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import debounce from "lodash.debounce"
 import { Award, CalendarClock, Lightbulb, ChevronRight, Info } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
@@ -13,6 +12,7 @@ import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount } from "thirdweb/react";
 
 import { getProfile } from "@/actions/profile/getProfile"
+import { getProfiles } from "@/actions/profile/getProfiles"
 import { Tag } from "@/actions/tag/type"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,11 +24,12 @@ import {
 } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector'
+import { toast } from "@/components/ui/use-toast"
 import BountyLikeButton from "@/components/bounty/like-button"
 import BountyShareButton from "@/components/bounty/share-button"
 import UserAvatar from "@/components/user/avatar"
@@ -40,10 +41,6 @@ import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { client } from "@/lib/thirdweb-client"
 import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
-import { Select } from "@/components/ui/select"
-import { getProfiles } from "@/actions/profile/getProfiles"
-import MultipleSelector from "@/components/ui/multiple-selector"
-import { Profile } from "@/actions/profile/type"
 
 export default function BountyCard({ details }: { details: any }) {
   const pathname = usePathname();
@@ -119,44 +116,17 @@ export default function BountyCard({ details }: { details: any }) {
     return profile
   };
 
-  // Find user by display name or username
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchedProfiles, setSearchedProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  console.log({loading, searchTerm, searchedProfiles})
-
-  // Debounced search function
-  const fetchProfiles = debounce(async (query) => {
-    // console.log('in fetchProfiles')
-    if (!query) {
-      console.log("empty query")
-      setSearchedProfiles([]);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await getProfiles({
-        username: query,
-        display_name: query,
-      });
-      console.log({ response })
-      setSearchedProfiles(response); // Expected to be an array of searchedProfiles
-    } catch (error) {
-      console.error("Error fetching searchedProfiles:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, 300);
-  // console.log({ searchTerm, searchedProfiles })
-
-  // Handle input change
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    // console.log('in handleInputChange')
-    setSearchTerm(value);
-    fetchProfiles(value); // Trigger the debounced search
+  const [referee, setReferee] = useState<Option[]>();
+  const searchUsers = async (value: string): Promise<Option[]> => {
+    const response = await getProfiles({
+      username: value,
+      display_name: value,
+    });
+    const options = response.map((profile) => ({
+      value: profile.id,
+      label: `${profile.display_name} @${profile.username}`, // Combine display name and username for the label
+    }));
+    return options;
   };
 
   if (isCreatorProfilePending || isBountyDataPending) {
@@ -261,31 +231,28 @@ export default function BountyCard({ details }: { details: any }) {
                       </Tooltip>
                     </TooltipProvider>
                   </Label>
-                  <Input
-                    id="referree"
+                  <MultipleSelector
+                    value={referee}
+                    onChange={setReferee}
+                    maxSelected={1}
+                    onMaxSelected={(maxLimit) => {
+                      toast({ title: `You have reached max selected referee: ${maxLimit}` });
+                    }}
+                    onSearch={async (value) => {
+                      console.log("di dalam onSearch")
+                      const res = await searchUsers(value);
+                      return res;
+                    }}
                     placeholder="Search by display name or username"
-                    value={searchTerm}
-                    onChange={handleInputChange}
-                    className="mb-2"
+                    loadingIndicator={
+                      <p className="py-2 text-center text-lg leading-10 text-muted-foreground">loading...</p>
+                    }
+                    emptyIndicator={
+                      <p className="w-full text-center text-lg leading-10 text-muted-foreground">
+                        no user found.
+                      </p>
+                    }
                   />
-                  {/* {loading && <p>Loading...</p>} */}
-                  {/* <Select id="referree-options" defaultValue="">
-                    <option value="" disabled>
-                      Select a user
-                    </option>
-                    {searchedProfiles.length > 0 ? (
-                      searchedProfiles.map((profile) => (
-                        <option key={profile.id} value={profile.id} disabled={profile.disabled}>
-                          {profile.display_name} @{profile.username}{" "}
-                          {profile.disabled && "(Referral disabled)"}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>
-                        No results found
-                      </option>
-                    )}
-                  </Select> */}
                 </div>
               </div>
               <DialogFooter>
