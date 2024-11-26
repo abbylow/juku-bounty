@@ -15,8 +15,10 @@ import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import BountyLikeButton from "@/components/bounty/like-button"
 import BountyShareButton from "@/components/bounty/share-button"
+import BountyStatusBadge from "@/components/bounty/status-badge"
 import ContributionForm from "@/components/contribution/form"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -26,10 +28,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import UserAvatar from "@/components/user/avatar"
-import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { PROFILE_URL } from "@/const/links"
+import { useViewerContext } from "@/contexts/viewer"
 import { escrowContractInstance } from "@/lib/contract-instances"
 import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
@@ -37,6 +39,7 @@ import { client } from "@/lib/thirdweb-client"
 export default function BountyCard({ details }: { details: any }) {
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
+  const { viewer } = useViewerContext();
 
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
@@ -44,25 +47,6 @@ export default function BountyCard({ details }: { details: any }) {
     method: "bounties",
     params: [details.bounty_id_on_escrow],
   });
-
-  // Get bounty's status
-  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN);
-
-  useEffect(() => {
-    if (details && bountyData) {
-      const isClosed = bountyData[7];
-      const isExpired = details.expiry <= new Date();
-      const hasWinner = details.winningContributions > 0;
-
-      if (hasWinner) {
-        setStatus(BountyStatus.COMPLETED);
-      } else if (isExpired || isClosed) {
-        setStatus(BountyStatus.ENDED);
-      } else {
-        setStatus(BountyStatus.OPEN);
-      }
-    }
-  }, [details, bountyData])
 
   // Calculate total rewards of this bounty
   const [totalReward, setTotalReward] = useState<string>('');
@@ -133,7 +117,7 @@ export default function BountyCard({ details }: { details: any }) {
             <div className="text-xs text-muted-foreground">
               {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
             </div>
-            <Badge variant="outline">{status}</Badge>
+            <BountyStatusBadge details={details} bountyData={bountyData} />
             {pathname.includes("bounty") ?
               <BountyShareButton bountyId={details.id} />
               : <Link href={getURL(`/bounty/${details?.id}`)}>
@@ -171,8 +155,12 @@ export default function BountyCard({ details }: { details: any }) {
           <div className="flex gap-3">
             <BountyLikeButton bountyId={details.id} />
           </div>
-          {/* TODO: handle dynamic CTA - contribute / end quest / edit quest?  */}
-          <ContributionForm bountyId={details.id} />
+          {/* TODO: handle end quest onclick event */}
+          {
+            viewer?.id === details.creator_profile_id ?
+              <Button variant="default">End quest</Button> :
+              <ContributionForm bountyId={details.id} />
+          }
         </div>
       </CardFooter>}
     </Card>
