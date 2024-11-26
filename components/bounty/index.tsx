@@ -11,11 +11,13 @@ import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount, useReadContract } from "thirdweb/react"
 
+import { Contribution } from "@/actions/bounty/type"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import BountyLikeButton from "@/components/bounty/like-button"
 import BountyShareButton from "@/components/bounty/share-button"
 import BountyStatusBadge from "@/components/bounty/status-badge"
+import { ContributionCard } from "@/components/contribution/card"
 import ContributionForm from "@/components/contribution/form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -164,6 +166,11 @@ export default function BountyCard({ details }: { details: any }) {
           </div>
         </CardFooter>}
       </Card>
+      {details?.contributions?.length && <div className="mt-8">
+        {details.contributions.map((contribution: Contribution) => (
+          <ContributionCard key={contribution.id} contribution={contribution} />
+        ))}
+      </div>}
     </div>
   )
 }
