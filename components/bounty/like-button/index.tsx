@@ -28,8 +28,11 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
   }
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggleLike}>
-      <ThumbsUp fill={isLiked ? filled : empty} className="h-5 w-5" />
-    </Button>
+    <div className="flex gap-2 text-sm text-muted-foreground">
+      <Button variant="ghost" size="sm" onClick={toggleLike}>
+        <ThumbsUp fill={isLiked ? filled : empty} className="mr-2 h-4 w-4" />
+        Like
+      </Button>
+    </div>
   )
 }
