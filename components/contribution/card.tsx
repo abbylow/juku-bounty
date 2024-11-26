@@ -1,14 +1,19 @@
+import { formatDistance } from 'date-fns'
 import { MessageSquare } from 'lucide-react'
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
 import { Contribution } from '@/actions/bounty/type'
-import UserAvatar from '../user/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from "@/components/ui/button"
+import UserAvatar from '@/components/user/avatar'
 import { PROFILE_URL } from '@/const/links'
-import { Badge } from '../ui/badge'
-import { formatDistance } from 'date-fns'
+import { useViewerContext } from '@/contexts/viewer'
 
-export function ContributionCard({ contribution }: { contribution: Contribution }) {
+export function ContributionCard({ contribution, bountyCreatorId }: { contribution: Contribution, bountyCreatorId: string }) {
+  const { viewer } = useViewerContext();
+  
+  const canComment = viewer?.id === contribution?.creator_profile_id || viewer?.id === contribution?.referree_id || viewer?.id === bountyCreatorId;
+
   function commentOnContribution(event: React.MouseEvent<HTMLButtonElement>): void {
     console.log("Comment todo")
   }
@@ -46,14 +51,22 @@ export function ContributionCard({ contribution }: { contribution: Contribution 
             </div>
           </div>
           <p className="text-sm my-2">{contribution?.description}</p>
-          <div className="flex gap-2 text-sm text-muted-foreground">
+          {/* TODO: only show comment button if bounty is not ended */}
+          {canComment && <div className="flex gap-2 text-sm text-muted-foreground">
             <Button variant="ghost" size="sm" onClick={commentOnContribution}>
               <MessageSquare className="mr-2 h-4 w-4" />
               Comment
             </Button>
-          </div>
+          </div>}
         </div>
       </div>
+      {/* {comments.length > 0 && (
+        <div className="ml-8 mt-4 border-l-2 pl-4">
+          {comments.map((reply, index) => (
+            <Contribution key={index} {...reply} />
+          ))}
+        </div>
+      )} */}
     </div>
   )
 }

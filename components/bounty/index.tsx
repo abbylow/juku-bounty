@@ -168,7 +168,11 @@ export default function BountyCard({ details }: { details: any }) {
       </Card>
       {details?.contributions?.length && <div className="mt-8">
         {details.contributions.map((contribution: Contribution) => (
-          <ContributionCard key={contribution.id} contribution={contribution} />
+          <ContributionCard
+            key={contribution.id}
+            contribution={contribution}
+            bountyCreatorId={details.creator_profile_id}
+          />
         ))}
       </div>}
     </div>
