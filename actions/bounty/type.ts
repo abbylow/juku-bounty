@@ -57,10 +57,13 @@ export interface Contribution {
   edited_at: Date; // TIMESTAMP for when the contribution was last edited
   deleted_at?: Date | null; // Nullable TIMESTAMP for soft deletion
   creator?: {
+    id: string; // Enriched id of the creator
     display_name: string; // Enriched display name of the creator
     username: string; // Enriched username of the creator
+    pfp: string; // Enriched pfp of the creator
   }; // Optional nested object for creator details
   referee?: {
+    id: string; // Enriched id of the referee
     display_name: string; // Enriched display name of the referee
     username: string; // Enriched username of the referee
   }; // Optional nested object for referee details

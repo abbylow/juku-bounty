@@ -28,6 +28,7 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         c.deleted_at AS contribution_deleted_at,
         cp.display_name AS creator_display_name,
         cp.username AS creator_username,
+        cp.pfp AS creator_pfp,
         rp.display_name AS referee_display_name,
         rp.username AS referee_username
       FROM Bounty b
@@ -95,11 +96,14 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
           edited_at: new Date(row.contribution_edited_at),
           deleted_at: row.contribution_deleted_at ? new Date(row.contribution_deleted_at) : null,
           creator: {
+            id: row.contribution_creator_id,
+            pfp: row.creator_pfp,
             display_name: row.creator_display_name,
             username: row.creator_username
           },
-          referee: row.referee_display_name
+          referee: row.referree_id
             ? {
+                id: row.referree_id,
                 display_name: row.referee_display_name,
                 username: row.referee_username
               }
