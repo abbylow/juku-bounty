@@ -47,7 +47,17 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
 
     // Structure the bounty data
     const bounty = {
-      ...result[0],
+      id: result[0].id,
+      title: result[0].title,
+      description: result[0].description,
+      expiry: result[0].expiry,
+      is_result_decided: result[0].is_result_decided,
+      escrow_contract_address: result[0].escrow_contract_address,
+      escrow_contract_chain_id: result[0].escrow_contract_chain_id,
+      bounty_id_on_escrow: result[0].bounty_id_on_escrow,
+      creator_profile_id: result[0].creator_profile_id,
+      created_at: result[0].created_at,
+      edited_at: result[0].edited_at,
       category_id: result[0].category_id,
       tags: [] as Tag[],
       winningContributions: [] as BountyWinningContribution[],
