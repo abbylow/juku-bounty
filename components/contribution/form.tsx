@@ -60,7 +60,7 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
         bountyId: bountyId,
         creatorProfileId: viewer?.id!,
         description: contributionDesc,
-        referreeId: referee ? referee[0].value : ''
+        refereeId: referee ? referee[0].value : ''
       })
       setDialogOpen(false);
       setContributionDesc("");
@@ -100,7 +100,7 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="referree" className="flex gap-1">
+            <Label htmlFor="referee" className="flex gap-1">
               Refer user to contribute (optional)
               <TooltipProvider>
                 <Tooltip>

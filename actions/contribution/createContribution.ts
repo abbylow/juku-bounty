@@ -39,7 +39,7 @@ export async function createContribution(params: CreateContributionParams) {
       INSERT INTO Contribution (
         bounty_id,
         creator_profile_id,
-        referree_id,
+        referee_id,
         description,
         created_at,
         edited_at
@@ -47,7 +47,7 @@ export async function createContribution(params: CreateContributionParams) {
       VALUES (
         ${params.bountyId},
         ${params.creatorProfileId},
-        ${params.referreeId || null}, -- Referree is optional
+        ${params.refereeId || null}, -- Referee is optional
         ${params.description},
         NOW(),
         NOW()
