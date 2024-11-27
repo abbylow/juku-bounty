@@ -3,6 +3,7 @@
 import { neon } from "@neondatabase/serverless";
 import { Bounty, BountyOrNull, BountyWinningContribution, Contribution, GetBountyParams } from "@/actions/bounty/type";
 import { Tag } from "@/actions/tag/type";
+import { Comment } from '@/actions/comment/type';
 
 export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> {
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
@@ -21,7 +22,7 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         bwc.contribution_id AS winning_contribution_contribution_id,
         c.id AS contribution_id,
         c.creator_profile_id AS contribution_creator_id,
-        c.referree_id AS contribution_referree_id,
+        c.referee_id AS contribution_referee_id,
         c.description AS contribution_description,
         c.created_at AS contribution_created_at,
         c.edited_at AS contribution_edited_at,
@@ -30,7 +31,14 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         cp.username AS creator_username,
         cp.pfp AS creator_pfp,
         rp.display_name AS referee_display_name,
-        rp.username AS referee_username
+        rp.username AS referee_username,
+        com.id AS comment_id,
+        com.description AS comment_description,
+        com.creator_profile_id AS comment_creator_profile_id,
+        com.created_at AS comment_created_at,
+        cmp.display_name AS comment_creator_display_name,
+        cmp.username AS comment_creator_username,
+        cmp.pfp AS comment_creator_pfp
       FROM Bounty b
       LEFT JOIN BountyCategory bc ON b.id = bc.bounty_id AND bc.active = true
       LEFT JOIN BountyTag bt ON b.id = bt.bounty_id AND bt.active = true
@@ -38,7 +46,9 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
       LEFT JOIN BountyWinningContribution bwc ON b.id = bwc.bounty_id AND bwc.deleted_at IS NULL
       LEFT JOIN Contribution c ON b.id = c.bounty_id AND c.deleted_at IS NULL
       LEFT JOIN Profile cp ON c.creator_profile_id = cp.id
-      LEFT JOIN Profile rp ON c.referree_id = rp.id
+      LEFT JOIN Profile rp ON c.referee_id = rp.id
+      LEFT JOIN Comment com ON c.id = com.contribution_id AND com.deleted_at IS NULL
+      LEFT JOIN Profile cmp ON com.creator_profile_id = cmp.id
       WHERE b.id = ${params.bountyId};
     `;
 
@@ -65,7 +75,9 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
       contributions: [] as Contribution[] // Include contributions here
     };
 
-    result.forEach(row => {
+    const contributionMap: Record<number, Contribution> = {};
+
+    result.forEach((row) => {
       // Add tags
       if (row.tag_id) {
         bounty.tags.push({
@@ -86,31 +98,55 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
 
       // Add contributions
       if (row.contribution_id) {
-        bounty.contributions.push({
-          id: row.contribution_id,
-          bounty_id: params.bountyId,
-          creator_profile_id: row.contribution_creator_id,
-          referree_id: row.contribution_referree_id,
-          description: row.contribution_description,
-          created_at: new Date(row.contribution_created_at),
-          edited_at: new Date(row.contribution_edited_at),
-          deleted_at: row.contribution_deleted_at ? new Date(row.contribution_deleted_at) : null,
-          creator: {
-            id: row.contribution_creator_id,
-            pfp: row.creator_pfp,
-            display_name: row.creator_display_name,
-            username: row.creator_username
-          },
-          referee: row.referree_id
-            ? {
-                id: row.referree_id,
-                display_name: row.referee_display_name,
-                username: row.referee_username
-              }
-            : null
-        } as Contribution);
+        if (!contributionMap[row.contribution_id]) {
+          contributionMap[row.contribution_id] = {
+            id: row.contribution_id,
+            bounty_id: params.bountyId,
+            creator_profile_id: row.contribution_creator_id,
+            referee_id: row.contribution_referee_id,
+            description: row.contribution_description,
+            created_at: new Date(row.contribution_created_at),
+            edited_at: new Date(row.contribution_edited_at),
+            deleted_at: row.contribution_deleted_at ? new Date(row.contribution_deleted_at) : null,
+            creator: {
+              id: row.contribution_creator_id,
+              pfp: row.creator_pfp,
+              display_name: row.creator_display_name,
+              username: row.creator_username
+            },
+            referee: row.referee_id
+              ? {
+                  id: row.referee_id,
+                  display_name: row.referee_display_name,
+                  username: row.referee_username
+                }
+              : null,
+            comments: [] as Comment[]
+          };
+        }
+
+        // Add comments to the corresponding contribution
+        if (row.comment_id) {
+          contributionMap[row.contribution_id]!.comments?.push({
+            id: row.comment_id,
+            contribution_id: row.contribution_id,
+            creator_profile_id: row.comment_creator_profile_id,
+            description: row.comment_description,
+            created_at: row.comment_created_at,
+            edited_at: row.comment_edited_at,
+            creator: {
+              id: row.comment_creator_profile_id,
+              display_name: row.comment_creator_display_name,
+              username: row.comment_creator_username,
+              pfp: row.comment_creator_pfp,
+            }
+          } as Comment);
+        }
       }
     });
+
+    // Assign contributions to the bounty
+    bounty.contributions = Object.values(contributionMap);
 
     return bounty as Bounty;
   } catch (error) {
@@ -118,4 +154,3 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
     throw new Error("Error retrieving bounty by ID");
   }
 }
-

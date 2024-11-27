@@ -1,27 +1,23 @@
 import { formatDistance } from 'date-fns'
-import { MessageSquare } from 'lucide-react'
 import Link from "next/link"
 
 import { Contribution } from '@/actions/bounty/type'
+import CommentForm from '@/components/comment/form'
+import { CommentCard } from '@/components/comment/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from "@/components/ui/button"
 import UserAvatar from '@/components/user/avatar'
 import { PROFILE_URL } from '@/const/links'
 import { useViewerContext } from '@/contexts/viewer'
 
 export function ContributionCard({ contribution, bountyCreatorId }: { contribution: Contribution, bountyCreatorId: string }) {
   const { viewer } = useViewerContext();
-  
-  const canComment = viewer?.id === contribution?.creator_profile_id || viewer?.id === contribution?.referree_id || viewer?.id === bountyCreatorId;
 
-  function commentOnContribution(event: React.MouseEvent<HTMLButtonElement>): void {
-    console.log("Comment todo")
-  }
+  const canComment = viewer?.id === contribution?.creator_profile_id || viewer?.id === contribution?.referee_id || viewer?.id === bountyCreatorId;
 
   return (
     <div className="mb-4 p-4">
       <div className="flex items-start gap-4">
-        {/* TODO: add upvote / downvote */}
+        {/* for upvote / downvote */}
         {/* <div className="flex flex-col items-center">
           <Button variant="ghost" size="icon">
             <ArrowBigUp className="h-4 w-4" />
@@ -41,7 +37,7 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
                   <p className="text-sm text-muted-foreground">{`@${contribution?.creator?.username}`}</p>
                 </Link>
               </div>
-              <Badge variant="secondary">{contribution?.referree_id ? "referrer" : "contributor"}</Badge>
+              <Badge variant="secondary">contributor</Badge>
             </div>
 
             <div className="flex gap-3 items-center flex-wrap">
@@ -52,21 +48,24 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
           </div>
           <p className="text-sm my-2">{contribution?.description}</p>
           {/* TODO: only show comment button if bounty is not ended */}
-          {canComment && <div className="flex gap-2 text-sm text-muted-foreground">
-            <Button variant="ghost" size="sm" onClick={commentOnContribution}>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Comment
-            </Button>
-          </div>}
+          {canComment && <CommentForm contributionId={contribution?.id} bountyId={contribution?.bounty_id}/>}
         </div>
       </div>
-      {/* {comments.length > 0 && (
+      {contribution?.comments && (
         <div className="ml-8 mt-4 border-l-2 pl-4">
-          {comments.map((reply, index) => (
-            <Contribution key={index} {...reply} />
+          {contribution?.comments?.map((comment) => (
+            <CommentCard
+              key={comment.id}
+              comment={comment}
+              bountyId={contribution?.bounty_id}
+              bountyCreatorId={bountyCreatorId}
+              contributionId={contribution.id}
+              contributionRefereeId={contribution?.referee_id || ""}
+              canComment={canComment}
+            />
           ))}
         </div>
-      )} */}
+      )}
     </div>
   )
 }

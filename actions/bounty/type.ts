@@ -1,5 +1,6 @@
 import { Option } from '@/components/ui/multiple-selector';
 import { Tag } from '@/actions/tag/type';
+import { Comment } from '@/actions/comment/type';
 
 export interface GetBountyParams {
   bountyId: string
@@ -51,7 +52,7 @@ export interface Contribution {
   id: number; // SERIAL PRIMARY KEY
   bounty_id: string; // UUID referencing the Bounty table
   creator_profile_id: string; // UUID referencing the creator's Profile
-  referree_id?: string | null; // Nullable UUID referencing the referee's Profile
+  referee_id?: string | null; // Nullable UUID referencing the referee's Profile
   description: string; // TEXT field for the contribution's description
   created_at: Date; // TIMESTAMP for when the contribution was created
   edited_at: Date; // TIMESTAMP for when the contribution was last edited
@@ -66,7 +67,8 @@ export interface Contribution {
     id: string; // Enriched id of the referee
     display_name: string; // Enriched display name of the referee
     username: string; // Enriched username of the referee
-  }; // Optional nested object for referee details
+  } | null; // Optional nested object for referee details
+  comments?: Comment[];
 }
 
 export interface GetBountiesParams {
