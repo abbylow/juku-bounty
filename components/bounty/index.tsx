@@ -166,6 +166,7 @@ export default function BountyCard({ details }: { details: any }) {
           </div>
         </CardFooter>}
       </Card>
+      {/* TODO: sort the contributions by created_at DESC */}
       {details?.contributions?.length && <div className="mt-8">
         {details.contributions.map((contribution: Contribution) => (
           <ContributionCard
