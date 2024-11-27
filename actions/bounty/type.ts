@@ -1,5 +1,6 @@
 import { Option } from '@/components/ui/multiple-selector';
 import { Tag } from '@/actions/tag/type';
+import { Comment } from '@/actions/comment/type';
 
 export interface GetBountyParams {
   bountyId: string
@@ -33,6 +34,7 @@ export interface Bounty {
   category_id?: number;
   tags?: Tag[];
   winningContributions?: BountyWinningContribution[];
+  contributions?: Contribution[];
 }
 
 export type BountyOrNull = Bounty | null;
@@ -44,6 +46,29 @@ export interface BountyWinningContribution {
   created_at?: Date;
   edited_at?: Date;
   deleted_at?: Date | null;
+}
+
+export interface Contribution {
+  id: number; // SERIAL PRIMARY KEY
+  bounty_id: string; // UUID referencing the Bounty table
+  creator_profile_id: string; // UUID referencing the creator's Profile
+  referee_id?: string | null; // Nullable UUID referencing the referee's Profile
+  description: string; // TEXT field for the contribution's description
+  created_at: Date; // TIMESTAMP for when the contribution was created
+  edited_at: Date; // TIMESTAMP for when the contribution was last edited
+  deleted_at?: Date | null; // Nullable TIMESTAMP for soft deletion
+  creator?: {
+    id: string; // Enriched id of the creator
+    display_name: string; // Enriched display name of the creator
+    username: string; // Enriched username of the creator
+    pfp: string; // Enriched pfp of the creator
+  }; // Optional nested object for creator details
+  referee?: {
+    id: string; // Enriched id of the referee
+    display_name: string; // Enriched display name of the referee
+    username: string; // Enriched username of the referee
+  } | null; // Optional nested object for referee details
+  comments?: Comment[];
 }
 
 export interface GetBountiesParams {

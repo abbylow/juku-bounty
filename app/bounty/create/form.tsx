@@ -167,15 +167,7 @@ export function BountyCreationForm() {
     }
   };
 
-  const transformTags = (tags: Option[]): Option[] => {
-    return tags.map(tag => ({
-      ...tag,
-      value: tag.label.toLowerCase().replace(/\s+/g, "_")
-    }));
-  }
-
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    // console.log("Submitting form with data:", { data }, { ...data, tags: transformTags(data.tags || []) });
     await handleSubmit(data)
   }
 

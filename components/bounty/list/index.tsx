@@ -36,7 +36,7 @@ import { getBountyCount } from "@/actions/bounty/getBountyCount"
 
 type SortOptions = "most-recent" | "due-soon";
 
-const itemsPerPage = 1; // TODO: change this 
+const itemsPerPage = 10;
 
 export default function BountyList() {
   const { isCategoriesPending, categoryOptions } = useCategoryContext();

@@ -118,7 +118,7 @@ CREATE TABLE Contribution (
     id SERIAL PRIMARY KEY,
     bounty_id UUID REFERENCES Bounty(id),
     creator_profile_id UUID REFERENCES Profile(id),
-    referree_id UUID REFERENCES Profile(id),
+    referee_id UUID REFERENCES Profile(id),
     description TEXT,
     created_at TIMESTAMP NOT NULL,
     edited_at TIMESTAMP NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE Contribution (
 );
 CREATE INDEX idx_contribution_bounty_id ON Contribution(bounty_id);
 CREATE INDEX idx_contribution_creator_profile_id ON Contribution(creator_profile_id);
-CREATE INDEX idx_contribution_referree_id ON Contribution(referree_id);
+CREATE INDEX idx_contribution_referee_id ON Contribution(referee_id);
 
 CREATE TABLE Comment (
     id SERIAL PRIMARY KEY,

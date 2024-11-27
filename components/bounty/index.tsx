@@ -1,18 +1,24 @@
 "use client"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
-import { Award, CalendarClock, MessageSquare, ThumbsUp, Share, Lightbulb } from "lucide-react"
+import { Award, CalendarClock, ChevronRight } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { usePathname } from 'next/navigation'
+import { useCallback, useEffect, useState } from "react"
 import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
+import { useActiveAccount, useReadContract } from "thirdweb/react"
 
-import { handleLikeDislike } from "@/actions/bountyLike/likeBounty"
-import { getCurrentLikeStatus } from "@/actions/bountyLike/getBountyLike"
+import { Contribution } from "@/actions/bounty/type"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
+import BountyLikeButton from "@/components/bounty/like-button"
+import BountyShareButton from "@/components/bounty/share-button"
+import BountyStatusBadge from "@/components/bounty/status-badge"
+import { ContributionCard } from "@/components/contribution/card"
+import ContributionForm from "@/components/contribution/form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,26 +28,20 @@ import {
   CardFooter,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Separator } from "@/components/ui/separator"
 import UserAvatar from "@/components/user/avatar"
-import { PROFILE_URL } from "@/const/links"
-import { useClipboard } from "@/hooks/useClipboard";
-import getURL from "@/lib/get-url";
-import { escrowContractInstance } from "@/lib/contract-instances"
-import { useReadContract } from "thirdweb/react"
-import { tokenAddressToTokenNameMapping } from "@/const/contracts"
-import { client } from "@/lib/thirdweb-client"
 import { currentChain } from "@/const/chains"
-
-enum BountyStatus {
-  OPEN = "Open",
-  ENDED = "Ended",
-  COMPLETED = "Completed",
-  UNKNOWN = "Unknown"
-}
+import { tokenAddressToTokenNameMapping } from "@/const/contracts"
+import { PROFILE_URL } from "@/const/links"
+import { useViewerContext } from "@/contexts/viewer"
+import { escrowContractInstance } from "@/lib/contract-instances"
+import getURL from "@/lib/get-url";
+import { client } from "@/lib/thirdweb-client"
 
 export default function BountyCard({ details }: { details: any }) {
-  // console.log({ details })
+  console.log({ details })
+  const pathname = usePathname();
+  const activeAccount = useActiveAccount();
+  const { viewer } = useViewerContext();
 
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
@@ -50,29 +50,10 @@ export default function BountyCard({ details }: { details: any }) {
     params: [details.bounty_id_on_escrow],
   });
 
-  // Get bounty's status
-  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN);
-
-  useEffect(() => {
-    if (details && bountyData) {
-      const isClosed = bountyData[7];
-      const isExpired = details.expiry <= new Date();
-      const hasWinner = details.winningContributions > 0;
-
-      if (hasWinner) {
-        setStatus(BountyStatus.COMPLETED);
-      } else if (isExpired || isClosed) {
-        setStatus(BountyStatus.ENDED);
-      } else {
-        setStatus(BountyStatus.OPEN);
-      }
-    }
-  }, [details, bountyData])
-
   // Calculate total rewards of this bounty
   const [totalReward, setTotalReward] = useState<string>('');
 
-  const calcTotalRewards = async () => {
+  const calcTotalRewards = useCallback(async () => {
     if (!bountyData) {
       return 0
     }
@@ -92,13 +73,13 @@ export default function BountyCard({ details }: { details: any }) {
     const totalRewardInDecimals = formatUnits((bountyData[2] * bountyData[3]).toString(), rewardTokenDecimals);
     // setTotalReward(Number.parseFloat(totalRewardInDecimals).toFixed(2))
     setTotalReward(totalRewardInDecimals);
-  }
+  }, [bountyData]);
 
   useEffect(() => {
     if (!isBountyDataPending && bountyData) {
       calcTotalRewards()
     }
-  }, [isBountyDataPending, bountyData]);
+  }, [isBountyDataPending, bountyData, calcTotalRewards]);
 
   // Fetch bounty's creator
   const { data: creatorProfile, isPending: isCreatorProfilePending } = useQuery({
@@ -112,31 +93,7 @@ export default function BountyCard({ details }: { details: any }) {
     return profile
   };
 
-  // Handle "share this bounty" feature
-  const { copy } = useClipboard({ timeout: 1000 });
-  const shareBounty = () => {
-    const bountyUrl = getURL(`/bounty/${details?.id}`);
-    copy(bountyUrl, "Successfully copied bounty link.");
-  }
-
-  // Get current like 
-  const queryClient = useQueryClient();
-  
-  const { data: isLiked, isPending: isLikedPending } = useQuery({
-    queryKey: ['fetchBountyLikeStatus', details.id],
-    queryFn: async () => await getCurrentLikeStatus({ bountyId: details.id })
-  })
-
-  // Handle "like / dislike bounty" feature
-  const toggleLike = async () => {
-    await handleLikeDislike({
-      bountyId: details.id,
-      like: !isLiked
-    })
-    queryClient.invalidateQueries({ queryKey: ['fetchBountyLikeStatus'] })
-  }
-
-  if (isCreatorProfilePending || isBountyDataPending || isLikedPending) {
+  if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
 
@@ -145,75 +102,80 @@ export default function BountyCard({ details }: { details: any }) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between flex-wrap gap-2">
-          <Link href={`${PROFILE_URL}/${creatorProfile?.username}`} className="flex items-center space-x-4">
-            <UserAvatar pfp={creatorProfile?.pfp} />
-            <div>
-              <p className="text-sm font-medium leading-none">{creatorProfile?.display_name || ''}</p>
-              <p className="text-sm text-muted-foreground">{`@${creatorProfile?.username || ''}`}</p>
+    <div>
+      <Card className="mb-4">
+        <CardHeader>
+          <div className="flex justify-between flex-wrap gap-2">
+            <div className="flex items-center space-x-4">
+              <UserAvatar pfp={creatorProfile?.pfp} />
+              <div>
+                <p className="text-sm font-medium leading-none">{creatorProfile?.display_name || ''}</p>
+                <Link href={`${PROFILE_URL}/${creatorProfile?.username}`}>
+                  <p className="text-sm text-muted-foreground">{`@${creatorProfile?.username || ''}`}</p>
+                </Link>
+              </div>
             </div>
-          </Link>
 
-          <div className="flex gap-3 items-center flex-wrap">
-            <div className="text-xs text-muted-foreground">
-              {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
+            <div className="flex gap-3 items-center flex-wrap">
+              <div className="text-xs text-muted-foreground">
+                {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
+              </div>
+              <BountyStatusBadge details={details} bountyData={bountyData} />
+              {pathname.includes("bounty") ?
+                <BountyShareButton bountyId={details.id} />
+                : <Link href={getURL(`/bounty/${details?.id}`)}>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </Link>}
             </div>
-            <Badge variant="outline">{status}</Badge>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-sm font-medium">{details?.title}</div>
-        {/* TODO: when the description is too long -> line-clamp-10 and view more */}
-        <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-          {details?.description}
-        </div>
-        <div className="flex gap-4 flex-wrap">
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <h2 className="text-2xl font-bold">{details?.title}</h2>
+          <p className="text-sm whitespace-pre-wrap">
+            {details?.description}
+          </p>
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex gap-2">
+              <Award className="h-5 w-5" />
+              <p className="text-sm">
+                {totalReward} {tokenAddressToTokenNameMapping[bountyData?.[1] || '']} {bountyData && bountyData[3] > 1 ? ` for ${bountyData?.[3]} persons` : ""}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <CalendarClock className="h-5 w-5" />
+              <p className="text-sm">
+                {`Due ${formatDistanceToNow(details?.expiry, { addSuffix: true })}`}
+              </p>
+            </div>
+          </div>
           <div className="flex gap-2">
-            <Award className="h-5 w-5 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              {totalReward} {tokenAddressToTokenNameMapping[bountyData?.[1] || '']} {bountyData && bountyData[3] > 1 ? ` for ${bountyData?.[3]} persons` : ""}
-            </p>
+            {details.tags.map((tag: Tag) => (<Badge key={tag.id} variant="outline">{tag.name}</Badge>))}
           </div>
-          <div className="flex gap-2">
-            <CalendarClock className="h-5 w-5 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              {`Due ${formatDistanceToNow(details?.expiry, { addSuffix: true })}`}
-            </p>
+        </CardContent>
+        {!!(activeAccount?.address) && <CardFooter className="flex justify-between">
+          <div className="w-full flex justify-between items-center">
+            <div className="flex gap-3">
+              <BountyLikeButton bountyId={details.id} />
+            </div>
+            {/* TODO: handle end quest onclick event */}
+            {
+              viewer?.id === details.creator_profile_id ?
+                <Button variant="default">End quest</Button> :
+                <ContributionForm bountyId={details.id} />
+            }
           </div>
-        </div>
-        <div className="flex gap-2">
-          {details.tags.map((tag: Tag) => (<Badge key={tag.id} variant="outline">{tag.name}</Badge>))}
-        </div>
-        <Separator />
-      </CardContent>
-      <CardFooter>
-        <div className="w-full flex justify-between items-center">
-          <div className="flex gap-3">
-            <Button variant="ghost" size="icon" onClick={toggleLike}>
-              {/* TODO: import color code from theme */}
-              <ThumbsUp fill={isLiked ? "#0F172A" : "#FFFFFF"} className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <MessageSquare className="h-5 w-5" />
-            </Button>
-            {/* <Button variant="ghost" size="icon">
-                <Lightbulb className="h-5 w-5" />
-              </Button> */}
-            <Button variant="ghost" size="icon" onClick={shareBounty}>
-              <Share className="h-5 w-5" />
-            </Button>
-          </div>
-          {/* TODO: handle dynamic CTA */}
-          {/* <div className="">
-            <Button>
-              <Lightbulb className="mr-2 h-5 w-5" /> Contribute
-            </Button>
-          </div> */}
-        </div>
-      </CardFooter>
-    </Card>
+        </CardFooter>}
+      </Card>
+      {/* TODO: sort the contributions by created_at DESC */}
+      {details?.contributions?.length && <div className="mt-8">
+        {details.contributions.map((contribution: Contribution) => (
+          <ContributionCard
+            key={contribution.id}
+            contribution={contribution}
+            bountyCreatorId={details.creator_profile_id}
+          />
+        ))}
+      </div>}
+    </div>
   )
 }
