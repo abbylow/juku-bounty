@@ -1,5 +1,5 @@
 import { formatDistance } from 'date-fns'
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Crown } from "lucide-react";
 import Link from "next/link"
 import { CheckedState } from '@radix-ui/react-checkbox';
 import { useState } from "react";
@@ -17,9 +17,9 @@ import { useViewerContext } from '@/contexts/viewer'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function ContributionCard({
-  contribution, bountyCreatorId, isClosingBounty, onSelectWinner, isBountyResultDecided, reachMaxNumberOfWinners
+  contribution, bountyCreatorId, isClosingBounty, onSelectWinner, isBountyResultDecided, reachMaxNumberOfWinners, isWinner
 }: {
-  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void, isBountyResultDecided: boolean, reachMaxNumberOfWinners: boolean
+  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void, isBountyResultDecided: boolean, reachMaxNumberOfWinners: boolean, isWinner: boolean
 }) {
   const { viewer } = useViewerContext();
 
@@ -89,6 +89,7 @@ export function ContributionCard({
                 </Link>
               </div>
               <Badge variant="secondary">contributor</Badge>
+              {isWinner && <Crown className="h-6 w-6 text-yellow-500" />}
             </div>
 
             <div className="flex gap-3 items-center flex-wrap">
