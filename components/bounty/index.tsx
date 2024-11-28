@@ -93,6 +93,10 @@ export default function BountyCard({ details }: { details: any }) {
     return profile
   };
 
+  const handleEndBounty = async () => {
+    console.log("End bounty")
+  }
+
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
   }
@@ -157,10 +161,9 @@ export default function BountyCard({ details }: { details: any }) {
             <div className="flex gap-3">
               <BountyLikeButton bountyId={details.id} />
             </div>
-            {/* TODO: handle end quest onclick event */}
             {
-              viewer?.id === details.creator_profile_id ?
-                <Button variant="default">End quest</Button> :
+              (viewer?.id === details.creator_profile_id && !details.is_result_decided) ?
+                <Button variant="default" onClick={handleEndBounty}>End bounty</Button> :
                 <ContributionForm bountyId={details.id} />
             }
           </div>
