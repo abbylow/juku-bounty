@@ -1,7 +1,8 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { Lightbulb, Info } from "lucide-react"
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 
 import { createContribution } from "@/actions/contribution/createContribution"
@@ -18,7 +19,9 @@ import { useViewerContext } from "@/contexts/viewer"
 export default function ContributionForm({ bountyId }: { bountyId: string }) {
   const router = useRouter();
   const { viewer } = useViewerContext();
-
+  const queryClient = useQueryClient();
+  const pathname = usePathname();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [contributionDescDisabled, setContributionDescDisabled] = useState(false);
@@ -66,7 +69,11 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
       setContributionDesc("");
       setReferee([]);
       toast({ title: "Successfully created contribution." });
-      router.push(`/bounty/${bountyId}`)
+      if (!pathname.includes("bounty")) {
+        router.push(`/bounty/${bountyId}`)
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['fetchBounty', bountyId] })
+      }
     } catch (error) {
       console.log("Something went wrong")
     }
