@@ -10,15 +10,16 @@ import { CommentCard } from '@/components/comment/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from '@/components/ui/use-toast';
 import UserAvatar from '@/components/user/avatar'
 import { PROFILE_URL } from '@/const/links'
 import { useViewerContext } from '@/contexts/viewer'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function ContributionCard({
-  contribution, bountyCreatorId, isClosingBounty, onSelectWinner, isBountyResultDecided
+  contribution, bountyCreatorId, isClosingBounty, onSelectWinner, isBountyResultDecided, reachMaxNumberOfWinners
 }: {
-  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void, isBountyResultDecided: boolean
+  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void, isBountyResultDecided: boolean, reachMaxNumberOfWinners: boolean
 }) {
   const { viewer } = useViewerContext();
 
@@ -34,6 +35,10 @@ export function ContributionCard({
   const [isSelected, setIsSelected] = useState(false);
 
   const handleSelect = (checked: CheckedState) => {
+    if (reachMaxNumberOfWinners) {
+      toast({ title: `You have reached the maximum number of winners` })
+      return
+    }
     const selected = checked === true;
     setIsSelected(selected);
     if (onSelectWinner) {

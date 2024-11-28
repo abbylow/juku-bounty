@@ -28,6 +28,7 @@ import {
   CardFooter,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from "@/components/ui/use-toast"
 import UserAvatar from "@/components/user/avatar"
 import { currentChain } from "@/const/chains"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
@@ -103,7 +104,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
   };
 
   const [selectedContributions, setSelectedContributions] = useState<number[]>([]);
-  // console.log({ isClosingBounty, selectedContributions })
+
   const handleSelectWinner = (id: number, selected: boolean) => {
     setSelectedContributions((prev) =>
       selected ? [...prev, id] : prev.filter((contributionId) => contributionId !== id)
@@ -112,6 +113,11 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
 
   const submitEndBounty = () => {
     console.log({ selectedContributions })
+    if (bountyData && selectedContributions.length > bountyData[3]) {
+      toast({ title: `You cannot select more than ${bountyData[3]} winners` })
+      return
+    }
+    
   }
 
   if (isCreatorProfilePending || isBountyDataPending) {
@@ -214,6 +220,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
             bountyCreatorId={details.creator_profile_id}
             isClosingBounty={isClosingBounty}
             onSelectWinner={handleSelectWinner}
+            reachMaxNumberOfWinners={!!(bountyData && selectedContributions.length >= bountyData[3])}
           />
         ))}
       </div>}
