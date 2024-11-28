@@ -3,11 +3,12 @@
 import { useQuery } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
+import { constants } from "ethers"
 import { Award, CalendarClock, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from "react"
-import { getContract } from "thirdweb"
+import { getContract, prepareContractCall, sendAndConfirmTransaction } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount, useReadContract } from "thirdweb/react"
 
@@ -34,7 +35,7 @@ import { currentChain } from "@/const/chains"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { PROFILE_URL } from "@/const/links"
 import { useViewerContext } from "@/contexts/viewer"
-import { escrowContractInstance } from "@/lib/contract-instances"
+import { bountyClosedEventSignature, escrowContractInstance } from "@/lib/contract-instances"
 import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
 
@@ -111,13 +112,59 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
     );
   };
 
-  const submitEndBounty = () => {
+  const submitEndBounty = async () => {
     console.log({ selectedContributions })
     if (bountyData && selectedContributions.length > bountyData[3]) {
       toast({ title: `You cannot select more than ${bountyData[3]} winners` })
       return
     }
 
+    if (!details.id || !activeAccount) {
+      toast({ title: "Something went wrong" })
+      console.error("Something went wrong", { details, activeAccount })
+      return;
+    }
+
+    try {
+      console.log( details.contributionMap[1] )
+      const contributorsAddresses = selectedContributions.map((id) => details.contributionMap[id]?.referee_id ? details.contributionMap[id]?.referee?.wallet_address : details.contributionMap[id]?.creator?.wallet_address);
+      const referrersAddresses = selectedContributions.map((id) => details.contributionMap[id]?.referee_id ? details.contributionMap[id]?.creator?.wallet_address : constants.AddressZero);
+      console.log({ contributorsAddresses, referrersAddresses })
+      // TODO: submit the selected contributions to the escrow contract
+      // prepare `closeBounty` transaction
+      const preparedClosingTx = prepareContractCall({
+        contract: escrowContractInstance,
+        method: "closeBounty",
+        params: [details.bounty_id_on_escrow, contributorsAddresses, referrersAddresses],
+      });
+      console.log({ preparedClosingTx })
+      // prompt bounty creator to send `closeBounty` transaction
+      const closingTxReceipt = await sendAndConfirmTransaction({
+        transaction: preparedClosingTx,
+        account: activeAccount,
+      });
+      console.log({ closingTxReceipt })
+      if (closingTxReceipt.status !== "success") {
+        throw new Error("Fail to close bounty on smart contract");
+      }
+
+      const logs = closingTxReceipt.logs;
+
+      const closingLog = logs.find(log => log.topics[0] === bountyClosedEventSignature);
+      console.log({ closingLog, logs })
+      if (!closingLog) {
+        throw new Error("Fail to get BountyClosed event log");
+      }
+
+      // TODO: submit the selected contributions to the backend
+      // TODO: display the bounty closed toast
+      // toast({ title: "Closed bounty successfully" })
+      // TODO: display winners on the bounty card
+
+    } catch (error) {
+      console.error("Error closing bounty", error)
+      toast({ title: "Fail to close bounty" })
+    }
   }
 
   if (isCreatorProfilePending || isBountyDataPending) {

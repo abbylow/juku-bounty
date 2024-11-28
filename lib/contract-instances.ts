@@ -648,3 +648,7 @@ export const escrowContractInstance = getContract({
 export const bountyCreatedEventSignature = id(
   "BountyCreated(uint256,address,address)"
 );
+// Define the event signature (topic) for the BountyClosed event
+export const bountyClosedEventSignature = id(
+  "BountyClosed(uint256)"
+);
