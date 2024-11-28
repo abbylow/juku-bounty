@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { VerifiedPlatform } from "@/actions/verifiedPlatform/type";
 import { getVerifiedPlatform } from "@/actions/verifiedPlatform/getVerifiedPlatform";
@@ -14,12 +14,12 @@ export default function Profile() {
   const { viewer } = useViewerContext();
 
   const { isCategoriesPending, categoryOptions } = useCategoryContext();
-  
+
   const [userCategories, setUserCategories] = useState<Option[]>([]);
-  
+
   const [platformIntegrations, setPlatformIntegrations] = useState<VerifiedPlatform[]>();
 
-  const retrieveData = async () => {
+  const retrieveData = useCallback(async () => {
     try {
       const categories = categoryOptions.filter((option: { value: any; }) =>
         viewer?.category_ids?.includes(+(option.value))
@@ -36,13 +36,13 @@ export default function Profile() {
     } catch (error) {
       console.log({ error })
     }
-  }
+  }, [viewer, categoryOptions])
 
   useEffect(() => {
     if (viewer && !isCategoriesPending) {
       retrieveData()
     }
-  }, [viewer, isCategoriesPending])
+  }, [viewer, isCategoriesPending, retrieveData])
 
   return (
     <div className="space-y-6 md:px-10 py-10 pb-16">
