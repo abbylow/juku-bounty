@@ -117,7 +117,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
       toast({ title: `You cannot select more than ${bountyData[3]} winners` })
       return
     }
-    
+
   }
 
   if (isCreatorProfilePending || isBountyDataPending) {
@@ -211,19 +211,30 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
         </CardFooter>}
       </Card>
       {/* TODO: sort the contributions by created_at DESC */}
-      {details?.contributions?.length > 0 && <div className="mt-8">
-        {details.contributions.map((contribution: Contribution) => (
-          <ContributionCard
-            key={contribution.id}
-            contribution={contribution}
-            isBountyResultDecided={details.is_result_decided}
-            bountyCreatorId={details.creator_profile_id}
-            isClosingBounty={isClosingBounty}
-            onSelectWinner={handleSelectWinner}
-            reachMaxNumberOfWinners={!!(bountyData && selectedContributions.length >= bountyData[3])}
-          />
-        ))}
-      </div>}
+      {details?.contributions?.length > 0 && (
+        <>
+          {isClosingBounty && (
+            <div className="mt-8">
+              <h3 className="text-xl font-bold">
+                {`Select up to ${bountyData?.[3]} winner${bountyData && bountyData[3] > 1 ? '(s)' : ''} from existing contributor${details?.contributions?.length > 1 ? '(s)' : ''}:`}
+              </h3>
+            </div>
+          )}
+          <div className="mt-8">
+            {details.contributions.map((contribution: Contribution) => (
+              <ContributionCard
+                key={contribution.id}
+                contribution={contribution}
+                isBountyResultDecided={details.is_result_decided}
+                bountyCreatorId={details.creator_profile_id}
+                isClosingBounty={isClosingBounty}
+                onSelectWinner={handleSelectWinner}
+                reachMaxNumberOfWinners={!!(bountyData && selectedContributions.length >= bountyData[3])}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
