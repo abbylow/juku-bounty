@@ -15,6 +15,7 @@ import { useActiveAccount, useReadContract } from "thirdweb/react"
 import { Contribution } from "@/actions/bounty/type"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
+import BountyAlertDialog from "@/components/bounty/alert-dialog"
 import BountyLikeButton from "@/components/bounty/like-button"
 import BountyShareButton from "@/components/bounty/share-button"
 import BountyStatusBadge from "@/components/bounty/status-badge"
@@ -97,6 +98,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
 
   // Handle closing bounty
   const [isClosingBounty, setIsClosingBounty] = useState(!!isClosingMode);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
   const toggleWinnerSelection = () => {
     if (!pathname.includes("bounty")) {
       router.push(`/bounty/${details.id}?isClosingMode=true`)
@@ -116,7 +118,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
     console.log({ selectedContributions })
     if (bountyData && selectedContributions.length > bountyData[3]) {
       toast({ title: `You cannot select more than ${bountyData[3]} winners` })
-      return
+      return;
     }
 
     if (!details.id || !activeAccount) {
@@ -126,11 +128,12 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
     }
 
     try {
-      console.log( details.contributionMap[1] )
+      setShowAlertDialog(true);
+      
+      // submit the selected contributions to the escrow contract
       const contributorsAddresses = selectedContributions.map((id) => details.contributionMap[id]?.referee_id ? details.contributionMap[id]?.referee?.wallet_address : details.contributionMap[id]?.creator?.wallet_address);
       const referrersAddresses = selectedContributions.map((id) => details.contributionMap[id]?.referee_id ? details.contributionMap[id]?.creator?.wallet_address : constants.AddressZero);
       console.log({ contributorsAddresses, referrersAddresses })
-      // TODO: submit the selected contributions to the escrow contract
       // prepare `closeBounty` transaction
       const preparedClosingTx = prepareContractCall({
         contract: escrowContractInstance,
@@ -164,6 +167,8 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
     } catch (error) {
       console.error("Error closing bounty", error)
       toast({ title: "Fail to close bounty" })
+    } finally {
+      setShowAlertDialog(false);
     }
   }
 
@@ -282,6 +287,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
           </div>
         </>
       )}
+      <BountyAlertDialog open={showAlertDialog} setOpen={setShowAlertDialog} />
     </div>
   )
 }
