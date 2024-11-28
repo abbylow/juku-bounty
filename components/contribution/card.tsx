@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatDistance } from 'date-fns'
 import Link from "next/link"
 
@@ -5,6 +6,7 @@ import { Contribution } from '@/actions/bounty/type'
 import CommentForm from '@/components/comment/form'
 import { CommentCard } from '@/components/comment/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import UserAvatar from '@/components/user/avatar'
 import { PROFILE_URL } from '@/const/links'
 import { useViewerContext } from '@/contexts/viewer'
@@ -12,7 +14,14 @@ import { useViewerContext } from '@/contexts/viewer'
 export function ContributionCard({ contribution, bountyCreatorId }: { contribution: Contribution, bountyCreatorId: string }) {
   const { viewer } = useViewerContext();
 
+  const [showAllComments, setShowAllComments] = useState(false);
+
   const canComment = viewer?.id === contribution?.creator_profile_id || viewer?.id === contribution?.referee_id || viewer?.id === bountyCreatorId;
+
+  const commentsToShow = showAllComments ? contribution?.comments : contribution?.comments?.slice(0, 2);
+  const hasMoreComments = contribution?.comments && contribution?.comments?.length > 2;
+
+  const toggleComments = () => setShowAllComments(!showAllComments);
 
   return (
     <div className="mb-4 p-4">
@@ -48,12 +57,12 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
           </div>
           <p className="text-sm my-2">{contribution?.description}</p>
           {/* TODO: only show comment button if bounty is not ended */}
-          {canComment && <CommentForm contributionId={contribution?.id} bountyId={contribution?.bounty_id}/>}
+          {canComment && <CommentForm contributionId={contribution?.id} bountyId={contribution?.bounty_id} />}
         </div>
       </div>
-      {contribution?.comments && (
+      {commentsToShow && commentsToShow.length > 0 && (
         <div className="ml-8 mt-4 border-l-2 pl-4">
-          {contribution?.comments?.map((comment) => (
+          {commentsToShow.map((comment) => (
             <CommentCard
               key={comment.id}
               comment={comment}
@@ -64,9 +73,19 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
               canComment={canComment}
             />
           ))}
+          {/* Show expand/collapse button if there are more comments */}
+          {hasMoreComments && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleComments}
+              className="mt-2 text-muted-foreground"
+            >
+              {showAllComments ? "Collapse comments" : `Show more comments (${(contribution?.comments?.length || 0) - 2} more)`}
+            </Button>
+          )}
         </div>
       )}
     </div>
-  )
+  );
 }
-
