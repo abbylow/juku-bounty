@@ -5,7 +5,7 @@ import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
 import { Award, CalendarClock, ChevronRight } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from "react"
 import { getContract } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
@@ -38,10 +38,10 @@ import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
 
 export default function BountyCard({ details }: { details: any }) {
-  console.log({ details })
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
   const { viewer } = useViewerContext();
+  const router = useRouter();
 
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
@@ -95,7 +95,12 @@ export default function BountyCard({ details }: { details: any }) {
 
   // Handle closing bounty
   const [isClosingBounty, setIsClosingBounty] = useState(false);
-  const toggleWinnerSelection = () => setIsClosingBounty(!isClosingBounty);
+  const toggleWinnerSelection = () => {
+    if (!pathname.includes("bounty")) {
+      router.push(`/bounty/${details.id}`)
+    }
+    setIsClosingBounty(!isClosingBounty)
+  };
 
   const [selectedContributions, setSelectedContributions] = useState<number[]>([]);
   // console.log({ isClosingBounty, selectedContributions })
@@ -104,6 +109,10 @@ export default function BountyCard({ details }: { details: any }) {
       selected ? [...prev, id] : prev.filter((contributionId) => contributionId !== id)
     );
   };
+
+  const submitEndBounty = () => {
+    console.log({ selectedContributions })
+  }
 
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
@@ -165,27 +174,38 @@ export default function BountyCard({ details }: { details: any }) {
           </div>
         </CardContent>
         {!!(activeAccount?.address) && <CardFooter className="flex justify-between">
-          <div className="w-full flex justify-between items-center">
+          <div className="w-full flex justify-between items-center flex-wrap gap-2">
             <div className="flex gap-3">
               <BountyLikeButton bountyId={details.id} />
             </div>
-            {
-              (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
-              <Button variant={isClosingBounty ? "secondary" : "default"} onClick={toggleWinnerSelection}>{isClosingBounty ? 'Cancel' : 'End bounty'}</Button>
-            }
-            {
-              (viewer?.id !== details.creator_profile_id && !details.is_result_decided) &&
-              <ContributionForm bountyId={details.id} />
-            }
-            {/* {
-              (details.is_result_decided) &&
-              <Button variant="default">Get rewards</Button>
-            } */}
+            <div className="flex gap-3">
+              {
+                (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
+                <Button
+                  variant={isClosingBounty ? "secondary" : "default"}
+                  onClick={toggleWinnerSelection}
+                >
+                  {isClosingBounty ? 'Cancel' : 'End bounty'}
+                </Button>
+              }
+              {
+                (viewer?.id === details.creator_profile_id && !details.is_result_decided) && isClosingBounty &&
+                <Button variant="default" onClick={submitEndBounty}>Submit</Button>
+              }
+              {
+                (viewer?.id !== details.creator_profile_id && !details.is_result_decided) &&
+                <ContributionForm bountyId={details.id} />
+              }
+              {/* {
+                (details.is_result_decided) &&
+                <Button variant="default">Get rewards</Button>
+              } */}
+            </div>
           </div>
         </CardFooter>}
       </Card>
       {/* TODO: sort the contributions by created_at DESC */}
-      {details?.contributions?.length && <div className="mt-8">
+      {details?.contributions?.length > 0 && <div className="mt-8">
         {details.contributions.map((contribution: Contribution) => (
           <ContributionCard
             key={contribution.id}
