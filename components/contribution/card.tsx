@@ -42,7 +42,7 @@ export function ContributionCard({
   };
 
   return (
-    <div className={`mb-4 p-4 ${isSelected ? "bg-gray-100 border border-primary rounded-lg" : ""}`}>
+    <div className={`mb-4 p-4 ${isClosingBounty ? "border border-primary rounded-lg" : ""} ${isSelected ? "bg-gray-100" : ""}`}>
       <div className="flex items-start gap-4">
         {isClosingBounty && (
           <TooltipProvider>
