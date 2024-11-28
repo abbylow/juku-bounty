@@ -13,12 +13,11 @@ export default function BountyDetails({ params }: { params: { slug: string } }) 
 
   const { data: bounty, isPending: isBountyPending } = useQuery({
     queryKey: ['fetchBounty', params.slug],
-    queryFn: async () => await getBounty({bountyId: params.slug})
+    queryFn: async () => await getBounty({ bountyId: params.slug })
   })
-
   if (isBountyPending) {
     return <Skeleton className="h-56" />
   }
 
-  return <BountyCard details={bounty} isClosingMode={isClosingMode === "true"}/>
+  return <BountyCard details={bounty} isClosingMode={isClosingMode === "true"} />
 }

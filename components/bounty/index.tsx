@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
 import { constants } from "ethers"
@@ -12,7 +12,8 @@ import { getContract, prepareContractCall, sendAndConfirmTransaction } from "thi
 import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount, useReadContract } from "thirdweb/react"
 
-import { Contribution } from "@/actions/bounty/type"
+import { closeBounty } from "@/actions/bounty/closeBounty"
+import { BountyWinningContribution, Contribution } from "@/actions/bounty/type"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import BountyAlertDialog from "@/components/bounty/alert-dialog"
@@ -44,6 +45,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
   const { viewer } = useViewerContext();
+  const queryClient = useQueryClient();
   const router = useRouter();
 
   // Get bounty's reward details from escrow contract
@@ -159,11 +161,18 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
         throw new Error("Fail to get BountyClosed event log");
       }
 
-      // TODO: submit the selected contributions to the backend
-      // TODO: display the bounty closed toast
-      // toast({ title: "Closed bounty successfully" })
-      // TODO: display winners on the bounty card
+      // TODO: IMPORTANT: If the bounty is closed unsuccessfully, the smart contract will not record the winning contributions.
+      // submit the selected contributions to the backend
+      await closeBounty({
+        bountyId: details.id,
+        winningContributions: selectedContributions,
+      });
 
+      // display the bounty closed toast
+      toast({ title: "Closed bounty successfully" })
+      setIsClosingBounty(false);
+      // get latest bounty data to be displayed on the bounty card
+      queryClient.invalidateQueries({ queryKey: ['fetchBounty', details.id] })
     } catch (error) {
       console.error("Error closing bounty", error)
       toast({ title: "Fail to close bounty" })
@@ -282,6 +291,7 @@ export default function BountyCard({ details, isClosingMode }: { details: any, i
                 isClosingBounty={isClosingBounty}
                 onSelectWinner={handleSelectWinner}
                 reachMaxNumberOfWinners={!!(bountyData && selectedContributions.length >= bountyData[3])}
+                isWinner={details.winningContributions.find((winningContribution: BountyWinningContribution) => winningContribution.contribution_id === contribution.id)}
               />
             ))}
           </div>
