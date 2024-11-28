@@ -1,6 +1,7 @@
 import { formatDistance } from 'date-fns'
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link"
+import { CheckedState } from '@radix-ui/react-checkbox';
 import { useState } from "react";
 
 import { Contribution } from '@/actions/bounty/type'
@@ -8,11 +9,17 @@ import CommentForm from '@/components/comment/form'
 import { CommentCard } from '@/components/comment/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox';
 import UserAvatar from '@/components/user/avatar'
 import { PROFILE_URL } from '@/const/links'
 import { useViewerContext } from '@/contexts/viewer'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function ContributionCard({ contribution, bountyCreatorId }: { contribution: Contribution, bountyCreatorId: string }) {
+export function ContributionCard({
+  contribution, bountyCreatorId, isClosingBounty, onSelectWinner
+}: {
+  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void
+}) {
   const { viewer } = useViewerContext();
 
   const [showAllComments, setShowAllComments] = useState(false);
@@ -24,9 +31,37 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
 
   const toggleComments = () => setShowAllComments(!showAllComments);
 
+  const [isSelected, setIsSelected] = useState(false);
+
+  const handleSelect = (checked: CheckedState) => {
+    const selected = checked === true;
+    setIsSelected(selected);
+    if (onSelectWinner) {
+      onSelectWinner(contribution.id, selected);
+    }
+  };
+
   return (
-    <div className="mb-4 p-4">
+    <div className={`mb-4 p-4 ${isSelected ? "bg-gray-100 border border-primary rounded-lg" : ""}`}>
       <div className="flex items-start gap-4">
+        {isClosingBounty && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="items-top flex space-x-2">
+                  <Checkbox
+                    className="mt-1"
+                    checked={isSelected}
+                    onCheckedChange={handleSelect}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Select this contribution as winner</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {/* for upvote / downvote */}
         {/* <div className="flex flex-col items-center">
           <Button variant="ghost" size="icon">
@@ -82,7 +117,7 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
               onClick={toggleComments}
               className="mt-2 text-muted-foreground"
             >
-              {showAllComments ? <ChevronUp className="h-4 w-4 mr-2"/> : <ChevronDown className="h-4 w-4 mr-2"/>}
+              {showAllComments ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
               {showAllComments ? "Collapse comments" : `Show more comments (${(contribution?.comments?.length || 0) - 2} more)`}
             </Button>
           )}

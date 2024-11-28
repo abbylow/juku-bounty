@@ -93,9 +93,17 @@ export default function BountyCard({ details }: { details: any }) {
     return profile
   };
 
-  const handleEndBounty = async () => {
-    console.log("End bounty")
-  }
+  // Handle closing bounty
+  const [isClosingBounty, setIsClosingBounty] = useState(false);
+  const toggleWinnerSelection = () => setIsClosingBounty(!isClosingBounty);
+
+  const [selectedContributions, setSelectedContributions] = useState<number[]>([]);
+  // console.log({ isClosingBounty, selectedContributions })
+  const handleSelectWinner = (id: number, selected: boolean) => {
+    setSelectedContributions((prev) =>
+      selected ? [...prev, id] : prev.filter((contributionId) => contributionId !== id)
+    );
+  };
 
   if (isCreatorProfilePending || isBountyDataPending) {
     return <Skeleton className="h-56" />
@@ -163,12 +171,16 @@ export default function BountyCard({ details }: { details: any }) {
             </div>
             {
               (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
-              <Button variant="default" onClick={handleEndBounty}>End bounty</Button>
+              <Button variant={isClosingBounty ? "secondary" : "default"} onClick={toggleWinnerSelection}>{isClosingBounty ? 'Cancel' : 'End bounty'}</Button>
             }
             {
-              (viewer?.id !== details.creator_profile_id) &&
+              (viewer?.id !== details.creator_profile_id && !details.is_result_decided) &&
               <ContributionForm bountyId={details.id} />
             }
+            {/* {
+              (details.is_result_decided) &&
+              <Button variant="default">Get rewards</Button>
+            } */}
           </div>
         </CardFooter>}
       </Card>
@@ -179,6 +191,8 @@ export default function BountyCard({ details }: { details: any }) {
             key={contribution.id}
             contribution={contribution}
             bountyCreatorId={details.creator_profile_id}
+            isClosingBounty={isClosingBounty}
+            onSelectWinner={handleSelectWinner}
           />
         ))}
       </div>}
