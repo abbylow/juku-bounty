@@ -37,7 +37,7 @@ import { escrowContractInstance } from "@/lib/contract-instances"
 import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
 
-export default function BountyCard({ details }: { details: any }) {
+export default function BountyCard({ details, isClosingMode }: { details: any, isClosingMode?: boolean }) {
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
   const { viewer } = useViewerContext();
@@ -94,10 +94,10 @@ export default function BountyCard({ details }: { details: any }) {
   };
 
   // Handle closing bounty
-  const [isClosingBounty, setIsClosingBounty] = useState(false);
+  const [isClosingBounty, setIsClosingBounty] = useState(!!isClosingMode);
   const toggleWinnerSelection = () => {
     if (!pathname.includes("bounty")) {
-      router.push(`/bounty/${details.id}`)
+      router.push(`/bounty/${details.id}?isClosingMode=true`)
     }
     setIsClosingBounty(!isClosingBounty)
   };
