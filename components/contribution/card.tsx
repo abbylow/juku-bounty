@@ -35,11 +35,12 @@ export function ContributionCard({
   const [isSelected, setIsSelected] = useState(false);
 
   const handleSelect = (checked: CheckedState) => {
-    if (reachMaxNumberOfWinners) {
+    const selected = checked === true;
+
+    if (selected && reachMaxNumberOfWinners) {
       toast({ title: `You have reached the maximum number of winners` })
       return
     }
-    const selected = checked === true;
     setIsSelected(selected);
     if (onSelectWinner) {
       onSelectWinner(contribution.id, selected);
