@@ -148,7 +148,7 @@ export function BountyCreationForm() {
       })
       console.log({ createdBounty })
 
-      toast({ title: "Created Bounty" })
+      toast({ title: "Created bounty successfully" })
       if (createdBounty) {
         router.push(`/bounty/${createdBounty.id}`)
       } else {
