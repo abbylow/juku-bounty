@@ -96,7 +96,7 @@ export function ContributionCard({
         </div>
       </div>
       {commentsToShow && commentsToShow.length > 0 && (
-        <div className="ml-8 mt-4 border-l-2 pl-4">
+        <div className={`${isClosingBounty ? "ml-16" : "ml-8"} mt-4 border-l-2 pl-4`}>
           {commentsToShow.map((comment) => (
             <CommentCard
               key={comment.id}
