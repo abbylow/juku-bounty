@@ -162,9 +162,12 @@ export default function BountyCard({ details }: { details: any }) {
               <BountyLikeButton bountyId={details.id} />
             </div>
             {
-              (viewer?.id === details.creator_profile_id && !details.is_result_decided) ?
-                <Button variant="default" onClick={handleEndBounty}>End bounty</Button> :
-                <ContributionForm bountyId={details.id} />
+              (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
+              <Button variant="default" onClick={handleEndBounty}>End bounty</Button>
+            }
+            {
+              (viewer?.id !== details.creator_profile_id) &&
+              <ContributionForm bountyId={details.id} />
             }
           </div>
         </CardFooter>}
