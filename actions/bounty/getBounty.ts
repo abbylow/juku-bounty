@@ -79,27 +79,34 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
     };
 
     const contributionMap: Record<number, Contribution> = {};
+    const tagMap: Record<number, Tag> = {};
+    const winningContributionMap: Record<number, BountyWinningContribution> = {};
 
     result.forEach((row) => {
       // Add tags
       if (row.tag_id) {
-        bounty.tags.push({
-          id: row.tag_id,
-          name: row.tag_name,
-          slug: row.tag_slug
-        } as Tag);
+        if (!tagMap[row.tag_id]) {
+          tagMap[row.tag_id] = {
+            id: row.tag_id,
+            name: row.tag_name,
+            slug: row.tag_slug
+          };
+        }
       }
+      bounty.tags = Object.values(tagMap);
 
       // Add winning contributions
       if (row.winning_contribution_id) {
-        bounty.winningContributions.push({
-          id: row.winning_contribution_id,
-          bounty_id: params.bountyId,
-          contribution_id: row.winning_contribution_contribution_id
-        } as BountyWinningContribution);
+        if (!winningContributionMap[row.winning_contribution_id]) {
+          winningContributionMap[row.winning_contribution_id] = {
+            id: row.winning_contribution_id,
+            bounty_id: params.bountyId,
+            contribution_id: row.winning_contribution_contribution_id
+          };
+        }
       }
+      bounty.winningContributions = Object.values(winningContributionMap);
 
-      console.log({ row })
       // Add contributions
       if (row.contribution_id) {
         if (!contributionMap[row.contribution_id]) {
@@ -121,11 +128,11 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
             },
             referee: row.contribution_referee_id
               ? {
-                  id: row.contribution_referee_id,
-                  display_name: row.referee_display_name,
-                  username: row.referee_username,
-                  wallet_address: row.referee_wallet_address
-                }
+                id: row.contribution_referee_id,
+                display_name: row.referee_display_name,
+                username: row.referee_username,
+                wallet_address: row.referee_wallet_address
+              }
               : null,
             comments: [] as Comment[]
           };
