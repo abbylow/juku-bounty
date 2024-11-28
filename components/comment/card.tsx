@@ -8,8 +8,8 @@ import UserAvatar from '@/components/user/avatar'
 import { PROFILE_URL } from '@/const/links'
 
 export function CommentCard(
-  { comment, bountyId, bountyCreatorId, contributionId, contributionRefereeId, canComment }: 
-  { comment: Comment, bountyId: string, bountyCreatorId: string, contributionId: number, contributionRefereeId: string, canComment: boolean }
+  { comment, bountyId, bountyCreatorId, contributionId, contributionRefereeId, canComment, isBountyResultDecided }: 
+  { comment: Comment, bountyId: string, bountyCreatorId: string, contributionId: number, contributionRefereeId: string, canComment: boolean, isBountyResultDecided: boolean }
 ) {
   const role = comment?.creator?.id === bountyCreatorId ? "creator" : (comment?.creator?.id === contributionRefereeId ? "referee" : "contributor");
   return (
@@ -45,8 +45,7 @@ export function CommentCard(
             </div>
           </div>
           <p className="text-sm my-2">{comment?.description}</p>
-          {/* TODO: only show comment button if bounty is not ended */}
-          {canComment && <CommentForm contributionId={contributionId} bountyId={bountyId} />}
+          {!isBountyResultDecided && canComment && <CommentForm contributionId={contributionId} bountyId={bountyId}/>}
         </div>
       </div>
     </div>

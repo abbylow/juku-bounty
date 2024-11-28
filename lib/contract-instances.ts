@@ -1,3 +1,4 @@
+import { id } from "ethers/lib/utils"
 import { getContract } from "thirdweb";
 
 import { currentChain } from "@/const/chains"
@@ -642,3 +643,12 @@ export const escrowContractInstance = getContract({
     }
   ],
 });
+
+// Define the event signature (topic) for the BountyCreated event
+export const bountyCreatedEventSignature = id(
+  "BountyCreated(uint256,address,address)"
+);
+// Define the event signature (topic) for the BountyClosed event
+export const bountyClosedEventSignature = id(
+  "BountyClosed(uint256)"
+);

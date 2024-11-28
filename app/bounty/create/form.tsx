@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQuery } from "@tanstack/react-query"
-import { parseUnits, id } from "ethers/lib/utils"
+import { parseUnits } from "ethers/lib/utils"
 import { BigNumber } from "ethers"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -25,12 +25,7 @@ import { useViewerContext } from "@/contexts/viewer"
 import { currentChain } from "@/const/chains"
 import { escrowContract } from "@/const/contracts"
 import { client } from "@/lib/thirdweb-client"
-import { escrowContractInstance } from "@/lib/contract-instances"
-
-// Define the event signature (topic) for the BountyCreated event
-const bountyCreatedEventSignature = id(
-  "BountyCreated(uint256,address,address)"
-);
+import { bountyCreatedEventSignature, escrowContractInstance } from "@/lib/contract-instances"
 
 export function BountyCreationForm() {
   const { viewer } = useViewerContext();
@@ -153,7 +148,7 @@ export function BountyCreationForm() {
       })
       console.log({ createdBounty })
 
-      toast({ title: "Created Bounty" })
+      toast({ title: "Created bounty successfully" })
       if (createdBounty) {
         router.push(`/bounty/${createdBounty.id}`)
       } else {
