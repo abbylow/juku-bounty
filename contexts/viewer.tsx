@@ -25,6 +25,7 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
   const { data: viewer, isPending } = useQuery({
     queryKey: ['fetchViewerProfile', activeAccount?.address],
     queryFn: async () => await fetchViewerProfile(activeAccount?.address!),
+    enabled: !!activeAccount?.address
   })
 
   async function fetchViewerProfile(walletAddress: string) {
@@ -36,6 +37,7 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
 
   const router = useRouter();
   useEffect(() => {
+    console.log({viewer, activeAccount, isPending});
     // if viewer is logged in and hasn't setup the profile, redirect to setup now
     if (activeAccount?.address && !isPending && viewer === null) {
       console.log("viewer hasn't setup the profile, redirect to setup now");
