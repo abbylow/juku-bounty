@@ -1,6 +1,7 @@
-import { useState } from "react";
 import { formatDistance } from 'date-fns'
+import { ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link"
+import { useState } from "react";
 
 import { Contribution } from '@/actions/bounty/type'
 import CommentForm from '@/components/comment/form'
@@ -81,6 +82,7 @@ export function ContributionCard({ contribution, bountyCreatorId }: { contributi
               onClick={toggleComments}
               className="mt-2 text-muted-foreground"
             >
+              {showAllComments ? <ChevronUp className="h-4 w-4 mr-2"/> : <ChevronDown className="h-4 w-4 mr-2"/>}
               {showAllComments ? "Collapse comments" : `Show more comments (${(contribution?.comments?.length || 0) - 2} more)`}
             </Button>
           )}
