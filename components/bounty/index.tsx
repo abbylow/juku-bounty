@@ -190,6 +190,7 @@ export default function BountyCard({ details }: { details: any }) {
           <ContributionCard
             key={contribution.id}
             contribution={contribution}
+            isBountyResultDecided={details.is_result_decided}
             bountyCreatorId={details.creator_profile_id}
             isClosingBounty={isClosingBounty}
             onSelectWinner={handleSelectWinner}

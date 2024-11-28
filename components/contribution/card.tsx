@@ -16,9 +16,9 @@ import { useViewerContext } from '@/contexts/viewer'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function ContributionCard({
-  contribution, bountyCreatorId, isClosingBounty, onSelectWinner
+  contribution, bountyCreatorId, isClosingBounty, onSelectWinner, isBountyResultDecided
 }: {
-  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void
+  contribution: Contribution, bountyCreatorId: string, isClosingBounty: boolean, onSelectWinner: (id: number, selected: boolean) => void, isBountyResultDecided: boolean
 }) {
   const { viewer } = useViewerContext();
 
@@ -26,8 +26,8 @@ export function ContributionCard({
 
   const canComment = viewer?.id === contribution?.creator_profile_id || viewer?.id === contribution?.referee_id || viewer?.id === bountyCreatorId;
 
-  const commentsToShow = showAllComments ? contribution?.comments : contribution?.comments?.slice(0, 2);
-  const hasMoreComments = contribution?.comments && contribution?.comments?.length > 2;
+  const commentsToShow = showAllComments ? contribution?.comments : contribution?.comments?.slice(0, 1);
+  const hasMoreComments = contribution?.comments && contribution?.comments?.length > 1;
 
   const toggleComments = () => setShowAllComments(!showAllComments);
 
@@ -92,8 +92,7 @@ export function ContributionCard({
             </div>
           </div>
           <p className="text-sm my-2">{contribution?.description}</p>
-          {/* TODO: only show comment button if bounty is not ended */}
-          {canComment && <CommentForm contributionId={contribution?.id} bountyId={contribution?.bounty_id} />}
+          {!isBountyResultDecided && canComment && <CommentForm contributionId={contribution?.id} bountyId={contribution?.bounty_id} />}
         </div>
       </div>
       {commentsToShow && commentsToShow.length > 0 && (
@@ -107,6 +106,7 @@ export function ContributionCard({
               contributionId={contribution.id}
               contributionRefereeId={contribution?.referee_id || ""}
               canComment={canComment}
+              isBountyResultDecided={isBountyResultDecided}
             />
           ))}
           {/* Show expand/collapse button if there are more comments */}
@@ -118,7 +118,7 @@ export function ContributionCard({
               className="mt-2 text-muted-foreground"
             >
               {showAllComments ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
-              {showAllComments ? "Collapse comments" : `Show more comments (${(contribution?.comments?.length || 0) - 2} more)`}
+              {showAllComments ? "Collapse comments" : `Show more comments (${(contribution?.comments?.length || 0) - 1} more)`}
             </Button>
           )}
         </div>
