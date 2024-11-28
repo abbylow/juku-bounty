@@ -35,6 +35,7 @@ export interface Bounty {
   tags?: Tag[];
   winningContributions?: BountyWinningContribution[];
   contributions?: Contribution[];
+  contributionMap?: Record<number, Contribution>;
 }
 
 export type BountyOrNull = Bounty | null;
@@ -62,11 +63,13 @@ export interface Contribution {
     display_name: string; // Enriched display name of the creator
     username: string; // Enriched username of the creator
     pfp: string; // Enriched pfp of the creator
+    wallet_address: string; // Enriched wallet address of the creator
   }; // Optional nested object for creator details
   referee?: {
     id: string; // Enriched id of the referee
     display_name: string; // Enriched display name of the referee
     username: string; // Enriched username of the referee
+    wallet_address: string; // Enriched wallet address of the referee
   } | null; // Optional nested object for referee details
   comments?: Comment[];
 }
@@ -83,4 +86,9 @@ export interface GetBountiesParams {
 export interface GetBountyCountParams {
   categoryId?: string | null;
   searchTerm?: string; // Optional fuzzy search on title / description
+}
+
+export interface CloseBountyParams {
+  bountyId: string;
+  winningContributions: number[]; // Array of Contribution IDs
 }

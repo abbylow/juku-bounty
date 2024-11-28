@@ -29,8 +29,10 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         c.deleted_at AS contribution_deleted_at,
         cp.display_name AS creator_display_name,
         cp.username AS creator_username,
+        cp.wallet_address AS creator_wallet_address,
         cp.pfp AS creator_pfp,
         rp.display_name AS referee_display_name,
+        rp.wallet_address AS referee_wallet_address,
         rp.username AS referee_username,
         com.id AS comment_id,
         com.description AS comment_description,
@@ -72,7 +74,8 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
       category_id: result[0].category_id,
       tags: [] as Tag[],
       winningContributions: [] as BountyWinningContribution[],
-      contributions: [] as Contribution[] // Include contributions here
+      contributions: [] as Contribution[], // Include contributions here
+      contributionMap: {}
     };
 
     const contributionMap: Record<number, Contribution> = {};
@@ -96,6 +99,7 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
         } as BountyWinningContribution);
       }
 
+      console.log({ row })
       // Add contributions
       if (row.contribution_id) {
         if (!contributionMap[row.contribution_id]) {
@@ -112,13 +116,15 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
               id: row.contribution_creator_id,
               pfp: row.creator_pfp,
               display_name: row.creator_display_name,
-              username: row.creator_username
+              username: row.creator_username,
+              wallet_address: row.creator_wallet_address
             },
-            referee: row.referee_id
+            referee: row.contribution_referee_id
               ? {
-                  id: row.referee_id,
+                  id: row.contribution_referee_id,
                   display_name: row.referee_display_name,
-                  username: row.referee_username
+                  username: row.referee_username,
+                  wallet_address: row.referee_wallet_address
                 }
               : null,
             comments: [] as Comment[]
@@ -147,6 +153,7 @@ export async function getBounty(params: GetBountyParams): Promise<BountyOrNull> 
 
     // Assign contributions to the bounty
     bounty.contributions = Object.values(contributionMap);
+    bounty.contributionMap = contributionMap;
 
     return bounty as Bounty;
   } catch (error) {
