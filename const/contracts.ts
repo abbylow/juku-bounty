@@ -8,7 +8,7 @@ export const easContractBase = "0x4200000000000000000000000000000000000021"
 export const easContract = process.env.NODE_ENV === "production" ? easContractBase : easContractBaseSepolia
 
 // escrow 
-export const escrowContractBaseSepolia = "0x0b61A7d294f21e498f8dcA974e6E9700984fD1E1"
+export const escrowContractBaseSepolia = "0x6C7Ac9F5Fb6934438f33155bbaE223aA15bc1179"
 export const escrowContractBase = ""; // TODO: fill this value
 export const escrowContract = process.env.NODE_ENV === "production" ? escrowContractBase : escrowContractBaseSepolia
 
