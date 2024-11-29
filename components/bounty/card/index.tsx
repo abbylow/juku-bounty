@@ -8,7 +8,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from "react"
 import { getContract, prepareContractCall, sendAndConfirmTransaction } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
-import { useActiveAccount } from "thirdweb/react"
+import { useActiveAccount, useReadContract } from "thirdweb/react"
 
 import { closeBounty } from "@/actions/bounty/closeBounty"
 import { getProfile } from "@/actions/profile/getProfile"
@@ -35,7 +35,7 @@ import { bountyClosedEventSignature, escrowContractInstance } from "@/lib/contra
 import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
 
-export default function BountyCard({ 
+export default function BountyCard({
   details,
   isClosingBounty,
   setIsClosingBounty,
@@ -43,7 +43,7 @@ export default function BountyCard({
   selectedContributions,
   bountyData,
   isBountyDataPending,
- }: { 
+}: {
   details: any,
   isClosingBounty: boolean,
   setIsClosingBounty: (isClosingBounty: boolean) => void,
@@ -109,7 +109,7 @@ export default function BountyCard({
   };
 
   const submitEndBounty = async () => {
-    console.log({ selectedContributions })
+    // console.log({ selectedContributions })
     if (bountyData && selectedContributions.length > bountyData[3]) {
       toast({ title: `You cannot select more than ${bountyData[3]} winners` })
       return;
@@ -127,20 +127,20 @@ export default function BountyCard({
       // submit the selected contributions to the escrow contract
       const contributorsAddresses = selectedContributions.map((id) => details.contributionMap[id]?.referee_id ? details.contributionMap[id]?.referee?.wallet_address : details.contributionMap[id]?.creator?.wallet_address);
       const referrersAddresses = selectedContributions.map((id) => details.contributionMap[id]?.referee_id ? details.contributionMap[id]?.creator?.wallet_address : constants.AddressZero);
-      console.log({ contributorsAddresses, referrersAddresses })
+      // console.log({ contributorsAddresses, referrersAddresses })
       // prepare `closeBounty` transaction
       const preparedClosingTx = prepareContractCall({
         contract: escrowContractInstance,
         method: "closeBounty",
         params: [details.bounty_id_on_escrow, contributorsAddresses, referrersAddresses],
       });
-      console.log({ preparedClosingTx })
+      // console.log({ preparedClosingTx })
       // prompt bounty creator to send `closeBounty` transaction
       const closingTxReceipt = await sendAndConfirmTransaction({
         transaction: preparedClosingTx,
         account: activeAccount,
       });
-      console.log({ closingTxReceipt })
+      // console.log({ closingTxReceipt })
       if (closingTxReceipt.status !== "success") {
         throw new Error("Fail to close bounty on smart contract");
       }
@@ -148,7 +148,7 @@ export default function BountyCard({
       const logs = closingTxReceipt.logs;
 
       const closingLog = logs.find(log => log.topics[0] === bountyClosedEventSignature);
-      console.log({ closingLog, logs })
+      // console.log({ closingLog, logs })
       if (!closingLog) {
         throw new Error("Fail to get BountyClosed event log");
       }
@@ -173,86 +173,95 @@ export default function BountyCard({
     }
   }
 
+  // Get bounty's reward details from escrow contract
+  const { data: claimableFunds, isPending: isClaimableFundsPending } = useReadContract({
+    contract: escrowContractInstance,
+    method: "getClaimableFunds",
+    params: [details.bounty_id_on_escrow, viewer?.wallet_address || ""]
+  });
+
   return (
     <Card className="mb-4">
-        <CardHeader>
-          <div className="flex justify-between flex-wrap gap-2">
-            <div className="flex items-center space-x-4">
-              <UserAvatar pfp={creatorProfile?.pfp} />
-              <div>
-                <p className="text-sm font-medium leading-none">{creatorProfile?.display_name || ''}</p>
-                <Link href={`${PROFILE_URL}/${creatorProfile?.username}`}>
-                  <p className="text-sm text-muted-foreground">{`@${creatorProfile?.username || ''}`}</p>
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex gap-3 items-center flex-wrap">
-              <div className="text-xs text-muted-foreground">
-                {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
-              </div>
-              <BountyStatusBadge details={details} bountyData={bountyData} />
-              {pathname.includes("bounty") ?
-                <BountyShareButton bountyId={details.id} />
-                : <Link href={getURL(`/bounty/${details?.id}`)}>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </Link>}
+      <CardHeader>
+        <div className="flex justify-between flex-wrap gap-2">
+          <div className="flex items-center space-x-4">
+            <UserAvatar pfp={creatorProfile?.pfp} />
+            <div>
+              <p className="text-sm font-medium leading-none">{creatorProfile?.display_name || ''}</p>
+              <Link href={`${PROFILE_URL}/${creatorProfile?.username}`}>
+                <p className="text-sm text-muted-foreground">{`@${creatorProfile?.username || ''}`}</p>
+              </Link>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <h2 className="text-2xl font-bold">{details?.title}</h2>
-          <p className="text-sm whitespace-pre-wrap">
-            {details?.description}
-          </p>
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex gap-2">
-              <Award className="h-5 w-5" />
-              <p className="text-sm">
-                {totalReward} {tokenAddressToTokenNameMapping[bountyData?.[1] || '']} {bountyData && bountyData[3] > 1 ? ` for ${bountyData?.[3]} persons` : ""}
-              </p>
+
+          <div className="flex gap-3 items-center flex-wrap">
+            <div className="text-xs text-muted-foreground">
+              {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
             </div>
-            <div className="flex gap-2">
-              <CalendarClock className="h-5 w-5" />
-              <p className="text-sm">
-                {`Due ${formatDistanceToNow(details?.expiry, { addSuffix: true })}`}
-              </p>
-            </div>
+            <BountyStatusBadge details={details} bountyData={bountyData} />
+            {pathname.includes("bounty") ?
+              <BountyShareButton bountyId={details.id} />
+              : <Link href={getURL(`/bounty/${details?.id}`)}>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </Link>}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <h2 className="text-2xl font-bold">{details?.title}</h2>
+        <p className="text-sm whitespace-pre-wrap">
+          {details?.description}
+        </p>
+        <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-2">
+            <Award className="h-5 w-5" />
+            <p className="text-sm">
+              {totalReward} {tokenAddressToTokenNameMapping[bountyData?.[1] || '']} {bountyData && bountyData[3] > 1 ? ` for ${bountyData?.[3]} persons` : ""}
+            </p>
           </div>
           <div className="flex gap-2">
-            {details.tags.map((tag: Tag) => (<Badge key={tag.id} variant="outline">{tag.name}</Badge>))}
+            <CalendarClock className="h-5 w-5" />
+            <p className="text-sm">
+              {`Due ${formatDistanceToNow(details?.expiry, { addSuffix: true })}`}
+            </p>
           </div>
-        </CardContent>
-        {!!(activeAccount?.address) && <CardFooter className="flex justify-between">
-          <div className="w-full flex justify-between items-center flex-wrap gap-2">
-            <div className="flex gap-3">
-              <BountyLikeButton bountyId={details.id} />
-            </div>
-            <div className="flex gap-3">
-              {
-                (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
-                <Button
-                  variant={isClosingBounty ? "secondary" : "default"}
-                  onClick={toggleWinnerSelection}
-                >
-                  {isClosingBounty ? 'Cancel' : 'End bounty'}
-                </Button>
-              }
-              {
-                (viewer?.id === details.creator_profile_id && !details.is_result_decided) && isClosingBounty &&
-                <Button variant="default" onClick={submitEndBounty}>Submit</Button>
-              }
-              {
-                (viewer?.id !== details.creator_profile_id && !details.is_result_decided) &&
-                <ContributionForm bountyId={details.id} />
-              }
-              {/* {
-                (details.is_result_decided) &&
-                <Button variant="default">Get rewards</Button>
-              } */}
-            </div>
+        </div>
+        <div className="flex gap-2">
+          {details.tags.map((tag: Tag) => (<Badge key={tag.id} variant="outline">{tag.name}</Badge>))}
+        </div>
+      </CardContent>
+      {!!(activeAccount?.address) && <CardFooter className="flex justify-between">
+        <div className="w-full flex justify-between items-center flex-wrap gap-2">
+          <div className="flex gap-3">
+            <BountyLikeButton bountyId={details.id} />
           </div>
-        </CardFooter>}
-      </Card>
+          <div className="flex gap-3">
+            {
+              (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
+              <Button
+                variant={isClosingBounty ? "secondary" : "default"}
+                onClick={toggleWinnerSelection}
+              >
+                {isClosingBounty ? 'Cancel' : 'End bounty'}
+              </Button>
+            }
+            {
+              (viewer?.id === details.creator_profile_id && !details.is_result_decided) && isClosingBounty &&
+              <Button variant="default" onClick={submitEndBounty}>Submit</Button>
+            }
+            {
+              (viewer?.id !== details.creator_profile_id && !details.is_result_decided) &&
+              <ContributionForm bountyId={details.id} />
+            }
+            {
+              !!(!isClaimableFundsPending && (claimableFunds && claimableFunds > 0)) &&
+              <Button variant="default">
+                {viewer?.id === details.creator_profile_id ? 'Claim Refund' : 'Claim Rewards'}
+              </Button>
+            }
+          </div>
+        </div>
+      </CardFooter>}
+    </Card>
   )
 }
