@@ -15,7 +15,7 @@ export default function BountyAlertDialog({ open, setOpen }: { open: boolean, se
         <AlertDialogHeader>
           <AlertDialogTitle>Important Notice</AlertDialogTitle>
           <AlertDialogDescription>
-            {`Don't close or refresh this page when you're closing a bounty. Otherwise, you may cause the bounty to be closed unsuccessfully. Check your wallet prompted action.`}
+            {`Please do not refresh or close this page while the transaction is being processed, and ensure you check your Web3 wallet to confirm the transaction.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
