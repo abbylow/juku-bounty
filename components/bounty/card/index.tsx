@@ -16,7 +16,6 @@ import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import BountyLikeButton from "@/components/bounty/like-button"
 import BountyShareButton from "@/components/bounty/share-button"
-import BountyStatusBadge from "@/components/bounty/status-badge"
 import ContributionForm from "@/components/contribution/form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,6 +27,7 @@ import {
 } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import UserAvatar from "@/components/user/avatar"
+import { BountyStatus } from "@/const/bounty-status"
 import { currentChain } from "@/const/chains"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { PROFILE_URL } from "@/const/links"
@@ -53,6 +53,7 @@ export default function BountyCard({
   bountyData: any,
   isBountyDataPending: boolean,
 }) {
+
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
   const { viewer } = useViewerContext();
@@ -231,6 +232,27 @@ export default function BountyCard({
     }
   }
 
+  // Determine the status of the bounty
+  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN);
+
+  useEffect(() => {
+    if (details.id) {
+      const isClosed = details.is_result_decided;
+      const isExpired = details.expiry <= new Date();
+      const hasWinner = details.winningContributions.length > 0;
+
+      if (hasWinner) {
+        setStatus(BountyStatus.COMPLETED);
+      } else if (isClosed) {
+        setStatus(BountyStatus.ENDED);
+      } else if (isExpired) {
+        setStatus(BountyStatus.EXPIRED);
+      } else {
+        setStatus(BountyStatus.OPEN);
+      }
+    }
+  }, [details.is_result_decided, details.expiry, details.winningContributions, details.id])
+
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -249,7 +271,7 @@ export default function BountyCard({
             <div className="text-xs text-muted-foreground">
               {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
             </div>
-            <BountyStatusBadge details={details} />
+            <Badge variant="outline">{status}</Badge>
             {pathname.includes("bounty") ?
               <BountyShareButton bountyId={details.id} />
               : <Link href={getURL(`/bounty/${details?.id}`)}>
@@ -301,7 +323,7 @@ export default function BountyCard({
               <Button variant="default" onClick={submitEndBounty}>Submit</Button>
             }
             {
-              (viewer?.id !== details.creator_profile_id && !details.is_result_decided) &&
+              (viewer?.id !== details.creator_profile_id && status === BountyStatus.OPEN) &&
               <ContributionForm bountyId={details.id} />
             }
             {
