@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useCategoryContext } from "@/contexts/categories"
 import { getBounties } from "@/actions/bounty/getBounties"
 import { getBountyCount } from "@/actions/bounty/getBountyCount"
+import { BountyStatus } from "@/const/bounty-status"
 
 type SortOptions = "most-recent" | "due-soon";
 
@@ -41,11 +42,12 @@ const itemsPerPage = 10;
 export default function BountyList() {
   const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
-  // State for pagination, sorting, filtering by category, and search term
+  // State for pagination, sorting, filtering by category, filtering by status, and search term
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Default: no category selected
   const [searchTerm, setSearchTerm] = useState<string>(""); // search input state
+  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN); // Default select all statuses
 
   // Memoized debounced function for handling search input changes
   const handleSearchChange = useMemo(
@@ -81,7 +83,7 @@ export default function BountyList() {
 
   // Fetch bounties with pagination, filters, sorting, and search term
   const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
-    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory, searchTerm],
+    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory, searchTerm, status],
     queryFn: async () => await getBounties({
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
@@ -89,6 +91,7 @@ export default function BountyList() {
       orderDirection,
       categoryId: selectedCategory, // Filter by selected category
       searchTerm, // Fuzzy search on title or description
+      status, // Filter by selected status
     })
   });
 
@@ -121,6 +124,23 @@ export default function BountyList() {
               </Select>
             )}
             
+            {/* Filter by status */}
+            <Select onValueChange={(value: BountyStatus) => setStatus(value)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Status</SelectLabel>
+                  {
+                    Object.values(BountyStatus).map((s) => (
+                      <SelectItem value={s} key={s}>{s === BountyStatus.UNKNOWN ? "All" : s}</SelectItem>
+                    ))
+                  }
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
             {/* Sort by */}
             <Select onValueChange={(value: SortOptions) => setSortBy(value)}>
               <SelectTrigger className="w-[200px]">

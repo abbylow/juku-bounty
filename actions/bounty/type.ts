@@ -1,6 +1,7 @@
 import { Option } from '@/components/ui/multiple-selector';
 import { Tag } from '@/actions/tag/type';
 import { Comment } from '@/actions/comment/type';
+import { BountyStatus } from '@/const/bounty-status';
 
 export interface GetBountyParams {
   bountyId: string
@@ -81,6 +82,7 @@ export interface GetBountiesParams {
   searchTerm?: string; // Optional fuzzy search on title / description
   orderBy?: string;
   orderDirection?: string;
+  status?: BountyStatus;
 }
 
 export interface GetBountyCountParams {
