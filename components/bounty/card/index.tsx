@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react"
 import { getContract, prepareContractCall, sendAndConfirmTransaction } from "thirdweb"
 import { decimals } from "thirdweb/extensions/erc20"
 import { useActiveAccount, useReadContract } from "thirdweb/react"
+import { Account } from "thirdweb/wallets"
 
 import { closeBounty } from "@/actions/bounty/closeBounty"
 import { getProfile } from "@/actions/profile/getProfile"
@@ -31,7 +32,7 @@ import { currentChain } from "@/const/chains"
 import { tokenAddressToTokenNameMapping } from "@/const/contracts"
 import { PROFILE_URL } from "@/const/links"
 import { useViewerContext } from "@/contexts/viewer"
-import { bountyClosedEventSignature, escrowContractInstance } from "@/lib/contract-instances"
+import { bountyClosedEventSignature, escrowContractInstance, fundClaimedEventSignature } from "@/lib/contract-instances"
 import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
 
@@ -165,6 +166,16 @@ export default function BountyCard({
       setIsClosingBounty(false);
       // get latest bounty data to be displayed on the bounty card
       queryClient.invalidateQueries({ queryKey: ['fetchBounty', details.id] })
+      // TODO: Refetch claimable funds so that the creator can claim refund if any - the invalidation below is not working
+      queryClient.invalidateQueries({
+        queryKey: [
+          "readContract",
+          currentChain.id,
+          escrowContractInstance.address,
+          "getClaimableFunds",
+          JSON.stringify([details.bounty_id_on_escrow, viewer?.wallet_address || ""])
+        ],
+      });
     } catch (error) {
       console.error("Error closing bounty", error)
       toast({ title: "Fail to close bounty" })
@@ -179,6 +190,46 @@ export default function BountyCard({
     method: "getClaimableFunds",
     params: [details.bounty_id_on_escrow, viewer?.wallet_address || ""]
   });
+
+  const [isClaimedFund, setIsClaimedFund] = useState(false);
+
+  const handleClaimFunds = async () => {
+    if (!details.id || !activeAccount) {
+      toast({ title: "Something went wrong" })
+      console.error("Something went wrong", { details, activeAccount })
+      return;
+    }
+
+    try {
+      // prepare `claimFunds` transaction
+      const preparedClaimTx = prepareContractCall({
+        contract: escrowContractInstance,
+        method: "claimFunds",
+        params: [details.bounty_id_on_escrow],
+      });
+      // console.log({ preparedClaimTx })
+      // prompt bounty creator to send `claimFunds` transaction
+      const claimTxReceipt = await sendAndConfirmTransaction({
+        transaction: preparedClaimTx,
+        account: activeAccount as Account,
+      });
+      // console.log({ claimTxReceipt })
+      if (claimTxReceipt.status !== "success") {
+        throw new Error("Fail to claim funds on smart contract");
+      }
+      const logs = claimTxReceipt.logs;
+      const claimLog = logs.find(log => log.topics[0] === fundClaimedEventSignature);
+      // console.log({ claimLog, logs })
+      if (!claimLog) {
+        throw new Error("Fail to get FundClaimed event log");
+      }
+      toast({ title: "Claim funds successfully" })
+      setIsClaimedFund(true);
+    } catch (error) {
+      console.error("Error claiming funds", error)
+      toast({ title: "Fail to claim funds" })
+    }
+  }
 
   return (
     <Card className="mb-4">
@@ -255,8 +306,8 @@ export default function BountyCard({
             }
             {
               !!(!isClaimableFundsPending && (claimableFunds && claimableFunds > 0)) &&
-              <Button variant="default">
-                {viewer?.id === details.creator_profile_id ? 'Claim Refund' : 'Claim Rewards'}
+              <Button variant="default" onClick={handleClaimFunds} disabled={isClaimedFund}>
+                {isClaimedFund ? 'Claimed' : (viewer?.id === details.creator_profile_id ? 'Claim Refund' : 'Claim Rewards')}
               </Button>
             }
           </div>

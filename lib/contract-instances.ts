@@ -652,3 +652,7 @@ export const bountyCreatedEventSignature = id(
 export const bountyClosedEventSignature = id(
   "BountyClosed(uint256)"
 );
+// Define the event signature (topic) for the FundClaimed event
+export const fundClaimedEventSignature = id(
+  "FundClaimed(uint256,address,uint256,address)"
+);
