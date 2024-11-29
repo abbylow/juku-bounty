@@ -83,11 +83,14 @@ export interface GetBountiesParams {
   orderBy?: string;
   orderDirection?: string;
   status?: BountyStatus;
+  relatedProfile?: string;
 }
 
 export interface GetBountyCountParams {
   categoryId?: string | null;
   searchTerm?: string; // Optional fuzzy search on title / description
+  status?: BountyStatus;
+  relatedProfile?: string;
 }
 
 export interface CloseBountyParams {

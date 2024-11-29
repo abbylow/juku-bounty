@@ -60,6 +60,18 @@ export async function getBounties(params: GetBountiesParams): Promise<Bounty[]> 
       }
     }
 
+    // Filter by relatedProfile
+    if (params.relatedProfile) {
+      query += ` AND (
+        creator_profile_id = '${params.relatedProfile}' OR
+        EXISTS (
+          SELECT 1 FROM Contribution c 
+          WHERE c.bounty_id = Bounty.id AND 
+            (c.creator_profile_id = '${params.relatedProfile}' OR c.referee_id = '${params.relatedProfile}')
+        )
+      )`;
+    }
+
     // Sorting and pagination
     query += ` ORDER BY ${params?.orderBy || "created_at"} ${params?.orderDirection || "DESC"} LIMIT ${params.limit} OFFSET ${params.offset}
       ) AS b

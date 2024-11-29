@@ -39,7 +39,7 @@ type SortOptions = "most-recent" | "due-soon";
 
 const itemsPerPage = 10;
 
-export default function BountyList() {
+export default function BountyList({ relatedProfile }: { relatedProfile?: string }) {
   const { isCategoriesPending, categoryOptions } = useCategoryContext();
 
   // State for pagination, sorting, filtering by category, filtering by status, and search term
@@ -66,15 +66,17 @@ export default function BountyList() {
 
   // Get the total numbers of rows (with filters)
   const { data: bountyCount, isPending: isBountyCountPending } = useQuery({
-    queryKey: ['fetchBountyCount', selectedCategory, searchTerm], // Include category and search term in query key for caching
+    queryKey: ['fetchBountyCount', selectedCategory, searchTerm, status, relatedProfile], // Include category and search term in query key for caching
     queryFn: async () => await getBountyCount({
       categoryId: selectedCategory,
       searchTerm,
+      status,
+      relatedProfile
     })
   });
 
   // Map `sortBy` value to `orderBy` and `orderDirection`
-  const sortMapping: Record<SortOptions, { orderBy: string; orderDirection: string }>  = {
+  const sortMapping: Record<SortOptions, { orderBy: string; orderDirection: string }> = {
     "most-recent": { orderBy: "created_at", orderDirection: "DESC" },
     "due-soon": { orderBy: "expiry", orderDirection: "ASC" }
   };
@@ -83,7 +85,7 @@ export default function BountyList() {
 
   // Fetch bounties with pagination, filters, sorting, and search term
   const { data: bounties, isPending: isBountiesPending, isError: isBountiesError } = useQuery({
-    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory, searchTerm, status],
+    queryKey: ['fetchBounties', currentPage, itemsPerPage, orderBy, orderDirection, selectedCategory, searchTerm, status, relatedProfile],
     queryFn: async () => await getBounties({
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
@@ -92,6 +94,7 @@ export default function BountyList() {
       categoryId: selectedCategory, // Filter by selected category
       searchTerm, // Fuzzy search on title or description
       status, // Filter by selected status
+      relatedProfile, // Filter by related profile
     })
   });
 
@@ -123,7 +126,7 @@ export default function BountyList() {
                 </SelectContent>
               </Select>
             )}
-            
+
             {/* Filter by status */}
             <Select onValueChange={(value: BountyStatus) => setStatus(value)}>
               <SelectTrigger className="w-[200px]">
