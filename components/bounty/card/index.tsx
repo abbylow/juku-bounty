@@ -315,7 +315,7 @@ export default function BountyCard({
                 variant={isClosingBounty ? "secondary" : "default"}
                 onClick={toggleWinnerSelection}
               >
-                {isClosingBounty ? 'Cancel' : 'Close bounty'}
+                {isClosingBounty ? 'Cancel' : 'Close Bounty'}
               </Button>
             }
             {
