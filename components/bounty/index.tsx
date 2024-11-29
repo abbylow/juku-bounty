@@ -41,7 +41,7 @@ import { bountyClosedEventSignature, escrowContractInstance } from "@/lib/contra
 import getURL from "@/lib/get-url";
 import { client } from "@/lib/thirdweb-client"
 
-export default function BountyCard({ details, isClosingMode }: { details: any, isClosingMode?: boolean }) {
+export default function BountyPage({ details, isClosingMode }: { details: any, isClosingMode?: boolean }) {
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
   const { viewer } = useViewerContext();

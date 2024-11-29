@@ -5,7 +5,7 @@ import { Search } from "lucide-react"
 import { useState, useMemo } from "react"
 import debounce from "lodash.debounce"
 
-import BountyCard from "@/components/bounty"
+import BountyPage from "@/components/bounty"
 import {
   Card,
   CardContent,
@@ -153,7 +153,7 @@ export default function BountyList() {
           </div>
 
           {bounties?.map((b: any) => (
-            <BountyCard key={b?.id} details={b} />
+            <BountyPage key={b?.id} details={b} />
           ))}
 
           {isBountiesPending && <div className="space-y-2">

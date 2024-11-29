@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { useSearchParams } from "next/navigation";
 
-import BountyCard from "@/components/bounty"
+import BountyPage from "@/components/bounty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getBounty } from "@/actions/bounty/getBounty"
 
@@ -19,5 +19,5 @@ export default function BountyDetails({ params }: { params: { slug: string } }) 
     return <Skeleton className="h-56" />
   }
 
-  return <BountyCard details={bounty} isClosingMode={isClosingMode === "true"} />
+  return <BountyPage details={bounty} isClosingMode={isClosingMode === "true"} />
 }
