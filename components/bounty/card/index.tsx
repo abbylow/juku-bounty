@@ -173,7 +173,7 @@ export default function BountyCard({
           currentChain.id,
           escrowContractInstance.address,
           "getClaimableFunds",
-          JSON.stringify([details.bounty_id_on_escrow, viewer?.wallet_address || ""])
+          JSON.stringify([details.bounty_id_on_escrow, viewer?.wallet_address])
         ],
       });
     } catch (error) {
@@ -249,7 +249,7 @@ export default function BountyCard({
             <div className="text-xs text-muted-foreground">
               {`Created ${formatDistance(details?.created_at, new Date(), { addSuffix: true })}`}
             </div>
-            <BountyStatusBadge details={details} bountyData={bountyData} />
+            <BountyStatusBadge details={details} />
             {pathname.includes("bounty") ?
               <BountyShareButton bountyId={details.id} />
               : <Link href={getURL(`/bounty/${details?.id}`)}>
@@ -293,7 +293,7 @@ export default function BountyCard({
                 variant={isClosingBounty ? "secondary" : "default"}
                 onClick={toggleWinnerSelection}
               >
-                {isClosingBounty ? 'Cancel' : 'End bounty'}
+                {isClosingBounty ? 'Cancel' : 'Close bounty'}
               </Button>
             }
             {

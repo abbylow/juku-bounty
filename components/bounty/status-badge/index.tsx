@@ -5,12 +5,12 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { BountyStatus } from "@/const/bounty-status"
 
-export default function BountyStatusBadge({ details, bountyData }: { details: any, bountyData: any }) {
+export default function BountyStatusBadge({ details }: { details: any }) {
   const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN);
 
   useEffect(() => {
-    if (details && bountyData) {
-      const isClosed = bountyData[7]; // hardcoded index for isClosed
+    if (details.id) {
+      const isClosed = details.is_result_decided; // hardcoded index for isClosed
       const isExpired = details.expiry <= new Date();
       const hasWinner = details.winningContributions > 0;
 
@@ -22,7 +22,7 @@ export default function BountyStatusBadge({ details, bountyData }: { details: an
         setStatus(BountyStatus.OPEN);
       }
     }
-  }, [details, bountyData])
+  }, [details.is_result_decided, details.expiry, details.winningContributions, details.id])
 
   return (
     <Badge variant="outline">{status}</Badge>
