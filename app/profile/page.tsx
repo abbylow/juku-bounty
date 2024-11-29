@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { VerifiedPlatform } from "@/actions/verifiedPlatform/type";
 import { getVerifiedPlatform } from "@/actions/verifiedPlatform/getVerifiedPlatform";
 import ProfileCard from "@/components/profile/card";
+import ProfileTabs from "@/components/profile/tabs";
 import { Option } from "@/components/ui/multiple-selector";
 import { useViewerContext } from "@/contexts/viewer";
 import { useCategoryContext } from "@/contexts/categories";
@@ -58,6 +59,7 @@ export default function Profile() {
           integrations={platformIntegrations || []}
           allowEdit={true}
         />
+        <ProfileTabs />
       </section>
     </div >
   )
