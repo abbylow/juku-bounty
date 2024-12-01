@@ -37,6 +37,7 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
 
   const router = useRouter();
   useEffect(() => {
+    console.log({ viewer, isPending, activeAccount })
     // if viewer is logged in and hasn't setup the profile, redirect to setup now
     if (activeAccount?.address && !isPending && viewer === null) {
       console.log("viewer hasn't setup the profile, redirect to setup now");
