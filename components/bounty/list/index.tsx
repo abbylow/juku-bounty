@@ -184,6 +184,8 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
             <Skeleton className="h-56" />
           </div>}
 
+          {!isBountiesPending && bounties?.length === 0 && <div>No bounties to explore right now.</div>}
+
           {!isBountiesPending && !isBountyCountPending && (
             <Pagination>
               <PaginationContent>
