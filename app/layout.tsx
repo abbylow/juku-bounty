@@ -11,6 +11,10 @@ import { cn } from '@/lib/utils'
 
 import './globals.css'
 
+export const fetchCache = 'force-no-store'
+export const revalidate = 0 // seconds
+export const dynamic = 'force-dynamic'
+
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
