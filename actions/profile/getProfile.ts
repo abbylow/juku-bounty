@@ -37,8 +37,8 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
       FROM Profile 
       ${whereClause};
     `
-    console.log("get profile query", query, values)
     const result = await sql(query, values);
+    console.log("get profile query", query, values, result)
 
     // If no profile is found, return null
     if (result.length === 0) {
