@@ -25,7 +25,7 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
   const { data: viewer, isPending } = useQuery({
     queryKey: ['fetchViewerProfile', activeAccount?.address],
     queryFn: async () => await fetchViewerProfile(activeAccount?.address!),
-    enabled: !!activeAccount?.address
+    enabled: !!(activeAccount?.address)
   })
 
   async function fetchViewerProfile(walletAddress: string) {

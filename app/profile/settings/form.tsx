@@ -141,7 +141,7 @@ export function ProfileForm() {
         categories: data?.categories
       })
       console.log({ updatedProfile })
-      queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+      queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile', activeAccount?.address] })
       toast({ title: "Updated profile" })
     } catch (error) {
       toast({ title: `Something went wrong: ${error}` })

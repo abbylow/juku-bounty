@@ -2,6 +2,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ConnectButton,
+  useActiveAccount,
 } from "thirdweb/react";
 
 import { useTwebContext } from '@/contexts/thirdweb'
@@ -20,8 +21,10 @@ export function ConnectBtn() {
 
   const queryClient = useQueryClient();
   
+  const activeAccount = useActiveAccount();
+  
   const reset = () => {
-    queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile'] })
+    queryClient.invalidateQueries({ queryKey: ['fetchViewerProfile', activeAccount?.address] })
   }
 
   return (
