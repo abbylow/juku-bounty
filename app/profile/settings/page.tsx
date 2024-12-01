@@ -1,6 +1,9 @@
+import { cookies } from "next/headers";
 import { ProfileForm } from "@/app/profile/settings/form";
 import { Separator } from "@/components/ui/separator";
 import ProfileSetupPrompt from "@/components/profile/setup-prompt";
+
+const _cookies = cookies()
 
 export default function ProfileSettings() {  
   return (
