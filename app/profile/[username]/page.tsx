@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import ProfileCard from "@/components/profile/card";
 import { Option } from "@/components/ui/multiple-selector";
@@ -22,10 +22,10 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [userData, setUserData] = useState<ProfileOrNull>(null);
 
   const [userCategories, setUserCategories] = useState<Option[]>([]);
-  
+
   const [platformIntegrations, setPlatformIntegrations] = useState<VerifiedPlatform[]>();
 
-  const retrieveProfile = async () => {
+  const retrieveProfile = useCallback(async () => {
     try {
       const profile = await getProfile({
         username: params.username
@@ -52,13 +52,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
       console.log({ error })
       setHasError(true);
     }
-  }
+  }, [params.username, categoryOptions])
 
   useEffect(() => {
     if (params.username && !isCategoriesPending) {
       retrieveProfile()
     }
-  }, [params, isCategoriesPending])
+  }, [params, isCategoriesPending, retrieveProfile])
 
   if (hasError) {
     return (

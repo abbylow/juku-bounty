@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { getContract } from "thirdweb";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 
@@ -59,14 +59,14 @@ export function ProfileIntegrationForm() {
     window.open(COINBASE_VERIFICATION_URL, '_blank', 'noreferrer noopener')
   }
 
-  const upsertRecord = async (isValid: boolean) => {
+  const upsertRecord = useCallback(async (isValid: boolean) => {
     const result = await upsertVerifiedPlatform({
       profileId: viewer?.id!,
       type: coinbaseVerifiedAccount,
       verified: isValid,
     });
     console.log("upsertRecord ", { result })
-  }
+  }, [viewer])
 
   useEffect(() => {
     // only perform this when attestation is loaded successfully 
@@ -78,7 +78,7 @@ export function ProfileIntegrationForm() {
         upsertRecord(attestationValid);
       }
     }
-  }, [attestationValid, attestationStatus, viewer, verifiedCoinbase, isVerifiedCoinbasePending])
+  }, [attestationValid, attestationStatus, viewer, verifiedCoinbase, isVerifiedCoinbasePending, upsertRecord])
 
   // prompt user to create profile first 
   if (viewer === null) {
