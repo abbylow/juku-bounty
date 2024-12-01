@@ -6,7 +6,7 @@ import { IGetProfileParams, Profile, ProfileOrNull } from "@/actions/profile/typ
 
 export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNull> {
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
-console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
+  console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
   const sql = neon(process.env.DATABASE_URL);
 
   try {
@@ -37,9 +37,9 @@ console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
       FROM Profile 
       ${whereClause};
     `
-    // const result = await sql(query, values);
-    const result = await sql(`SELECT * FROM Profile WHERE wallet_address = '0x725AC79E519Bd60D84dF7a5eA6461d1ef627A234';`)
-    console.log("get profile query", query, values, result)
+    const result = await sql(query, values);
+    const hardcodedResult = await sql(`SELECT * FROM Profile WHERE wallet_address = '0x725AC79E519Bd60D84dF7a5eA6461d1ef627A234';`)
+    console.log("get profile query", { query, values, result, hardcodedResult })
 
     // If no profile is found, return null
     if (result.length === 0) {
