@@ -29,6 +29,9 @@ import { getProfile } from "@/actions/profile/getProfile"
 import { useViewerContext } from "@/contexts/viewer"
 import { useCategoryContext } from "@/contexts/categories"
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export function ProfileForm() {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
