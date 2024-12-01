@@ -37,7 +37,8 @@ console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
       FROM Profile 
       ${whereClause};
     `
-    const result = await sql(query, values);
+    // const result = await sql(query, values);
+    const result = await sql(`SELECT * FROM Profile WHERE wallet_address = '0x725AC79E519Bd60D84dF7a5eA6461d1ef627A234';`)
     console.log("get profile query", query, values, result)
 
     // If no profile is found, return null
