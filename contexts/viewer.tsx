@@ -29,9 +29,11 @@ export const ViewerProvider = ({ children }: { children: ReactNode }) => {
   })
 
   async function fetchViewerProfile(walletAddress: string) {
+    console.log("fetching viewer profile with wallet address", walletAddress)
     const profile = await getProfile({
       wallet_address: walletAddress
     });
+    console.log("fetched viewer profile", profile)
     return profile
   };
 
