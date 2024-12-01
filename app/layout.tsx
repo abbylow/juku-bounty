@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter as FontSans } from 'next/font/google'
+import { cookies } from 'next/headers'
 import { CategoryProvider } from '@/contexts/categories'
 import TanStackProvider from '@/contexts/tanstack'
 import { TwebProvider } from '@/contexts/thirdweb'
@@ -11,14 +12,12 @@ import { cn } from '@/lib/utils'
 
 import './globals.css'
 
-export const fetchCache = 'force-no-store'
-export const revalidate = 0 // seconds
-export const dynamic = 'force-dynamic'
-
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
 })
+
+const _cookies = cookies()
 
 // TODO: update metadata
 // TODO: add manifest
