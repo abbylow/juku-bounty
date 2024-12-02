@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { IGetProfileParams, Profile, ProfileOrNull } from "@/actions/profile/type";
 
 export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNull> {
-  // const _cookies = cookies()
+  const _cookies = cookies()
 
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
