@@ -1,9 +1,13 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
+import { cookies } from "next/headers";
+
 import { IGetVerifiedPlatformParams, VerifiedPlatform, VerifiedPlatformOrNull } from "@/actions/verifiedPlatform/type";
 
 export async function getVerifiedPlatform(params: IGetVerifiedPlatformParams): Promise<VerifiedPlatformOrNull> {
+  const _cookies = cookies()
+
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
   const sql = neon(process.env.DATABASE_URL);

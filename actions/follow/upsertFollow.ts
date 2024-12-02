@@ -1,9 +1,13 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
+import { cookies } from "next/headers";
+
 import { FollowOrNull, IUpsertFollowParams } from "@/actions/follow/type";
 
 export async function upsertFollow(params: IUpsertFollowParams): Promise<FollowOrNull> {
+  const _cookies = cookies()
+
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
   const sql = neon(process.env.DATABASE_URL);
