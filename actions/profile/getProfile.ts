@@ -5,6 +5,7 @@ import { neon } from "@neondatabase/serverless";
 import { IGetProfileParams, Profile, ProfileOrNull } from "@/actions/profile/type";
 
 export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNull> {
+  console.log("getProfile server action", params);
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
   const sql = neon(process.env.DATABASE_URL);
@@ -56,6 +57,7 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
     // Add active categories to the profile
     profile.category_ids = categoriesResult.map(row => row.category_id) || [];
 
+    console.log("getProfile server action", {profile});
     return profile;
   } catch (error) {
     console.log("Error retrieving profile ", error)

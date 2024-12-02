@@ -100,6 +100,7 @@ export default function BountyCard({
     const profile = await getProfile({
       id: profileId
     });
+    console.log("getProfile in fetchCreatorProfile", profile);
     return profile
   };
 

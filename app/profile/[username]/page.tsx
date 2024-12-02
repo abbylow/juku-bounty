@@ -30,6 +30,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
       const profile = await getProfile({
         username: params.username
       });
+      console.log("getProfile in retrieveProfile", profile);
       setUserData(profile);
 
       const categories = categoryOptions.filter((option: { value: any; }) =>
