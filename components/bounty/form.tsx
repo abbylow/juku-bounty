@@ -1,5 +1,3 @@
-"use client"
-
 import { format } from "date-fns"
 import { CalendarIcon } from "@radix-ui/react-icons"
 import { SubmitHandler, UseFormReturn } from "react-hook-form"
