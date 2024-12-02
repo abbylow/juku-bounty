@@ -4,6 +4,8 @@ import { neon } from "@neondatabase/serverless";
 
 import { IGetProfileParams, Profile, ProfileOrNull } from "@/actions/profile/type";
 
+export const revalidate = 0;
+
 export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNull> {
   console.log("getProfile server action", params);
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
