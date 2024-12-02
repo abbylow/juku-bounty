@@ -124,7 +124,7 @@ export default function ProfileCard({
       </div>
       {allowFollow && (
         <Button onClick={updateFollowRelation} disabled={isFollowingPending || isUpdatingFollow}>
-          {isFollowingPending || isUpdatingFollow && <Loader2 className="animate-spin mr-2" />}
+          {(isFollowingPending || isUpdatingFollow)&& <Loader2 className="animate-spin mr-2" />}
           {following?.active ? "Unfollow" : "Follow"}
         </Button>
       )}
