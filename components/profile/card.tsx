@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -49,7 +50,7 @@ export default function ProfileCard({
   const { viewer } = useViewerContext();
   const queryClient = useQueryClient();
 
-  const { data: following } = useQuery({
+  const { data: following, isPending: isFollowingPending } = useQuery({
     queryKey: ['fetchCurrentFollowStatus', viewer?.id, id],
     queryFn: async () => await getFollow({ followerId: viewer?.id!, followeeId: id }),
     enabled: !!(viewer?.id) && allowFollow
@@ -117,7 +118,8 @@ export default function ProfileCard({
 
       </div>
       {allowFollow && (
-        <Button onClick={updateFollowRelation}>
+        <Button onClick={updateFollowRelation} disabled={isFollowingPending}>
+          {isFollowingPending && <Loader2 className="animate-spin" />}
           {following?.active ? "Unfollow" : "Follow"}
         </Button>
       )}
