@@ -160,7 +160,6 @@ export function ProfileForm() {
     const foundProfile = await getProfile({
       username: e.target.value
     });
-    console.log("getProfile in checkDuplication", foundProfile);  
 
     if (foundProfile) {
       if (activeAccount?.address === foundProfile?.wallet_address) {
