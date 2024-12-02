@@ -9,6 +9,10 @@ import { PROFILE_SETTINGS_URL } from "@/const/links";
 import { getProfile } from "@/actions/profile/getProfile";
 import { ProfileOrNull } from "@/actions/profile/type";
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 interface IViewerContext {
   viewer: ProfileOrNull,
   isViewerPending: boolean,
