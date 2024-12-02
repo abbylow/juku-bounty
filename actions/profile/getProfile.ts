@@ -6,14 +6,10 @@ import { cookies } from "next/headers";
 import { IGetProfileParams, Profile, ProfileOrNull } from "@/actions/profile/type";
 
 export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNull> {
-  console.log("getProfile server action", params);
-  console.log("Executing getProfile action at:", new Date().toISOString());
+  const _cookies = cookies()
 
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
-  const _cookies = cookies()
-  console.log({ _cookies })
-  
   const sql = neon(process.env.DATABASE_URL);
 
   try {
@@ -62,8 +58,6 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
 
     // Add active categories to the profile
     profile.category_ids = categoriesResult.map(row => row.category_id) || [];
-
-    console.log("getProfile server action", { profile });
     return profile;
   } catch (error) {
     console.log("Error retrieving profile ", error)
