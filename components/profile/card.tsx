@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 import WalletAddress from "@/components/copyable-address/address";
 import { Badge } from "@/components/ui/badge";
@@ -56,12 +56,15 @@ export default function ProfileCard({
     enabled: !!(viewer?.id) && allowFollow
   })
 
+  const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
+  
   const updateFollowRelation = async () => {
     if (!viewer) {
       toast({ title: 'Something went wrong: Unable to get viewer' })
       return;
     }
     try {
+      setIsUpdatingFollow(true);
       const result = await upsertFollow({
         followeeId: id,
         followerId: viewer?.id,
@@ -75,6 +78,8 @@ export default function ProfileCard({
     } catch (error) {
       console.log({ error })
       toast({ title: `Something went wrong: ${error}` })
+    } finally {
+      setIsUpdatingFollow(false);
     }
   }
 
@@ -118,8 +123,8 @@ export default function ProfileCard({
 
       </div>
       {allowFollow && (
-        <Button onClick={updateFollowRelation} disabled={isFollowingPending}>
-          {isFollowingPending && <Loader2 className="animate-spin" />}
+        <Button onClick={updateFollowRelation} disabled={isFollowingPending || isUpdatingFollow}>
+          {isFollowingPending || isUpdatingFollow && <Loader2 className="animate-spin" />}
           {following?.active ? "Unfollow" : "Follow"}
         </Button>
       )}
