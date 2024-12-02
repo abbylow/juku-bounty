@@ -283,7 +283,7 @@ export default function BountyCard({
       <CardContent className="space-y-4">
         <h2 className="text-2xl font-bold">{details?.title}</h2>
         <p className="text-sm whitespace-pre-wrap">
-          {details?.description}
+          {details?.description?.replace(/\\n/g, '\n')}
         </p>
         <div className="flex gap-4 flex-wrap">
           <div className="flex gap-2">
