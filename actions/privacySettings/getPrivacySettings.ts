@@ -1,9 +1,13 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
+import { cookies } from "next/headers";
+
 import { IGetPrivacySettingsParams, PrivacySettings, PrivacySettingsOrNull } from "@/actions/privacySettings/type";
 
 export async function getPrivacySettings(params: IGetPrivacySettingsParams): Promise<PrivacySettingsOrNull> {
+  const _cookies = cookies()
+
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
   const sql = neon(process.env.DATABASE_URL);

@@ -1,12 +1,15 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
+import { cookies } from "next/headers";
 
 import { Bounty, BountyWinningContribution, GetBountiesParams } from "@/actions/bounty/type";
 import { Tag } from "@/actions/tag/type";
 import { BountyStatus } from "@/const/bounty-status";
 
 export async function getBounties(params: GetBountiesParams): Promise<Bounty[]> {
+  const _cookies = cookies()
+
   if (!process.env.DATABASE_URL) throw new Error("process.env.DATABASE_URL is not defined");
 
   const sql = neon(process.env.DATABASE_URL);
