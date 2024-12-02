@@ -272,6 +272,7 @@ export function BountyForm({
                     });
                   }}
                   defaultOptions={tagOptions}
+                  hidePlaceholderWhenSelected={true}
                   placeholder="Add tags for discovery..."
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">

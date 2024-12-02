@@ -165,6 +165,14 @@ export function ProfileForm() {
     }
   }
 
+  const searchCategories = async (value: string) => {
+    // not sure why the filter is not working so we filter it here
+    if (value === "") {
+      return categoryOptions;
+    }
+    return categoryOptions.filter(el => el.label.toLowerCase().includes(value.toLowerCase()));
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
@@ -246,6 +254,9 @@ export function ProfileForm() {
                       });
                     }}
                     defaultOptions={categoryOptions}
+                    onSearch={searchCategories}
+                    triggerSearchOnFocus={true}
+                    hidePlaceholderWhenSelected={true}
                     placeholder="Add categories for discovery..."
                     emptyIndicator={
                       <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">

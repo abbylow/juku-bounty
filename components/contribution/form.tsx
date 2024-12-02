@@ -139,6 +139,7 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
                   no user found.
                 </p>
               }
+              hidePlaceholderWhenSelected={true}
               hideClearAllButton
             />
           </div>
