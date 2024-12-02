@@ -61,14 +61,9 @@ export function ProfileForm() {
   }
   /** end of pfp input field handling */
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const { isCategoriesPending, categoryOptions } = useCategoryContext()
-  useEffect(() => {
-    if (!isCategoriesPending) {
-      setLoading(false)
-    }
-  }, [isCategoriesPending]);
 
   const { viewer } = useViewerContext()
   const [profileClone, setProfileClone] = useState<ExtendedProfileFormValues>();
@@ -237,7 +232,7 @@ export function ProfileForm() {
           <FormField
             control={form.control}
             name="categories"
-            disabled={loading}
+            disabled={loading || isCategoriesPending}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Expert Categories</FormLabel>
