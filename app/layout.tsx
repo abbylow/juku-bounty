@@ -11,7 +11,8 @@ import { cn } from '@/lib/utils'
 
 import './globals.css'
 
-export const dynamic = 'force-dynamic'
+// export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const fontSans = FontSans({
   subsets: ["latin"],
