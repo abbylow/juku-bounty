@@ -30,19 +30,22 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
   // Sync optimistic state with the query result
   useEffect(() => {
     if (isLiked !== optimisticLikeStatus) {
+      console.log("syncing optimistic state with query result", {isLiked, optimisticLikeStatus});
       addOptimisticLikeStatus(isLiked); // Sync the optimistic state with the latest `isLiked`
     }
   }, [addOptimisticLikeStatus, optimisticLikeStatus, isLiked]);
 
   const toggleLike = async () => {
+    const newLikeStatus = !optimisticLikeStatus;
+    console.log("toggleLike", {newLikeStatus, optimisticLikeStatus});
     // Update UI optimistically
-    addOptimisticLikeStatus(!optimisticLikeStatus);
+    addOptimisticLikeStatus(newLikeStatus);
 
     try {
       // Perform the like/dislike mutation
       await handleLikeDislike({
         bountyId,
-        like: !optimisticLikeStatus,
+        like: newLikeStatus,
       });
 
       // Invalidate query to sync with server
@@ -53,7 +56,7 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
       console.error("Error updating like status:", error);
 
       // Rollback optimistic update if mutation fails
-      addOptimisticLikeStatus(optimisticLikeStatus);
+      addOptimisticLikeStatus(!newLikeStatus);
     }
   };
 
