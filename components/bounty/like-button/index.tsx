@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ThumbsUp } from "lucide-react";
-import { useEffect, useOptimistic, useTransition } from "react";
+import { useEffect, useOptimistic } from "react";
 import { useActiveAccount } from "thirdweb/react";
 
 import { handleLikeDislike } from "@/actions/bountyLike/likeBounty";
@@ -13,8 +13,6 @@ import { empty, filled } from "@/const/color";
 export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-
-  const [isPending, startTransition] = useTransition();
 
   const { data: isLiked = false } = useQuery({
     queryKey: ["fetchBountyLikeStatus", bountyId, activeAccount?.address],
@@ -32,17 +30,13 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
   // Sync optimistic state with the query result
   useEffect(() => {
     if (isLiked !== optimisticLikeStatus) {
-      startTransition(() => {
-        addOptimisticLikeStatus(isLiked); // Sync the optimistic state with the latest `isLiked`
-      });
+      addOptimisticLikeStatus(isLiked); // Sync the optimistic state with the latest `isLiked`
     }
   }, [addOptimisticLikeStatus, optimisticLikeStatus, isLiked]);
 
   const toggleLike = async () => {
     // Update UI optimistically
-    startTransition(() => {
-      addOptimisticLikeStatus(!optimisticLikeStatus);
-    });
+    addOptimisticLikeStatus(!optimisticLikeStatus);
 
     try {
       // Perform the like/dislike mutation
@@ -59,9 +53,7 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
       console.error("Error updating like status:", error);
 
       // Rollback optimistic update if mutation fails
-      startTransition(() => {
-        addOptimisticLikeStatus(optimisticLikeStatus);
-      });
+      addOptimisticLikeStatus(optimisticLikeStatus);
     }
   };
 
