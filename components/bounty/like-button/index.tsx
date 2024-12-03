@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ThumbsUp } from "lucide-react";
-import { useEffect, useOptimistic } from "react";
+import { Loader2, ThumbsUp } from "lucide-react";
+import { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 
 import { handleLikeDislike } from "@/actions/bountyLike/likeBounty";
@@ -14,38 +14,20 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
 
-  const { data: isLiked = false } = useQuery({
+  const { data: isLiked } = useQuery({
     queryKey: ["fetchBountyLikeStatus", bountyId, activeAccount?.address],
     queryFn: async () => await getCurrentLikeStatus({ bountyId }),
     enabled: !!activeAccount?.address, // Only fetch if the user is logged in
-    initialData: false, // Default to false if no data is available
   });
 
-  // Optimistic State
-  const [optimisticLikeStatus, addOptimisticLikeStatus] = useOptimistic<boolean, boolean>(
-    isLiked,
-    (currentState: boolean, newState: boolean) => newState // Replace the current state with the new state
-  );
-
-  // Sync optimistic state with the query result
-  useEffect(() => {
-    if (isLiked !== optimisticLikeStatus) {
-      console.log("syncing optimistic state with query result", {isLiked, optimisticLikeStatus});
-      addOptimisticLikeStatus(isLiked); // Sync the optimistic state with the latest `isLiked`
-    }
-  }, [addOptimisticLikeStatus, optimisticLikeStatus, isLiked]);
-
+  const [isUpdating, setIsUpdating] = useState(false);
   const toggleLike = async () => {
-    const newLikeStatus = !optimisticLikeStatus;
-    console.log("toggleLike", {newLikeStatus, optimisticLikeStatus});
-    // Update UI optimistically
-    addOptimisticLikeStatus(newLikeStatus);
-
     try {
+      setIsUpdating(true);
       // Perform the like/dislike mutation
       await handleLikeDislike({
         bountyId,
-        like: newLikeStatus,
+        like: !isLiked,
       });
 
       // Invalidate query to sync with server
@@ -54,16 +36,16 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
       });
     } catch (error) {
       console.error("Error updating like status:", error);
-
-      // Rollback optimistic update if mutation fails
-      addOptimisticLikeStatus(!newLikeStatus);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   return (
     <div className="flex gap-2 text-sm text-muted-foreground">
-      <Button variant="ghost" size="sm" onClick={toggleLike}>
-        <ThumbsUp fill={optimisticLikeStatus ? filled : empty} className="mr-2 h-4 w-4" />
+      <Button variant="ghost" size="sm" onClick={toggleLike} disabled={isUpdating}>
+        {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <ThumbsUp fill={isLiked ? filled : empty} className="mr-2 h-4 w-4" />
         Like
       </Button>
     </div>
