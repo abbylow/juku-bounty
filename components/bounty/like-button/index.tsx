@@ -67,7 +67,7 @@ export default function BountyLikeButton({ bountyId }: { bountyId: string }) {
 
   return (
     <div className="flex gap-2 text-sm text-muted-foreground">
-      <Button variant="ghost" size="sm" onClick={toggleLike} disabled={isPending}>
+      <Button variant="ghost" size="sm" onClick={toggleLike}>
         <ThumbsUp fill={optimisticLikeStatus ? filled : empty} className="mr-2 h-4 w-4" />
         Like
       </Button>
