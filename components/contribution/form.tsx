@@ -57,8 +57,11 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
     return options;
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmission = async () => {
     try {
+      setIsSubmitting(true);
       await createContribution({
         bountyId: bountyId,
         creatorProfileId: viewer?.id!,
@@ -76,6 +79,8 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
       }
     } catch (error) {
       console.log("Something went wrong")
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -146,7 +151,7 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
         </div>
         <DialogFooter>
           <div className="flex flex-col gap-4">
-            <Button type="submit" onClick={handleSubmission}>Submit</Button>
+            <Button type="submit" onClick={handleSubmission} disabled={isSubmitting}>Submit</Button>
           </div>
         </DialogFooter>
       </DialogContent>
