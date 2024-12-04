@@ -23,8 +23,11 @@ export default function CommentForm({ contributionId, bountyId }: { contribution
     setCommentDesc(e.target.value)
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmission = async () => {
     try {
+      setIsSubmitting(true);
       await createComment({
         contributionId: contributionId,
         creatorProfileId: viewer?.id!,
@@ -36,6 +39,8 @@ export default function CommentForm({ contributionId, bountyId }: { contribution
       queryClient.invalidateQueries({ queryKey: ['fetchBounty', bountyId] })
     } catch (error) {
       console.log("Something went wrong")
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -68,7 +73,7 @@ export default function CommentForm({ contributionId, bountyId }: { contribution
         </div>
         <DialogFooter>
           <div className="flex flex-col gap-4">
-            <Button type="submit" onClick={handleSubmission}>Submit</Button>
+            <Button type="submit" onClick={handleSubmission} disabled={isSubmitting}>Submit</Button>
           </div>
         </DialogFooter>
       </DialogContent>
