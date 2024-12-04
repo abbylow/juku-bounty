@@ -51,7 +51,10 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
 
   // Memoized debounced function for handling search input changes
   const handleSearchChange = useMemo(
-    () => debounce((value: string) => setSearchTerm(value), 500), // 500ms debounce delay
+    () => debounce((value: string) => {
+      setSearchTerm(value)
+      setCurrentPage(1)
+    }, 500), // 500ms debounce delay
     []
   );
 
@@ -98,8 +101,20 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
     })
   });
 
-  console.log({ bountyCount, isBountyCountPending });
-  console.log({ bounties, isBountiesPending });
+  const handleStatusChange = (value: BountyStatus) => {
+    setStatus(value)
+    setCurrentPage(1)
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value === "*" ? null : value)
+    setCurrentPage(1)
+  }
+
+  const handleSortChange = (value: SortOptions) => {
+    setSortBy(value)
+    setCurrentPage(1)
+  }
 
   if (isBountiesError) {
     return <div>Error: Bounties not found!</div>;
@@ -114,7 +129,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
         <CardContent className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             {!isCategoriesPending && (
-              <Select onValueChange={(value) => setSelectedCategory(value === "*" ? null : value)}>
+              <Select onValueChange={handleCategoryChange}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Categories" />
                 </SelectTrigger>
@@ -128,7 +143,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
             )}
 
             {/* Filter by status */}
-            <Select onValueChange={(value: BountyStatus) => setStatus(value)}>
+            <Select onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -145,7 +160,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
             </Select>
 
             {/* Sort by */}
-            <Select onValueChange={(value: SortOptions) => setSortBy(value)}>
+            <Select onValueChange={handleSortChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
