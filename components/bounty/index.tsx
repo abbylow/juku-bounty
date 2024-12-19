@@ -10,7 +10,7 @@ import { ContributionCard } from "@/components/contribution/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { escrowContractInstance } from "@/lib/contract-instances"
 
-export default function BountyPage({ details, isClosingMode }: { details: any, isClosingMode?: boolean }) {
+export default function BountyPage({ details, isClosingMode, hideDetails = false }: { details: any, isClosingMode?: boolean, hideDetails?: boolean }) {
   // Get bounty's reward details from escrow contract
   const { data: bountyData, isPending: isBountyDataPending } = useReadContract({
     contract: escrowContractInstance,
@@ -50,7 +50,7 @@ export default function BountyPage({ details, isClosingMode }: { details: any, i
         isBountyDataPending={isBountyDataPending}
       />
       {/* TODO: sort the contributions by created_at DESC */}
-      {details?.contributions?.length > 0 && (
+      {!hideDetails && details?.contributions?.length > 0 && (
         <>
           {isClosingBounty && (
             <div className="mt-8">

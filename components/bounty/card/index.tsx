@@ -323,6 +323,7 @@ export default function BountyCard({
               <Button variant="default" onClick={submitEndBounty}>Submit</Button>
             }
             {
+              !(details?.contributions?.find((el: any) => (el?.creator?.id === viewer?.id))) &&
               (viewer?.id !== details.creator_profile_id && status === BountyStatus.OPEN) &&
               <ContributionForm bountyId={details.id} bountyCreator={details.creator_profile_id}/>
             }

@@ -196,7 +196,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
           </div>
 
           {bounties?.map((b: any) => (
-            <BountyPage key={b?.id} details={b} />
+            <BountyPage key={b?.id} details={b} hideDetails={true}/>
           ))}
 
           {isBountiesPending && <div className="space-y-2">
