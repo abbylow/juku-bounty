@@ -324,7 +324,7 @@ export default function BountyCard({
             }
             {
               (viewer?.id !== details.creator_profile_id && status === BountyStatus.OPEN) &&
-              <ContributionForm bountyId={details.id} />
+              <ContributionForm bountyId={details.id} bountyCreator={details.creator_profile_id}/>
             }
             {
               !!(!isClaimableFundsPending && (claimableFunds && claimableFunds > 0)) &&
