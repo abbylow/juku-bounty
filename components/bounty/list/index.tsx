@@ -47,7 +47,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
   const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Default: no category selected
   const [searchTerm, setSearchTerm] = useState<string>(""); // search input state
-  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN); // Default select all statuses
+  const [status, setStatus] = useState<BountyStatus>(BountyStatus.OPEN); // Default select all statuses
 
   // Memoized debounced function for handling search input changes
   const handleSearchChange = useMemo(
@@ -143,7 +143,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
             )}
 
             {/* Filter by status */}
-            <Select onValueChange={handleStatusChange}>
+            <Select onValueChange={handleStatusChange} defaultValue={BountyStatus.OPEN}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
