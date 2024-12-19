@@ -97,10 +97,10 @@ export default function ProfileCard({
           <p className="text-lg font-medium leading-none">
             {displayName}
           </p>
-          <WalletAddress
+          {/* <WalletAddress
             className="text-md font-medium"
             address={address}
-          />
+          /> */}
           <p className="text-sm text-muted-foreground">
             @{username}
           </p>
