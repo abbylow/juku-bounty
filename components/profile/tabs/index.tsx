@@ -7,11 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useViewerContext } from "@/contexts/viewer";
 
-export default function ProfileTabs() {
-  const { viewer } = useViewerContext();
-
+export default function ProfileTabs({ relatedProfile }: { relatedProfile: string | undefined }) {
   return (
     <section className="space-y-6 md:px-10 py-10 pb-16">
       <div>
@@ -22,7 +19,7 @@ export default function ProfileTabs() {
           </TabsList>
 
           <TabsContent value="bounty">
-            <BountyList relatedProfile={viewer?.id} />
+            <BountyList relatedProfile={relatedProfile} />
           </TabsContent>
           <TabsContent value="portfolio">
             <Card>
