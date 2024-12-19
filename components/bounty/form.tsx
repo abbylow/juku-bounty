@@ -286,7 +286,7 @@ export function BountyForm({
           )}
         />
 
-        <Button type="submit" disabled={loading}>Submit</Button>
+        <Button type="submit" disabled={loading}>Open Bounty</Button>
 
         <p className="text-sm text-muted-foreground">
           By confirming to open the bounty, you hereby acknowledge that you have read and accept our {" "}
