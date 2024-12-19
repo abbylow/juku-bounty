@@ -183,6 +183,11 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
                       placeholder="Search"
                       className="pl-8"
                       onChange={onSearchInputChange} // Debounced search
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault(); // Prevent form submission
+                        }
+                      }}
                     />
                   </div>
                 </form>
