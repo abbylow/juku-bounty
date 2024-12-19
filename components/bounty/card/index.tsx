@@ -224,7 +224,7 @@ export default function BountyCard({
       if (!claimLog) {
         throw new Error("Fail to get FundClaimed event log");
       }
-      toast({ title: "Claim funds successfully" })
+      toast({ title: "Claimed funds successfully" })
       setIsClaimedFund(true);
     } catch (error) {
       console.error("Error claiming funds", error)
