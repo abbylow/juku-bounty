@@ -224,7 +224,7 @@ export default function BountyCard({
       if (!claimLog) {
         throw new Error("Fail to get FundClaimed event log");
       }
-      toast({ title: "Claim funds successfully" })
+      toast({ title: "Claimed funds successfully" })
       setIsClaimedFund(true);
     } catch (error) {
       console.error("Error claiming funds", error)
@@ -323,8 +323,9 @@ export default function BountyCard({
               <Button variant="default" onClick={submitEndBounty}>Submit</Button>
             }
             {
+              !(details?.contributions?.find((el: any) => (el?.creator?.id === viewer?.id))) &&
               (viewer?.id !== details.creator_profile_id && status === BountyStatus.OPEN) &&
-              <ContributionForm bountyId={details.id} />
+              <ContributionForm bountyId={details.id} bountyCreator={details.creator_profile_id}/>
             }
             {
               !!(!isClaimableFundsPending && (claimableFunds && claimableFunds > 0)) &&

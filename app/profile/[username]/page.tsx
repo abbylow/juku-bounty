@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import ProfileCard from "@/components/profile/card";
+import ProfileTabs from "@/components/profile/tabs";
 import { Option } from "@/components/ui/multiple-selector";
 import { coinbaseVerifiedAccount } from "@/const/verified_platform";
 import { useCategoryContext } from "@/contexts/categories";
@@ -83,6 +84,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
           allowEdit={false}
           allowFollow={userData?.id !== viewer?.id}
         />
+        <ProfileTabs relatedProfile={userData?.id} />
       </section>
     </div >
   )

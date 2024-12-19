@@ -47,7 +47,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
   const [sortBy, setSortBy] = useState<SortOptions>("most-recent"); // Default sort
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Default: no category selected
   const [searchTerm, setSearchTerm] = useState<string>(""); // search input state
-  const [status, setStatus] = useState<BountyStatus>(BountyStatus.UNKNOWN); // Default select all statuses
+  const [status, setStatus] = useState<BountyStatus>(BountyStatus.OPEN); // Default select all statuses
 
   // Memoized debounced function for handling search input changes
   const handleSearchChange = useMemo(
@@ -143,7 +143,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
             )}
 
             {/* Filter by status */}
-            <Select onValueChange={handleStatusChange}>
+            <Select onValueChange={handleStatusChange} defaultValue={BountyStatus.OPEN}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -183,6 +183,11 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
                       placeholder="Search"
                       className="pl-8"
                       onChange={onSearchInputChange} // Debounced search
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault(); // Prevent form submission
+                        }
+                      }}
                     />
                   </div>
                 </form>
@@ -191,7 +196,7 @@ export default function BountyList({ relatedProfile }: { relatedProfile?: string
           </div>
 
           {bounties?.map((b: any) => (
-            <BountyPage key={b?.id} details={b} />
+            <BountyPage key={b?.id} details={b} hideDetails={true}/>
           ))}
 
           {isBountiesPending && <div className="space-y-2">

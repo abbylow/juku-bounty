@@ -22,7 +22,7 @@ export async function getProfile(params: IGetProfileParams): Promise<ProfileOrNu
     }
 
     if (params?.username) {
-      whereClauses.push(`username = $${whereClauses.length + 1}`);
+      whereClauses.push(`LOWER(username) = LOWER($${whereClauses.length + 1})`);
       values.push(params.username);
     }
 

@@ -74,7 +74,7 @@ export default function Profile() {
           integrations={platformIntegrations || []}
           allowEdit={true}
         />
-        <ProfileTabs />
+        <ProfileTabs relatedProfile={viewer?.id} />
       </section>
     </div >
   )

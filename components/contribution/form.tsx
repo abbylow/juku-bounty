@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { toast } from "@/components/ui/use-toast"
 import { useViewerContext } from "@/contexts/viewer"
 
-export default function ContributionForm({ bountyId }: { bountyId: string }) {
+export default function ContributionForm({ bountyId, bountyCreator }: { bountyId: string, bountyCreator: string }) {
   const router = useRouter();
   const { viewer } = useViewerContext();
   const queryClient = useQueryClient();
@@ -50,7 +50,7 @@ export default function ContributionForm({ bountyId }: { bountyId: string }) {
     });
 
     // TODO: for users that have disabled referral, user will not be able to choose and refer them and see the “Referral disabled” tag
-    const options = response.filter(el => el.id !== viewer?.id).map((profile) => ({
+    const options = response.filter(el => ((el.id !== viewer?.id) && (el.id !== bountyCreator))).map((profile) => ({
       value: profile.id,
       label: `${profile.display_name} @${profile.username}`, // Combine display name and username for the label
     }));
