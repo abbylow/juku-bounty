@@ -1,6 +1,7 @@
 import { format } from "date-fns"
 import { CalendarIcon } from "@radix-ui/react-icons"
 import { SubmitHandler, UseFormReturn } from "react-hook-form"
+import BountyCreateDialog from "@/components/bounty/create-dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -24,6 +25,7 @@ import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES_ADDRESS_TYPE } from "@/app/bounty/create/const";
+
 interface IBountyForm {
   form: UseFormReturn<{
     title: string;
@@ -53,7 +55,7 @@ interface IBountyForm {
   }>
   loading: boolean
   categoryOptions: Option[]
-  tagOptions: Option[] 
+  tagOptions: Option[]
 }
 
 export function BountyForm({
@@ -286,7 +288,8 @@ export function BountyForm({
           )}
         />
 
-        <Button type="submit" disabled={loading}>Open Bounty</Button>
+        {/* <Button type="submit" disabled={loading}>Open Bounty</Button> */}
+        <BountyCreateDialog disabled={loading} />
 
         <p className="text-sm text-muted-foreground">
           By confirming to open the bounty, you hereby acknowledge that you have read and accept our {" "}

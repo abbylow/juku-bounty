@@ -163,7 +163,8 @@ export function BountyCreationForm() {
   };
 
   const onSubmit: SubmitHandler<BountyFormValues> = async (data) => {
-    await handleSubmit(data)
+    console.log('we change from here')
+    // await handleSubmit(data)
   }
 
   const selectTemplate = (templateId: string) => {
