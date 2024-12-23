@@ -1,6 +1,9 @@
-import { format } from "date-fns"
 import { CalendarIcon } from "@radix-ui/react-icons"
-import { SubmitHandler, UseFormReturn } from "react-hook-form"
+import { format } from "date-fns"
+import { UseFormReturn } from "react-hook-form"
+import { Dispatch, SetStateAction } from "react"
+
+import BountyCreateDialog from "@/components/bounty/create-dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -24,52 +27,29 @@ import { TERMS_OF_SERVICE_URL } from "@/const/links"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { tomorrow, oneMonthFromNow, EXPIRY_PRESET, ACCEPTABLE_CURRENCIES, ACCEPTABLE_CURRENCIES_ADDRESS_TYPE } from "@/app/bounty/create/const";
+import { BountyFormValues } from "@/app/bounty/create/form-schema"
+
 interface IBountyForm {
-  form: UseFormReturn<{
-    title: string;
-    description: string;
-    numberOfRewarders: number;
-    expiry: Date;
-    category: string;
-    rewardCurrency: ACCEPTABLE_CURRENCIES_ADDRESS_TYPE;
-    amountPerRewarder: number;
-    tags?: {
-      label: string,
-      value: string
-    }[] | undefined;
-  }, any, undefined>
-  onSubmit: SubmitHandler<{
-    title: string;
-    description: string;
-    numberOfRewarders: number;
-    expiry: Date;
-    category: string;
-    rewardCurrency: ACCEPTABLE_CURRENCIES_ADDRESS_TYPE;
-    amountPerRewarder: number;
-    tags?: {
-      label: string,
-      value: string
-    }[] | undefined;
-  }>
-  loading: boolean
+  form: UseFormReturn<BountyFormValues>, 
+  loading: boolean,
+  setLoading: Dispatch<SetStateAction<boolean>>,
   categoryOptions: Option[]
-  tagOptions: Option[] 
+  tagOptions: Option[]
 }
 
 export function BountyForm({
   form,
-  onSubmit,
   loading,
+  setLoading,
   categoryOptions,
   tagOptions
 }: IBountyForm) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form className="space-y-8">
         <FormField
           control={form.control}
           name="title"
-          disabled={loading}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Title</FormLabel>
@@ -87,7 +67,6 @@ export function BountyForm({
         <FormField
           control={form.control}
           name="description"
-          disabled={loading}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
@@ -107,7 +86,6 @@ export function BountyForm({
           <FormField
             control={form.control}
             name="numberOfRewarders"
-            disabled={loading}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Number of Rewarders</FormLabel>
@@ -128,7 +106,6 @@ export function BountyForm({
           <FormField
             control={form.control}
             name="rewardCurrency"
-            disabled={loading}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Currency</FormLabel>
@@ -154,7 +131,6 @@ export function BountyForm({
           <FormField
             control={form.control}
             name="amountPerRewarder"
-            disabled={loading}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Amount per Rewarder</FormLabel>
@@ -173,7 +149,6 @@ export function BountyForm({
         <FormField
           control={form.control}
           name="expiry"
-          disabled={loading}
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Expiry Date</FormLabel>
@@ -186,7 +161,6 @@ export function BountyForm({
                         "w-[240px] pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
-                      disabled={loading}
                     >
                       {field.value ? (
                         format(field.value, "PPP")
@@ -231,11 +205,10 @@ export function BountyForm({
         <FormField
           control={form.control}
           name="category"
-          disabled={loading}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Expert Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger >
                     <SelectValue placeholder="Select a category" />
@@ -257,7 +230,6 @@ export function BountyForm({
         <FormField
           control={form.control}
           name="tags"
-          disabled={loading}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tags</FormLabel>
@@ -285,8 +257,8 @@ export function BountyForm({
             </FormItem>
           )}
         />
-
-        <Button type="submit" disabled={loading}>Open Bounty</Button>
+        
+        <BountyCreateDialog form={form} disabled={!(form?.formState?.isValid) || loading} loading={loading} setLoading={setLoading}/>
 
         <p className="text-sm text-muted-foreground">
           By confirming to open the bounty, you hereby acknowledge that you have read and accept our {" "}
