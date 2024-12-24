@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistance, formatDistanceToNow } from 'date-fns'
 import { formatUnits } from "ethers/lib/utils"
 import { constants } from "ethers"
-import { Award, CalendarClock, ChevronRight } from "lucide-react"
+import { Award, CalendarClock, ChevronRight, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from "react"
@@ -12,6 +12,7 @@ import { useActiveAccount, useReadContract } from "thirdweb/react"
 import { Account } from "thirdweb/wallets"
 
 import { closeBounty } from "@/actions/bounty/closeBounty"
+import { Contribution } from "@/actions/bounty/type"
 import { getProfile } from "@/actions/profile/getProfile"
 import { Tag } from "@/actions/tag/type"
 import BountyLikeButton from "@/components/bounty/like-button"
@@ -25,6 +26,7 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
 import UserAvatar from "@/components/user/avatar"
 import { BountyStatus } from "@/const/bounty-status"
@@ -253,6 +255,8 @@ export default function BountyCard({
     }
   }, [details.is_result_decided, details.expiry, details.winningContributions, details.id])
 
+  const referredContribution = details?.contributions?.find((el: Contribution) => el.referee_id === viewer?.id);
+
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -323,9 +327,31 @@ export default function BountyCard({
               <Button variant="default" onClick={submitEndBounty}>Submit</Button>
             }
             {
+              !referredContribution &&
               !(details?.contributions?.find((el: any) => (el?.creator?.id === viewer?.id))) &&
               (viewer?.id !== details.creator_profile_id && status === BountyStatus.OPEN) &&
-              <ContributionForm bountyId={details.id} bountyCreator={details.creator_profile_id}/>
+              <ContributionForm bountyId={details.id} bountyCreator={details.creator_profile_id} />
+            }
+            {
+              (referredContribution) &&
+              (status === BountyStatus.OPEN) &&
+              !(pathname.includes("bounty")) &&
+              // <CommentForm contributionId={referredContribution} bountyId={details.id} />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href={getURL(`/bounty/${details?.id}`)}>
+                      <Button variant="default">
+                        Comment
+                        <HelpCircle className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>You are being referred in this bounty.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             }
             {
               !!(!isClaimableFundsPending && (claimableFunds && claimableFunds > 0)) &&

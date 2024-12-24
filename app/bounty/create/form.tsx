@@ -2,10 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQuery } from "@tanstack/react-query"
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { useActiveAccount, useReadContract } from "thirdweb/react"
+import { useReadContract } from "thirdweb/react"
 
 import { getTags } from "@/actions/tag/getTags"
 import { bountyFormSchema, BountyFormValues, defaultValues } from "@/app/bounty/create/form-schema";
@@ -15,7 +14,6 @@ import { Option } from '@/components/ui/multiple-selector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { QUEST_TEMPLATES } from "@/const/quest-templates"
 import { useCategoryContext } from "@/contexts/categories"
-import { useViewerContext } from "@/contexts/viewer"
 import { escrowContractInstance } from "@/lib/contract-instances"
 
 export function BountyCreationForm() {
