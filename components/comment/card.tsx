@@ -35,7 +35,7 @@ export function CommentCard(
                   <p className="text-sm text-muted-foreground">{`@${comment?.creator?.username}`}</p>
                 </Link>
               </div>
-              <Badge variant="secondary">{role}</Badge>
+              <Badge variant="default">{role}</Badge>
             </div>
 
             <div className="flex gap-3 items-center flex-wrap">

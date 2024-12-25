@@ -316,7 +316,7 @@ export default function BountyCard({
             {
               (viewer?.id === details.creator_profile_id && !details.is_result_decided) &&
               <Button
-                variant={isClosingBounty ? "secondary" : "default"}
+                variant={isClosingBounty ? "outline" : "default"}
                 onClick={toggleWinnerSelection}
               >
                 {isClosingBounty ? 'Cancel' : 'Close Bounty'}

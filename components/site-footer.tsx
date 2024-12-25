@@ -5,7 +5,7 @@ import { Icons } from '@/components/icons'
 
 export function Footer() {
   return (
-    <footer className="py-6 bg-secondary">
+    <footer className="py-6 bg-primary">
       <div className="container max-w-screen-2xl flex md:flex-row md:items-center md:justify-between flex-col gap-16">
         <div className="flex md:items-center gap-8">
           <div className="flex flex-col gap-4">
@@ -28,33 +28,33 @@ export function Footer() {
                 />
               </a>
             </div>
-            <p className="text-balance text-center leading-loose text-muted-foreground md:text-left">
+            <p className="text-balance font-semibold text-center leading-loose md:text-left">
               © COPYRIGHT 2024 Juku
             </p>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 grid-cols-2 md:gap-24 gap-8">
-          <div className="flex flex-col gap-2">
-            <h5 className="text-lg font-semibold">
+          <div className="flex flex-col gap-4">
+            <h5 className="text-xl font-bold">
               Learn
             </h5>
-            <a href={INTRODUCTION_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
+            <a href={INTRODUCTION_URL} rel="noreferrer noopener" target="_blank" className="font-semibold hover:underline hover:underline-offset-8 hover:decoration-2 hover:decoration-secondary">
               Introduction
             </a>
-            <a href={HOW_IT_WORKS_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
+            <a href={HOW_IT_WORKS_URL} rel="noreferrer noopener" target="_blank" className="font-semibold hover:underline hover:underline-offset-8 hover:decoration-2 hover:decoration-secondary">
               How it Works
             </a>
-            <a href={CONTACT_US_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
+            <a href={CONTACT_US_URL} rel="noreferrer noopener" target="_blank" className="font-semibold hover:underline hover:underline-offset-8 hover:decoration-2 hover:decoration-secondary">
               Talk to us
             </a>
           </div>
 
           <div className="flex flex-col gap-2">
-            <h5 className="text-lg font-semibold">
+            <h5 className="text-xl font-bold">
               Company
             </h5>
-            <a href={TERMS_OF_SERVICE_URL} rel="noreferrer noopener" target="_blank" className="transition-colors text-foreground/60 hover:text-foreground/80">
+            <a href={TERMS_OF_SERVICE_URL} rel="noreferrer noopener" target="_blank" className="font-semibold hover:underline hover:underline-offset-8 hover:decoration-2 hover:decoration-secondary">
               Terms of Service
             </a>
           </div>

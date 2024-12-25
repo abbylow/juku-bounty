@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
 
-import WalletAddress from "@/components/copyable-address/address";
+// import WalletAddress from "@/components/copyable-address/address";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Option } from "@/components/ui/multiple-selector";
@@ -111,7 +111,7 @@ export default function ProfileCard({
         <div className="flex gap-2">
           {
             categories?.map(c => (
-              <Badge key={c.value}>
+              <Badge key={c.value} variant="secondary">
                 {c.label}
               </Badge>
             ))

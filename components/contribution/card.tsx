@@ -48,7 +48,7 @@ export function ContributionCard({
   };
 
   return (
-    <div className={`mb-4 p-4 ${isClosingBounty ? "border border-primary rounded-lg" : ""} ${isSelected && isClosingBounty ? "bg-gray-100" : ""}`}>
+    <div className={`mb-4 p-4 ${isClosingBounty ? "border-2 border-primary rounded-lg" : ""} ${isSelected && isClosingBounty ? "border-secondary" : ""}`}>
       <div className="flex items-start gap-4">
         {isClosingBounty && (
           <TooltipProvider>
@@ -88,7 +88,7 @@ export function ContributionCard({
                   <p className="text-sm text-muted-foreground">{`@${contribution?.creator?.username}`}</p>
                 </Link>
               </div>
-              <Badge variant="secondary">contributor</Badge>
+              <Badge variant="default">contributor</Badge>
               {isWinner && <Crown className="h-6 w-6 text-yellow-500" />}
             </div>
 
