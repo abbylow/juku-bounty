@@ -7,7 +7,7 @@ import {
 
 import { useTwebContext } from '@/contexts/thirdweb'
 import { SHORT_LOGO, TERMS_OF_SERVICE_URL } from "@/const/links";
-// import { lightThirdwebTheme } from './customized-themes'
+import { customizedTheme } from './customized-themes'
 import {
   generatePayload,
   isLoggedIn,
@@ -32,8 +32,7 @@ export function ConnectBtn() {
       client={client}
       wallets={wallets}
       chain={currentChain}
-      // theme={lightThirdwebTheme} //TODO: customize to juku's theme
-      theme={"light"}
+      theme={customizedTheme}
       connectModal={{
         size: "wide",
         titleIcon: SHORT_LOGO,
