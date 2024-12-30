@@ -89,7 +89,7 @@ export function ContributionCard({
                 </Link>
               </div>
 
-              <Badge variant="default">{contribution?.referee_id ? "referer" : "contributor"}</Badge>
+              <Badge variant="default">{contribution?.referee_id ? "referrer" : "contributor"}</Badge>
               {isWinner && <Crown className="h-6 w-6 text-yellow-500" />}
             </div>
 
