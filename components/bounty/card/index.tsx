@@ -348,7 +348,7 @@ export default function BountyCard({
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>You are being referred in this bounty.</p>
+                    <p>You are being referred to this bounty</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
