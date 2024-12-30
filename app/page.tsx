@@ -30,7 +30,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p>Coming Soon!</p>
+                <p className="text-sm">Coming Soon!</p>
               </CardContent>
             </Card>
           </TabsContent>

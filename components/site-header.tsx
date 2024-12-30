@@ -24,7 +24,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
+  // SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
@@ -119,13 +119,13 @@ export function Header() {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link href={APP_HOMEPAGE_URL} passHref legacyBehavior>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  <NavigationMenuLink className={'text-lg ' + navigationMenuTriggerStyle()}>
                     Explore
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Create Quest</NavigationMenuTrigger>
+                <NavigationMenuTrigger className='text-lg'>Create Quest</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid gap-3 p-3 md:w-[400px] lg:w-[500px]">
                     <Link href={BOUNTY_CREATION_URL} passHref legacyBehavior>
@@ -148,7 +148,7 @@ export function Header() {
                 {/* TODO: only display this about juku route when user's not logged - move this to profile icon after logged in*/}
                 <Link href={LANDING_PAGE_URL} passHref legacyBehavior>
                   <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
-                    <a rel="noreferrer noopener" target="_blank">
+                    <a rel="noreferrer noopener" target="_blank" className='text-lg'>
                       About Juku
                     </a>
                   </NavigationMenuLink>

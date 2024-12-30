@@ -111,7 +111,7 @@ export default function ProfileCard({
         <div className="flex gap-2">
           {
             categories?.map(c => (
-              <Badge key={c.value} variant="secondary">
+              <Badge key={c.value} variant="outline">
                 {c.label}
               </Badge>
             ))

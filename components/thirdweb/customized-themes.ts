@@ -6,7 +6,8 @@ export const customizedTheme = lightTheme({
     secondaryText: "#292828",
     primaryButtonBg: "#DBEB31",
     primaryButtonText: "#292828",
-    connectedButtonBg: "#DBEB31",
-    connectedButtonBgHover: "#4F4DEB",
+    connectedButtonBg: "#FFFFFF",
+    // connectedButtonBgHover: "#4F4DEB",
+    borderColor: "#DBEB31"
   },
 })

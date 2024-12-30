@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter as FontSans } from 'next/font/google'
+import { Anek_Latin as FontSans } from "next/font/google";
 import { CategoryProvider } from '@/contexts/categories'
 import TanStackProvider from '@/contexts/tanstack'
 import { TwebProvider } from '@/contexts/thirdweb'
