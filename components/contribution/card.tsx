@@ -88,7 +88,8 @@ export function ContributionCard({
                   <p className="text-sm text-muted-foreground">{`@${contribution?.creator?.username}`}</p>
                 </Link>
               </div>
-              <Badge variant="default">contributor</Badge>
+
+              <Badge variant="default">{contribution?.referee_id ? "referer" : "contributor"}</Badge>
               {isWinner && <Crown className="h-6 w-6 text-yellow-500" />}
             </div>
 
