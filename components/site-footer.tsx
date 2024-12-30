@@ -1,4 +1,4 @@
-import { Linkedin } from 'lucide-react'
+// import { Linkedin } from 'lucide-react'
 import Image from "next/image";
 import { CONTACT_US_URL, HOW_IT_WORKS_URL, INTRODUCTION_URL, LANDING_PAGE_URL, LINKEDIN_URL, TERMS_OF_SERVICE_URL, TWITTER_URL } from '@/const/links'
 import { Icons } from '@/components/icons'
@@ -29,7 +29,7 @@ export function Footer() {
               </a>
             </div>
             <p className="text-balance font-semibold text-center leading-loose md:text-left">
-              © COPYRIGHT 2024 Juku
+              Copyright ©2025 Juku Network. All rights reserved.
             </p>
           </div>
         </div>
